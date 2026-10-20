@@ -79,7 +79,7 @@ Things that stay as-is: the tier-list colours (T1), semantic green `#3A874D` and
 ```
 
 Notes that affect the build:
-- **I do not have the Robot Reavers files.** `video/public/fonts/` currently holds only Orbitron and JetBrains Mono. Please add `Robot_Reavers_Italic.woff2` (and `.woff`) there. In Remotion they will load with `loadFont` and `staticFile("fonts/...")`, not the `/fonts/…?v=3` web path.
+- **Robot Reavers files are in** `video/public/fonts/Robot_Reavers_Italic.woff2` and `.woff` (family "Robot Reavers", Italic, 110 glyphs, 1024 upm). Coverage is full ASCII, digits, `+ £ € ©` and curly quotes, which is everything the templates use. Load with `loadFont` and `staticFile("fonts/Robot_Reavers_Italic.woff2")` rather than the `/fonts/…?v=3` web path.
 - **Teko is much narrower than Inter.** For the same visual weight and line length, caption and title sizes in §1 need to go up roughly **25–30 %** (e.g. ~40 → ~52). I will calibrate against the reference text widths in step 2.
 - **Robot Reavers is a display face with one style.** Use it sparingly: one accent word per caption and the big numerals. Do not set whole captions in it, or legibility suffers at phone size. I will check it at 720 px before committing to it for numerals under ~48 px.
 - Teko has weights 300–700. Use **600–700** for captions to match the reference weight, and 500 for small UI labels.
@@ -481,7 +481,7 @@ For development, the slot should show a neutral labelled block ("MEDIA SLOT"). I
 1. **Accent: resolved.** Gold gradient on matte black, per §0.1.
 2. **Accent-word font: resolved.** Robot Reavers Italic for accent words and numerals, Teko for everything else, per §0.1.
 3. **No stock people: resolved.** The MediaSlot above (your footage, product hero cutout, or `ShellEmblem`).
-4. **Open: font files.** I need `Robot_Reavers_Italic.woff2` / `.woff` in `video/public/fonts/` (and Teko, which I can bundle from Google Fonts if you want me to).
+4. **Robot Reavers files: resolved.** Added to `video/public/fonts/`. Teko is still to be bundled (I can fetch it from Google Fonts in step 2).
 5. **Open: the two missing templates.** Please re-attach them.
 6. **Open: the existing neon-green `video/` project.** It uses `#00ff41` and Orbitron. With the gold brand decided, do you want that treated as legacy and left alone?
 7. **Template content.** All five tell a coaching story. For ShellShock the same structures fit "ranking pre-workouts", "3 reasons your pre-workout is failing you" and "30 days on Shell Shock". The **ranking tier-list (T1)** transfers most directly ("rank every flavour").
