@@ -10,10 +10,10 @@ Step 1 of 2: analysis only. No Remotion code is written yet.
 
 | Item | State |
 |---|---|
-| Templates analysed | **5 of 7.** Only five mp4s arrived: `ranking-format`, `explainer-panel-reel`, `youtube-clips`, `business-short-form-reels_1`, `visual-essay-reel`. The other two need re-attaching. |
+| Templates analysed | **7 of 7.** `ranking-format`, `explainer-panel-reel`, `youtube-clips`, `business-short-form-reels_1`, `visual-essay-reel`, `split-reel`, `glass-explainer-reel`. All verified 720×1280 / 30 fps / 450 f. |
 | `/reference` and `/brand` | Neither folder exists in this environment. The mp4s came in as chat attachments. There are no brand files (logo, fonts, packaging). |
 | Accent colour | **Decided: gold gradient on matte black** (see §0.1). The orange values in §1–§3 are the *reference templates' measurements*; §0.1 overrides them for ShellShock. |
-| Source specs | All five are 720×1280, 30 fps, 450 frames (15.0 s). I verified this with `ffprobe`. |
+| Source specs | All seven are 720×1280, 30 fps, 450 frames (15.0 s). I verified this with `ffprobe`. |
 
 ### Frames and how they were measured
 
@@ -86,16 +86,16 @@ Notes that affect the build:
 
 ---
 
-## 1. Global rules (true for all 5)
+## 1. Global rules (true for all 7)
 
 ### Canvas and timing
 
 - 720×1280, 30 fps, 450 f, 9:16. Centre axis is x = 360.
 - **Hard cuts, no transitions.** A scene change is a single-frame swap.
-  - Three templates (explainer, business, essay) cut at exactly **104 / 210 / 345**. That is four scenes of about 3.5 s, 3.5 s, 4.5 s and 3.5 s.
+  - Five templates (explainer, business, essay, split-reel and glass-explainer) cut at **104 / 210 / 345**. That is four scenes of about 3.5 s, 3.5 s, 4.5 s and 3.5 s. Glass-explainer adds one more cut at **164**.
   - `youtube-clips` cuts at 75 / 112 / 188 / 269 / 372.
   - `ranking-format` is one continuous scene.
-- The **script is the same in four of the five**: hook, "it's your system", 3 steps, 30-day proof. Only the visual metaphor changes. The ranking template is a different format.
+- The **script is the same in six of the seven**: hook, "it's your system", 3 steps, 30-day proof. Only the visual metaphor changes. The ranking template is a different format.
 
 ### Layout zones (720×1280)
 
@@ -150,7 +150,7 @@ Side margins sit at **46–60 px**. Content widths are 600 (cards), 550 (grids) 
 | Ranking | **heavy bold-italic caps** (title and captions, ~38–42), plus a **chunky display face** for card art (~50, `#FCE33A`) | | looks like Montserrat ExtraBold Italic and Lilita One |
 | Slot chip | caps, ~14, tracking 0.1 em, dashed border | | "YOUR VIDEO" / "YOUR IMAGE": **placeholder only, never in production** |
 
-### Animation vocabulary (shared across all 5)
+### Animation vocabulary (shared across all 7)
 
 | Name | Behaviour | Duration | Closest standard curve |
 |---|---|---|---|
@@ -434,26 +434,192 @@ Four scenes (cuts 104 / 210 / 345) plus internal re-frames at **70, 165, 399**. 
 
 ---
 
-## 3. Shared components across all five
+### T6 · `split-reel`
 
-All five share these. The set is consistent enough that these should be built once, with each template composed from them.
+Three layouts in 15 s: **split → full-bleed → split → split**. Cuts at **104 / 210 / 345** (same preset as T2, T4 and T5). It is the inverse of T3/T4's split: **media on top (y0–640), graphics below (y640–1280)**.
+
+**Shared.** Graphic half is matte black with a warm **radial glow rising from the bottom edge** (ellipse centred at y≈1280, about 45 % of the frame tall, accent at about 25 %). There is no dot grid. Media half is full-width, with the subject re-framed (scale and offset) at each cut.
+
+**Type character.** Headlines are **condensed bold caps** (Oswald or Bebas look, ~50 px cap-for-cap), which maps almost one-to-one to Teko. Kickers and card titles are serif italic (→ Robot Reavers).
+
+| Scene | Frames | Layout |
+|---|---|---|
+| S1 | 0–103 | split. Kicker + 2-line headline + 7 day-chips + "0 new clients" |
+| S2 | 104–209 | full-bleed media, **no overlays at all** (3.5 s of pure talking head) |
+| S3 | 210–344 | split. Step headline + 3 cards, active card highlighted |
+| S4 | 345–449 | split. "30 DAYS" + 30-cell grid + counter + mini chart |
+
+**S1 (0–103): "most people post every day and get no clients".**
+
+| Element | Position | Style |
+|---|---|---|
+| Kicker "most people" | centre x360, y≈676 | serif italic ~34, `accent` |
+| Headline line 1 "POST EVERY DAY" | y≈718 | condensed bold caps ~50, off-white `#F4F1EC` |
+| Headline line 2 "AND GET **NO CLIENTS**" | y≈766 (line pitch 48) | same, with "NO CLIENTS" in `accent` and a soft glow |
+| Day chips ×7 (M T W T F S S, 1–7) | x67–653, y815–901, **74×86, pitch 85.5 (gap 12)** | radius 12, fill `#2A2A2C → #161617`, 1 px border at about 12 % white. Day letter ~14 grey at top, numeral ~34 bold white. |
+| Check badge | Ø26, top-right corner of each chip (about +6 / −10 px offset) | `accent` disc with a black check |
+| "0 NEW CLIENTS" | "0" at x≈290, y≈952; label at x≈317, y≈960 | "0" ~54 bold `accent` with glow. Label ~15 caps, tracking 0.2 em, grey. |
+
+| Frames | Event |
+|---|---|
+| ~12 | kicker `blurIn` |
+| 20 → 40 | chips appear one by one, **~3.3 f apart** (`blurIn` + small rise): 1 @20, 2 @24, 4 @28, 5 @32, 6 @36, 7 @40 |
+| 28 → 34 | headline line 1 `blurIn` |
+| 38 → 60 | check badges pop in sequence, **~3.2 f apart**, 1 @~38 … 7 @~60 |
+| 64 → 68 | headline line 2 `blurIn`, "NO CLIENTS" glows |
+| 84 → 88 | "0 NEW CLIENTS" `blurIn`. Holds to 103. |
+
+**S3 (210–344): steps.**
+
+| Element | Position | Style |
+|---|---|---|
+| Kicker "step one / two / three" | y≈676 | serif italic ~34, `accent` |
+| Headline "HOOK / STORY / OFFER" | y≈727 | condensed bold caps ~78, `accent`, strong glow (about 20 px) |
+| Cards ×3 | x **43 / 263 / 483**, w194, h≈144, y832–973 (pitch 220) | glass-dark, 1 px border. **Active:** 2 px `accent` border plus outer glow. **Inactive:** border at about 12 % white. A 2 px `accent` connector (26 px long) sits between cards at y≈902. |
+| Card content | | "01/02/03" ~14 caps tracked grey at top-left (x+18, y855). Title serif italic ~40 white at y≈896. Two grey placeholder bars at y≈928 and 944. |
+| Label pill | w≈166, h≈38, overlapping the card bottom (y≈977) | `accent-fill`, black text ~22 bold: "stops the scroll", "builds the trust", "makes the ask" |
+
+| Frames | Event |
+|---|---|
+| 210 | cut. Kicker "step one", headline "HOOK" and card 1 (active) already on screen. |
+| 234 → 240 | label 1 `blurIn` |
+| 256 → 262 | headline fades out (dark and blurred) |
+| 262 → 270 | card 2 `blurIn`, connector draws. Card 1 goes inactive ~270–276. |
+| 264 | kicker → "step two". Headline "STORY" `blurIn` 270 → 276. |
+| 288 → 294 | label 2 |
+| ~300 | headline fades out |
+| 306 → 312 | kicker → "step three". Card 3 `blurIn`. Headline "OFFER" 312 → 318. |
+| 330 → 336 | label 3. Hold to 344. |
+
+**S4 (345–449): "do that for 30 DAYS".**
+
+| Element | Position | Style |
+|---|---|---|
+| Kicker | y≈676 | serif italic ~34 `accent`: "do that for" → "and watch what happens" at ~401 |
+| "30 DAYS" | y≈727 | condensed bold caps ~78. "30" in `accent` with glow, "DAYS" white. |
+| Grid | **x100–620, y820–915**, 10 cols × 3 rows | cell **40×26**, radius 6, pitch 53.3 × 34.5. Empty = `#1A1A1C`. Lit = `accent-fill`. |
+| Counter | "30" ~44 bold white at (100, 960), "/30" ~24 grey, "DAYS POSTED" ~14 caps tracked grey at y≈992 | |
+| Mini chart | x376–620, y930–992 | 2 px `accent` S-curve with glow. White Ø10 end dot at (620, 931). A hand-lettered "clients" annotation (white, script) at (433, 944). |
+
+| Frames | Event |
+|---|---|
+| 345 → 353 | grid (empty cells) and counter `blurIn` |
+| **355 → 397** | cells fill row-major at **~0.75 cells/frame** (linear): 3 @357, 6 @361, 9 @365, 11 @369, 14 @373, 17 @377, 20 @381, 23 @385, 25 @389, 28 @393, 30 @397. Counter ticks with it. |
+| 401 → 405 | kicker swaps |
+| 405 → ~425 | mini-chart curve draws L→R (ease-in-out), end dot lands last |
+| 421 → 429 | "clients" annotation `blurIn` |
+
+---
+
+### T7 · `glass-explainer-reel`
+
+The explainer family (T2) re-skinned in **glass cards**: same dot-grid black, same title/underline system, same panel at the bottom, with different content blocks.
+
+**Scenes (cuts 104 / 164 / 210 / 345):**
+
+| Scene | Frames | Layout |
+|---|---|---|
+| A | 0–103 | panel layout. "Daily Posts, *Zero Clients*", notification stack, 2 stat cards |
+| B | 104–163 | full-bleed media + captions |
+| C | 164–209 | panel layout. "What Is Actually *Missing*": Content ↔ Clients arc |
+| D | 210–344 | panel layout. "Build It In *Three Steps*", 3 cards + progress track |
+| E | 345–449 | panel layout. "Then Give It *Thirty Days*", line chart + 2 stat cards |
+
+**Shared with T2.** Black + dot grid (pitch ≈22.5), faint blurred glow blobs (one warm at about (120, 215), one grey at the right), title at y≈208 / 253 (Inter Bold ~40 → Teko; keyword serif italic `accent` with a 2 px underline), caption at y≈810, panel x46–674 / top y938 / radius 22. Hard cut to full-bleed in B.
+
+**Glass card spec (new in T7):** fill vertical gradient `#3A3A3D → #2A2A2C`, 1 px border at about 18 % white, radius 8–24 by size, soft inner top highlight. **Active:** 2 px `accent` border plus ~20 px outer glow, and a **`sheen`** sweep (diagonal white highlight, ~12 f).
+
+**Scene A (0–103).**
+
+| Frames | Element |
+|---|---|
+| 4 → 10 | "Daily Posts," `wipe` |
+| 10 → 17 | "*Zero* Clients" `wipe`, with a 2 px underline (x256–464, y≈276) |
+| 8 / 28 / 56 / 72 | captions: "Most people" → "post every day" → "and still" → "get no *clients.*" (y≈810) |
+| ~24 → 28, 34 → 40, 42 → 48 | **notification cards ×3**: x74–646 (w572), h82, pitch 92 (y300–382, 392–474, 484–566), glass, radius 24. App icon 50×50 rounded at x93 with a ▶ glyph, "Your App" ~20 semibold, "@yourhandle: Your reel is live" ~19 regular at about 75 % white, "now" ~15 muted right-aligned. Each new card drops in from the top and **pushes the stack down** (newest on top). Settle time ≈6 f. |
+| 48 → 52 | left stat card `blurIn`: x74–340 (w266), y594–740 (h146), "Posts this month" ~18 muted, "30" ~72 bold white |
+| **56 → 76** | counter 0→30, **ease-in-out**: 0 @56, 2 @60, 11 @64, 24 @68, 29 @72, 30 @76 |
+| 66 → 72 | right stat card `blurIn`: x380–646, "New clients", "0" |
+| 84 → 88 | right card border → `accent` with glow, "0" → `accent-text` |
+| 96 → 100 | `sheen` sweeps across the right card |
+
+**Scene B (104–163).** Caption y≈806. "The problem" ~109 → 128, "isn't your content." ~129 → 163.
+
+**Scene C (164–209).**
+
+| Frames | Element |
+|---|---|
+| 164 → 169 | cut back to panel layout. Cards `blurIn`. |
+| 169 → 183 | title "What Is / Actually *Missing*" `wipe` |
+| 169 | caption "It's your *system.*" |
+| (static) | **Content card** x47–267 (w220), y534–680 (h146). **Clients card** x453–673, same y. Label ~24 semibold at (+19, 563). Content has 3 grey thumbs (50×64). Clients has 3 grey person glyphs. |
+| 179 → 189 | dashed arc (about 40 % white, 3/6 dash) connects Content top-centre (157, 524) to Clients top (562, 519), apex y≈395. Faint at first. |
+| 189 | "The system" label pill (`accent-fill`, ~14, glow) `blurIn` at the apex (360, 390) |
+| **189 → 200** | arc turns solid `accent` and **draws L→R** (11 f) |
+| 200 → 204 | arc lands: Clients card border → `accent` + glow |
+
+**Scene D (210–344).**
+
+| Element | Position | Style |
+|---|---|---|
+| Title "Build It In / *Three* Steps" | y≈208 / 253 | `wipe` 216 → 226, underline x258–462 |
+| Caption | y≈810 | "Step one:" 216–239 → "*hook.*" 240 → "Step two:" 258 → "*story.*" 282 → "Step three:" 300 → "*offer.*" 330–344 |
+| Cards ×3 | x **37 / 260 / 483**, w200, h240, y347–587 | glass. Header: title ~26 semibold white + "01/02/03" ~16 muted right. Hook: 164×100 video thumb with ▶ disc and "First 3 seconds" ~19 muted. Story: 4 text-line bars and "Why it matters". Offer: white pill button "Book a call" ~14 bold black and "One clear ask". A 2 px white connector joins cards at y≈467. |
+| Progress track | **x46–674 (w628), y639–642 (3 px)** | grey at about 30 % white, `accent` fill |
+
+| Frames | Event |
+|---|---|
+| 222 | progress track appears (grey) |
+| 240 → 246 | card 1 `blurIn`. Active (accent border + glow). |
+| 258 | `sheen` across card 1 |
+| 276 → 282 | connector + card 2 `blurIn`. Card 1 goes inactive. |
+| 300 | `sheen` across card 2 |
+| 324 → 330 | card 3 `blurIn` |
+| 342 | `sheen` across card 3 |
+
+**Progress-track fill, measured literally (it behaves oddly).** It fills to **x≈465 (~67 %) over 244 → 252**, holds, **drops to x≈255 (~33 %) over 284 → 292**, holds, then **fills to 100 % over 328 → 340**. That is not a clean 33 / 67 / 100. It looks like a template quirk. **Recommendation: build it as a clean 33 % → 67 % → 100 % in step order**, unless you want the literal behaviour.
+
+**Scene E (345–449).**
+
+| Frames | Element |
+|---|---|
+| 345 → 355 | chart panel `blurIn`: **x87–633 (w546), y313–573 (h260)**, radius 8, glass. 1 px axes in grey, dashed baseline (about 40 % white) at y≈518, "enquiries per week" ~16 muted at the bottom-right. |
+| 350 → 362 | title "Then Give It / *Thirty* Days" `wipe` |
+| 355 / 370 / 400 / 420 | captions: "Do that" → "for *thirty* days," → "and watch" → "what happens." |
+| 365 → 370 | **"Day" card** `blurIn`: x73–340, y600–746. "Day" ~18 muted, number ~72 bold white. |
+| **370 → 395** | Day counter 0→30, **ease-in-out**: 0 @370, 2 @375, 10 @380, 23 @385, 29 @390, 30 @395 |
+| 370 → ~420 | chart curve: 4 px `accent` S-curve draws L→R, white Ø14 end dot rides the tip. Curve ends at (633, 350). |
+| 400 → ~422 | the Day "30" flashes `accent-text`, then returns to white by ~430 |
+| 415 → 420 | **"New clients" card** `blurIn`: x380–646, "+0" |
+| **420 → 435** | counter "+0 → +12", **ease-out**: +4 @425, +11 @430, +12 @435 |
+| 430 → | card gets an `accent` border + glow |
+| 440 | `sheen` across the card. **"+12" turns green** (about `#3FBF6F`, "success") by 445. |
+
+Note for the brand: this is the **one place a second colour carries meaning** (green = result achieved). Keep green for that, or use `accent-text` and a sheen. Your call.
+
+---
+
+## 3. Shared components across all seven
+
+All seven share these. The set is consistent enough that these should be built once, with each template composed from them. (T1 = ranking, T2 = explainer-panel, T3 = youtube-clips, T4 = business, T5 = visual-essay, T6 = split-reel, T7 = glass-explainer.)
 
 | # | Component | Variants seen | Used by |
 |---|---|---|---|
-| 1 | **MediaSlot** (the talking-head layer) | full-bleed, panel, split-bottom, cut-out, behind-a-board | all 5 |
-| 2 | **SceneSequencer** (hard cuts, absolute frames) | 104/210/345 preset, 75/112/188/269/372 preset, single-scene | all 5 |
-| 3 | **Backdrop** | pure black + dot grid, black + bokeh blobs, top / bottom orange wash, grain | T2, T3, T4, T5 |
-| 4 | **Caption** (phrase timed, with accent-word markup) | line, word-by-word, white-box, italic-caps (ranking) | all 5 |
-| 5 | **Headline** (sans + serif-italic keyword + underline, `wipe`) | 1–2 lines | T2, T3, T4, T5 |
-| 6 | **GlassCard / Panel** | glass-grey, glass-dark, white UI card | T2, T3, T4, T5 |
-| 7 | **Chip / Pill / Tag** | slot chip, label pill, tag chip, step pill, "0 enquiries" pill | all 5 |
-| 8 | **StepList** (numbered pills or nodes, active state, `sheen`) | list + node chain, glass capsules, left-aligned pills, cards | T2, T3, T4, T5 |
-| 9 | **Counter** (`countUp`, day counter, delta) | "0", Day 0→30, "+12", "12" | T2, T3, T5 |
-| 10 | **ProgressGrid** (cells fill in sequence) | 10×3 orange, 10×3 green | T2, T3 |
-| 11 | **Chart / Sparkline** (`drawLine` + end dot) | line, sparkline | T2, T5 |
-| 12 | **Connector** (solid or dashed line, end dot) | hub→card, card→counter, node→node | T2 |
-| 13 | **UI Mock card** (fake post / article / notification / doc / video card) | 5 kinds | T3, T4, T5 |
-| 14 | **Animation primitives** | `blurIn`, `popIn`, `wipe`, `drawLine`, `countUp`, `sheen`, `glowPulse` | all 5 |
+| 1 | **MediaSlot** (the talking-head layer) | full-bleed, panel, split-top, split-bottom, cut-out, behind-a-board | all 7 |
+| 2 | **SceneSequencer** (hard cuts, absolute frames) | **104/210/345** preset (T2, T4, T5, T6, T7), 104/164/210/345 (T7), 75/112/188/269/372 (T3), single-scene (T1) | all 7 |
+| 3 | **Backdrop** | black + dot grid, black + bokeh blobs, bottom or top radial wash, grain | T2–T7 |
+| 4 | **Caption** (phrase timed, accent-word markup) | line, word-by-word, white-box, italic-caps (T1), **kicker + condensed headline** (T6) | all 7 |
+| 5 | **Headline** (sans + accent keyword + underline, `wipe`) | 1–2 lines, condensed caps (T6) | T2–T7 |
+| 6 | **GlassCard / Panel** (with `sheen` and active glow) | glass-grey, glass-dark, white UI card, notification | T2–T7 |
+| 7 | **Chip / Pill / Tag** | slot chip, label pill, tag chip, step pill, check badge, "0 enquiries" pill | all 7 |
+| 8 | **StepList** (numbered pills, nodes or cards, active state) | list + node chain, glass capsules, 3 cards, 3 cards + progress track | T2, T3, T4, T5, T6, T7 |
+| 9 | **Counter** (`countUp`, day counter, delta) | "0", Day 0→30, "+12", "12", "30/30" | T2, T3, T5, T6, T7 |
+| 10 | **ProgressGrid** (cells fill in sequence) | 10×3 orange, 10×3 green, 10×3 small pills (T6), 7 day-chips (T6) | T2, T3, T6 |
+| 11 | **Chart / Sparkline** (`drawLine` + end dot) | line, sparkline, mini-chart, axes + dashed baseline (T7) | T2, T5, T6, T7 |
+| 12 | **Connector** (solid / dashed line or arc, end dot) | hub→card, card→counter, node→node, card→card, dashed **arc** (T7) | T2, T6, T7 |
+| 13 | **UI Mock card** (fake post / article / notification / doc / video card) | 6 kinds | T3, T4, T5, T7 |
+| 14 | **ProgressTrack** (thin bar that fills) | 3 px under the cards | T7 (and a YouTube-style progress bar in T3) |
+| 15 | **Animation primitives** | `blurIn`, `popIn`, `wipe`, `drawLine`, `countUp`, `sheen`, `glowPulse` | all 7 |
 
 Only the tier board (T1) is template-specific, as `TierBoard` plus `TierCard`.
 
@@ -464,7 +630,7 @@ Only the tier board (T1) is template-specific, as `TierBoard` plus `TierCard`.
 ### Brand constraints from the brief
 
 - **Dark matte black base.** The templates use pure `#000`, which is glossy and flat. Use `#0A0A0B` plus the template's film grain to get the matte feel.
-- **No stock people.** Every one of the five templates is built around a talking head, so this is the biggest change. See "MediaSlot" below.
+- **No stock people.** Every one of the seven templates is built around a talking head, so this is the biggest change. See "MediaSlot" below.
 - **One accent system**, defined in §0.1 (gold gradient). Everything glowing, filled, underlined or counted derives from it.
 
 ### MediaSlot (replacing the stock talking head)
@@ -482,9 +648,9 @@ For development, the slot should show a neutral labelled block ("MEDIA SLOT"). I
 2. **Accent-word font: resolved.** Robot Reavers Italic for accent words and numerals, Teko for everything else, per §0.1.
 3. **No stock people: resolved.** The MediaSlot above (your footage, product hero cutout, or `ShellEmblem`).
 4. **Robot Reavers files: resolved.** Added to `video/public/fonts/`. Teko is still to be bundled (I can fetch it from Google Fonts in step 2).
-5. **Open: the two missing templates.** Please re-attach them.
+5. **Resolved: the two missing templates.** Both are now analysed (T6 and T7).
 6. **Open: the existing neon-green `video/` project.** It uses `#00ff41` and Orbitron. With the gold brand decided, do you want that treated as legacy and left alone?
-7. **Template content.** All five tell a coaching story. For ShellShock the same structures fit "ranking pre-workouts", "3 reasons your pre-workout is failing you" and "30 days on Shell Shock". The **ranking tier-list (T1)** transfers most directly ("rank every flavour").
+7. **Template content.** All seven tell the same coaching story. For ShellShock the same structures fit "ranking pre-workouts", "3 reasons your pre-workout is failing you" and "30 days on Shell Shock". The **ranking tier-list (T1)** transfers most directly ("rank every flavour").
 
 ### What happens next (Step 2, not started)
 
