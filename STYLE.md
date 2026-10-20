@@ -80,8 +80,8 @@ Things that stay as-is: the tier-list colours (T1), semantic green `#3A874D` and
 
 Notes that affect the build:
 - **Robot Reavers files are in** `video/public/fonts/Robot_Reavers_Italic.woff2` and `.woff` (family "Robot Reavers", Italic, 110 glyphs, 1024 upm). Coverage is full ASCII, digits, `+ £ € ©` and curly quotes, which is everything the templates use. Load with `loadFont` and `staticFile("fonts/Robot_Reavers_Italic.woff2")` rather than the `/fonts/…?v=3` web path.
-- **Teko is much narrower than Inter.** For the same visual weight and line length, caption and title sizes in §1 need to go up roughly **25–30 %** (e.g. ~40 → ~52). I will calibrate against the reference text widths in step 2.
-- **Robot Reavers is a display face with one style.** Use it sparingly: one accent word per caption and the big numerals. Do not set whole captions in it, or legibility suffers at phone size. I will check it at 720 px before committing to it for numerals under ~48 px.
+- **Teko sizing (corrected after measuring):** Teko Semibold needs only about **+15 %** over the reference's Inter size to match both cap height and text width (e.g. 40 px → ~46 px; "Posting Every Day," renders 296 px vs 291 px in the reference). My earlier "+25–30 %" estimate was wrong. In code this is `T = 1.15` in `brand/theme.ts`.
+- **Robot Reavers (checked at phone size):** it is monospaced (every glyph 0.75 em, space 0.5 em) and has no real lowercase (a = A), so accent words render about **2× wider** than the serif they replace. They are sized for equal cap height with Teko and the underline now follows the line width. Its **digits are ambiguous**: "1" reads as "I", "0" as a hollow box, "3" as a mirrored "E". So **numerals (counters, step numbers, "+12") use Teko Bold with the gold gradient**, and Robot Reavers is for accent *words* only. This is one constant (`NUMERAL_FONT` in `brand/theme.ts`) if you want to compare.
 - Teko has weights 300–700. Use **600–700** for captions to match the reference weight, and 500 for small UI labels.
 
 ---
@@ -660,3 +660,25 @@ On your approval I would:
 3. Overlay every render on the reference frames and correct any drift against §2.
 
 No code has been written. I'm stopping here for your review.
+
+
+---
+
+## 5. Step 2 progress
+
+| Template | Status |
+|---|---|
+| T2 `explainer-panel-reel` | **Built and verified** (`video/src/templates/Explainer.tsx`, composition `Explainer`). Timings match the reference within 1–3 frames on every measurable beat. |
+| T1, T3, T4, T5, T6, T7 | not started |
+
+**Built so far** (all in `video/src/`): `brand/theme.ts` (tokens), `brand/fonts.ts` (Teko 500/600/700 + Robot Reavers), `lib/anim.ts` (`blurIn`, `popIn`, `wipe`, `prog`), and components `Backdrop`, `MediaSlot`, `Caption`, `Headline`, `GlassCard`, `Pill`, `Line`, `Text` (`Accent`, `Num`).
+
+**Two things the build exposed:**
+1. `package.json` has `"sideEffects": ["*.css"]`, which made the bundler drop the side-effect-only `fonts.ts` import and silently fall back to a system font. The file is now listed in `sideEffects`.
+2. `blurIn` sets `transform`, which overrides a centring `translateY(-50%)` on the same element. Centred, animated text must use an outer positioned wrapper and an inner animated element (see `Caption.tsx`).
+
+**Media:** `Explainer` takes a `mediaSrc` prop. Without it the slot shows a neutral "MEDIA SLOT" block. Nothing human or stock is bundled.
+
+**Rendering in this sandbox** needs the pre-installed Chromium because Remotion's own browser download is blocked here:
+`npx remotion render Explainer out/explainer.mp4 --browser-executable=/opt/pw-browsers/chromium-1194/chrome-linux/chrome --chrome-mode=chrome-for-testing --gl=swangle`.
+On a normal machine `npm run render:explainer` is enough.
