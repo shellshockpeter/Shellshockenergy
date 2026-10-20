@@ -4,7 +4,14 @@ import { color, font } from "../brand/theme";
 import { Accent, centerStyle } from "./Text";
 
 export type CaptionPart = { text: string; accent?: boolean };
-export type CaptionCue = { from: number; to: number; parts: CaptionPart[] };
+export type CaptionCue = { from: number; to: number; text: string };
+
+/** "get no *clients.*" → plain "get no ", accent "clients." */
+export const parseMarkup = (text: string): CaptionPart[] =>
+  text
+    .split("*")
+    .map((t, i) => ({ text: t, accent: i % 2 === 1 }))
+    .filter((p) => p.text.length > 0);
 
 type Props = {
   cues: CaptionCue[];
@@ -32,7 +39,7 @@ export const Caption: React.FC<Props> = ({ cues, y, size = 48 }) => {
           whiteSpace: "pre",
         }}
       >
-        {cue.parts.map((p, i) =>
+        {parseMarkup(cue.text).map((p, i) =>
           p.accent ? (
             <Accent key={i} size="1em">
               {p.text}

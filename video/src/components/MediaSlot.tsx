@@ -1,4 +1,4 @@
-import { OffthreadVideo } from "remotion";
+import { OffthreadVideo, staticFile } from "remotion";
 import { color, font } from "../brand/theme";
 
 type Props = {
@@ -42,7 +42,7 @@ export const MediaSlot: React.FC<Props> = ({ src, layout, scale = 1 }) => {
   const inner = (
     <div style={{ position: "absolute", inset: 0, transform: `scale(${scale})` }}>
       {src ? (
-        <OffthreadVideo src={src} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        <OffthreadVideo src={/^https?:/.test(src) ? src : staticFile(src)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       ) : (
         <Placeholder />
       )}

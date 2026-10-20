@@ -1,7 +1,8 @@
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+import { z } from "zod";
 import "../brand/fonts";
 import { Backdrop } from "../components/Backdrop";
-import { Caption, type CaptionCue } from "../components/Caption";
+import { Caption } from "../components/Caption";
 import { GlassCard } from "../components/GlassCard";
 import { Headline } from "../components/Headline";
 import { Line } from "../components/Line";
@@ -11,40 +12,47 @@ import { Num, centerStyle } from "../components/Text";
 import { NUMERAL_FONT, accentFill, accentGradient, color, font } from "../brand/theme";
 import { blurIn, easeInOut, lerp, prog } from "../lib/anim";
 
-export type ExplainerProps = {
-  /** Footage the user supplies. Placeholder slot when omitted. */
-  mediaSrc?: string;
-};
+const cue = z.object({
+  from: z.number().describe("first frame this caption shows"),
+  to: z.number().describe("last frame this caption shows"),
+  text: z.string().describe("wrap one word in *stars* to set it in the accent font, e.g. get no *clients.*"),
+});
 
-const P = (text: string): CaptionCue["parts"][number] => ({ text });
-const A = (text: string): CaptionCue["parts"][number] => ({ text, accent: true });
+/** Everything editable in Remotion Studio's props panel. Timings (cuts, animations) live in code. */
+export const explainerSchema = z.object({
+  mediaSrc: z
+    .string()
+    .describe("your footage: put the file in video/public/media/ and enter media/yourclip.mp4. Empty = placeholder"),
+  hook: z.object({
+    line1: z.string(),
+    lead: z.string().describe("plain words before the accent keyword on line 2"),
+    accent: z.string().describe("accent keyword (Robot Reavers, gold)"),
+    tail: z.string(),
+    cards: z.array(z.string()).length(3),
+    counterValue: z.string(),
+    counterLabel: z.string(),
+    captions: z.array(cue),
+  }),
+  problem: z.object({ captions: z.array(cue) }),
+  steps: z.object({
+    number: z.string(),
+    title: z.string(),
+    names: z.array(z.string()).length(3),
+    captions: z.array(cue),
+  }),
+  proof: z.object({
+    line1: z.string(),
+    accent: z.string(),
+    tail: z.string(),
+    dayLabel: z.string(),
+    resultPrefix: z.string(),
+    result: z.number().describe("final number the counter counts up to"),
+    resultLabel: z.string(),
+    captions: z.array(cue),
+  }),
+});
 
-// Reference copy, used to verify the rebuild against the source frames.
-const capsA: CaptionCue[] = [
-  { from: 8, to: 27, parts: [P("Most people")] },
-  { from: 28, to: 53, parts: [P("post every day")] },
-  { from: 54, to: 70, parts: [P("and still")] },
-  { from: 71, to: 103, parts: [P("get no "), A("clients.")] },
-];
-const capsB: CaptionCue[] = [
-  { from: 104, to: 127, parts: [P("The problem")] },
-  { from: 128, to: 161, parts: [P("isn't your content.")] },
-  { from: 162, to: 209, parts: [P("It's your "), A("system.")] },
-];
-const capsC: CaptionCue[] = [
-  { from: 216, to: 238, parts: [P("Step one:")] },
-  { from: 239, to: 257, parts: [A("hook.")] },
-  { from: 258, to: 279, parts: [P("Step two:")] },
-  { from: 280, to: 297, parts: [A("story.")] },
-  { from: 298, to: 324, parts: [P("Step three:")] },
-  { from: 325, to: 344, parts: [A("offer.")] },
-];
-const capsD: CaptionCue[] = [
-  { from: 351, to: 365, parts: [P("Do that")] },
-  { from: 366, to: 398, parts: [P("for "), A("thirty"), P(" days,")] },
-  { from: 399, to: 415, parts: [P("and watch")] },
-  { from: 416, to: 449, parts: [P("what happens.")] },
-];
+export type ExplainerProps = z.infer<typeof explainerSchema>;
 
 const Mono: React.FC<{ children: React.ReactNode; size: number; style?: React.CSSProperties }> = ({
   children,
@@ -89,17 +97,16 @@ const ImageGlyph: React.FC = () => (
 // ───────────────────────── Scene A: hook graphic (0–103)
 const CARD_X = [153, 360, 567];
 const CARD_START = [24, 32, 42];
-const CARD_LABEL = ["MON", "TUE", "WED"];
 
-const SceneA: React.FC = () => {
+const SceneA: React.FC<{ c: ExplainerProps }> = ({ c }) => {
   const f = useCurrentFrame();
   const dotted = prog(f, 62, 6, (t) => t);
   const pulse = prog(f, 83, 7, (t) => t);
   return (
     <>
       <Headline
-        line1="Posting Every Day,"
-        line2={{ lead: "Still ", accent: "No Clients" }}
+        line1={c.hook.line1}
+        line2={{ lead: c.hook.lead, accent: c.hook.accent, tail: c.hook.tail }}
         t={{ l1: [1, 8], l2: [9, 18], ul: [10, 14] }}
       />
       {/* hub */}
@@ -143,7 +150,7 @@ const SceneA: React.FC = () => {
                     lineHeight: 1,
                   }}
                 >
-                  {CARD_LABEL[k]}
+                  {c.hook.cards[k]}
                 </div>
                 <div style={{ position: "absolute", left: 51, top: 62 }}>
                   <ImageGlyph />
@@ -183,29 +190,26 @@ const SceneA: React.FC = () => {
           }}
         />
         <div style={{ position: "absolute", left: 18, top: 8 }}>
-          <Num size={58}>0</Num>
+          <Num size={58}>{c.hook.counterValue}</Num>
         </div>
-        <Mono size={27} style={{ position: "absolute", left: 76, top: 14, lineHeight: 0.85 }}>
-          new
-          <br />
-          clients
+        <Mono size={27} style={{ position: "absolute", left: 76, top: 14, width: 84, lineHeight: 0.85 }}>
+          {c.hook.counterLabel}
         </Mono>
       </div>
-      <Caption cues={capsA} y={810} />
+      <Caption cues={c.hook.captions} y={810} />
     </>
   );
 };
 
 // ───────────────────────── Scene C: steps (210–344)
 const ROW_Y = [346, 424, 503];
-const ROW_NAME = ["Hook", "Story", "Offer"];
 const STEP_T = [240, 284, 328];
 const NODE_START = [236, 280, 324];
 const NODE_X = [160, 360, 560];
 
 const barBg = "linear-gradient(90deg, #111113, #2C2C2F)";
 
-const SceneC: React.FC = () => {
+const SceneC: React.FC<{ c: ExplainerProps }> = ({ c }) => {
   const f = useCurrentFrame();
   return (
     <>
@@ -222,10 +226,10 @@ const SceneC: React.FC = () => {
       >
         <div style={{ position: "absolute", left: 0, top: 0, width: 10, height: "100%", background: color.accent }} />
         <div style={{ position: "absolute", left: 40, top: 14 }}>
-          <Num size={46}>3</Num>
+          <Num size={46}>{c.steps.number}</Num>
         </div>
         <Mono size={38} style={{ position: "absolute", left: 0, width: 486, top: 14, textAlign: "center", paddingLeft: 36 }}>
-          Steps To Fix It
+          {c.steps.title}
         </Mono>
       </div>
       <div style={blurIn(f, 211, 5)}>
@@ -264,7 +268,7 @@ const SceneC: React.FC = () => {
                   opacity: 0.55 + 0.45 * on,
                 }}
               >
-                {ROW_NAME[i]}
+                {c.steps.names[i]}
               </Mono>
             </div>
           );
@@ -304,13 +308,13 @@ const SceneC: React.FC = () => {
                 <Num size={42} style={{ opacity: glow ? 1 : 0.5 }}>{String(i + 1)}</Num>
               </div>
               <div style={{ position: "absolute", left: nx - 40, width: 80, top: 690, display: "flex", justifyContent: "center" }}>
-                <AccentPill size={22}>{ROW_NAME[i]}</AccentPill>
+                <AccentPill size={22}>{c.steps.names[i]}</AccentPill>
               </div>
             </div>
           </div>
         );
       })}
-      <Caption cues={capsC} y={810} />
+      <Caption cues={c.steps.captions} y={810} />
     </>
   );
 };
@@ -335,7 +339,7 @@ const bez = (t: number): [number, number] => {
 };
 const CURVE = Array.from({ length: 121 }, (_, i) => bez(i / 120));
 
-const SceneD: React.FC = () => {
+const SceneD: React.FC<{ c: ExplainerProps }> = ({ c }) => {
   const f = useCurrentFrame();
   const fill = interpolate(f, [365, 397], [0, 30], {
     extrapolateLeft: "clamp",
@@ -350,12 +354,12 @@ const SceneD: React.FC = () => {
   const tip = pts[pts.length - 1];
   const countP = prog(f, 413, 24);
   const tint = prog(f, 438, 7, (t) => t);
-  const plus = Math.round(12 * countP);
+  const plus = Math.round(c.proof.result * countP);
   return (
     <>
       <Headline
-        line1="Run It For"
-        line2={{ accent: "Thirty", tail: " Days" }}
+        line1={c.proof.line1}
+        line2={{ accent: c.proof.accent, tail: c.proof.tail }}
         t={{ l1: [346, 356], l2: [357, 365], ul: [357, 361] }}
       />
       <div style={blurIn(f, 346, 7)}>
@@ -392,7 +396,7 @@ const SceneD: React.FC = () => {
             color: dim > 0 ? lerpGrey(dim) : color.text,
           }}
         >
-          Day {day}
+          {c.proof.dayLabel} {day}
         </Mono>
       )}
       {f >= 405 && (
@@ -421,7 +425,7 @@ const SceneD: React.FC = () => {
       {f >= 413 && (
         <div style={{ position: "absolute", left: 132, top: 560, ...blurIn(f, 413, 4) }}>
           <div style={{ position: "relative", fontFamily: NUMERAL_FONT, fontWeight: 700, fontSize: 84, lineHeight: 1 }}>
-            <span style={{ color: color.text, opacity: 1 - tint }}>+{plus}</span>
+            <span style={{ color: color.text, opacity: 1 - tint }}>{c.proof.resultPrefix}{plus}</span>
             <span
               style={{
                 position: "absolute",
@@ -434,17 +438,17 @@ const SceneD: React.FC = () => {
                 opacity: tint,
               }}
             >
-              +{plus}
+              {c.proof.resultPrefix}{plus}
             </span>
           </div>
         </div>
       )}
       {f >= 421 && (
         <div style={{ position: "absolute", left: 141, top: 646, ...blurIn(f, 421, 4) }}>
-          <AccentPill size={24}>new clients</AccentPill>
+          <AccentPill size={24}>{c.proof.resultLabel}</AccentPill>
         </div>
       )}
-      <Caption cues={capsD} y={810} />
+      <Caption cues={c.proof.captions} y={810} />
     </>
   );
 };
@@ -454,21 +458,21 @@ const lerpGrey = (p: number): string => {
   return `rgb(${v},${v},${v})`;
 };
 
-export const Explainer: React.FC<ExplainerProps> = ({ mediaSrc }) => {
+export const Explainer: React.FC<ExplainerProps> = (c) => {
   const f = useCurrentFrame();
   const full = f >= 104 && f < 210;
   return (
     <AbsoluteFill style={{ backgroundColor: color.bg }}>
       {!full && <Backdrop />}
       <MediaSlot
-        src={mediaSrc}
+        src={c.mediaSrc || undefined}
         layout={full ? "full" : "panel"}
         scale={f >= 104 && f < 162 ? 1.1 : 1}
       />
-      {f < 104 && <SceneA />}
-      {full && <Caption cues={capsB} y={806} />}
-      {f >= 210 && f < 345 && <SceneC />}
-      {f >= 345 && <SceneD />}
+      {f < 104 && <SceneA c={c} />}
+      {full && <Caption cues={c.problem.captions} y={806} />}
+      {f >= 210 && f < 345 && <SceneC c={c} />}
+      {f >= 345 && <SceneD c={c} />}
     </AbsoluteFill>
   );
 };
