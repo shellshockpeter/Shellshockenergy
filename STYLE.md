@@ -649,7 +649,7 @@ For development, the slot should show a neutral labelled block ("MEDIA SLOT"). I
 3. **No stock people: resolved.** The MediaSlot above (your footage, product hero cutout, or `ShellEmblem`).
 4. **Robot Reavers files: resolved.** Added to `video/public/fonts/`. Teko is still to be bundled (I can fetch it from Google Fonts in step 2).
 5. **Resolved: the two missing templates.** Both are now analysed (T6 and T7).
-6. **Open: the existing neon-green `video/` project.** It uses `#00ff41` and Orbitron. With the gold brand decided, do you want that treated as legacy and left alone?
+6. **Neon-green `video/` project: resolved.** Removed (the revenue-counter composition and its render scripts). `video/src/ShellEmblem.tsx` is kept but is still hard-coded neon green, so it needs recolouring to the gold accent before it is used.
 7. **Template content.** All seven tell the same coaching story. For ShellShock the same structures fit "ranking pre-workouts", "3 reasons your pre-workout is failing you" and "30 days on Shell Shock". The **ranking tier-list (T1)** transfers most directly ("rank every flavour").
 
 ### What happens next (Step 2, not started)
