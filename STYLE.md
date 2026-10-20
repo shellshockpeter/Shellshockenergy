@@ -1,5 +1,7 @@
 # ShellShock Energy — Reel Template Style Spec
 
+> **Brand overrides in §0.1 win.** Sections 1–3 record the reference templates as measured (orange, serif italic, Inter). Take layout, timing and easing from them, and take colour and type from §0.1.
+
 Step 1 of 2: analysis only. No Remotion code is written yet.
 
 ## 0. Read this first
@@ -10,7 +12,7 @@ Step 1 of 2: analysis only. No Remotion code is written yet.
 |---|---|
 | Templates analysed | **5 of 7.** Only five mp4s arrived: `ranking-format`, `explainer-panel-reel`, `youtube-clips`, `business-short-form-reels_1`, `visual-essay-reel`. The other two need re-attaching. |
 | `/reference` and `/brand` | Neither folder exists in this environment. The mp4s came in as chat attachments. There are no brand files (logo, fonts, packaging). |
-| Accent colour | The brief says `[cyan/orange]`, which looks like an unfilled placeholder. See §4. It is a single token, so the choice is cheap to change. |
+| Accent colour | **Decided: gold gradient on matte black** (see §0.1). The orange values in §1–§3 are the *reference templates' measurements*; §0.1 overrides them for ShellShock. |
 | Source specs | All five are 720×1280, 30 fps, 450 frames (15.0 s). I verified this with `ffprobe`. |
 
 ### Frames and how they were measured
@@ -22,6 +24,65 @@ Step 1 of 2: analysis only. No Remotion code is written yet.
 - **Timing:** where I sampled every frame I give exact frames. Where I sampled every 4–6 frames I mark it `~` (±3 f).
 - **Easing curves** are inferred from frame positions. They are not read from a source file, so they are "closest standard curve" and not exact.
 - **Step 2 verification:** I will overlay each render on the reference frames and fix drift before trusting any value here.
+
+---
+
+## 0.1 ShellShock overrides (locked, these supersede §1–§3)
+
+The reference measurements in §1–§3 stay as the source of truth for **layout, timing and easing**. Wherever they say orange, serif italic or Inter, apply this table instead.
+
+### Accent: gold gradient on black
+
+```css
+/* accent-fill: solid shapes (pills, chips, cells, bars, counter-box fill) */
+background:
+  linear-gradient(180deg, transparent calc(100% - 5px), #855F00 calc(100% - 5px)),
+  linear-gradient(90deg, #FFB700, #FFD466, #FFE299);
+```
+
+| Token | Value | Replaces / used for |
+|---|---|---|
+| `accent-fill` | the two-layer CSS above (5 px dark-gold lip along the bottom, gold sweep on top) | every orange **filled** shape: label pills, step number discs, lit grid cells, "new clients" pill, tag chips, selection-box fill |
+| `accent-text` | `linear-gradient(90deg,#FFB700,#FFD466,#FFE299)` via `background-clip:text` (no lip) | every orange **word or numeral**: accent keywords, "0", "12", "30", "+12" |
+| `accent` (solid) | `#FFB700` | thin strokes where a gradient is impractical: rings, connectors, chart curve, end dots, underlines, borders |
+| `accent-edge` | `#855F00` | the bottom lip, plus 1 px shadow edges |
+| `accent-hi` | `#FFE299` | highlights, sheen, doc highlight (replaces `#FBE58A`) |
+| `accent-dim` | `#402E00` (accent at 25 % over black) | finished 30-day cells, inactive states (replaces `#43240C`) |
+| `glow` | `rgba(255,183,0,.25)`, blurred 80–120 px | all bokeh blobs and top/bottom washes (replace `#522D12`, `#4D250F`, `#4A2B10`) |
+| `bg` | **`#0A0A0B` matte black** + the template grain, no gloss | replaces `#000` / `#040404` / `#090906` |
+| `on-accent` | **`#0A0A0B` (black)** | text sitting on a gold fill. White on gold fails contrast, so every "white text on orange pill" in the reference becomes black text. |
+
+Lip rule: 5 px on shapes ≥40 px tall, 3 px on 20–40 px, none below 20 px (the lip would dominate). Rings, connectors, the chart curve and underlines use solid `#FFB700`.
+
+Things that stay as-is: the tier-list colours (T1), semantic green `#3A874D` and red `#B12320` (dashboard cells and the "0 enquiries" pill), white UI mock cards, glass greys, `text` white.
+
+**Two collisions to know about:**
+- T1's `#FCE33A` yellow captions and card titles are now too close to the gold. Make them `accent-text` and keep verdict phrases white, so gold = the thing to read.
+- The 30-day grid goes gold-lit → dark-gold-dim. That is a smaller brightness range than orange→brown, so step 2 may need the dim state a touch darker than `#402E00` to keep the "completed" read.
+
+### Type: Robot Reavers + Teko
+
+| Role (reference) | ShellShock |
+|---|---|
+| Serif-italic accent word ("*clients*", "*system*", "*thirty*", "*hook*") | **Robot Reavers Italic**, filled with `accent-text` |
+| Hero numerals ("0", "12", "30", "+12", step numbers) | **Robot Reavers Italic**, `accent-text` (or white while counting, as in the reference) |
+| Captions, titles, UI labels, counters' labels (Inter / Inter Tight) | **Teko** (fallback `sans-serif`) |
+
+```css
+@font-face {
+  font-family: 'Robot Reavers';
+  src: url('/fonts/Robot_Reavers_Italic.woff2?v=3') format('woff2'),
+       url('/fonts/Robot_Reavers_Italic.woff?v=3') format('woff');
+  font-style: italic;
+}
+/* usage */ font-family: 'Robot Reavers', sans-serif;
+```
+
+Notes that affect the build:
+- **I do not have the Robot Reavers files.** `video/public/fonts/` currently holds only Orbitron and JetBrains Mono. Please add `Robot_Reavers_Italic.woff2` (and `.woff`) there. In Remotion they will load with `loadFont` and `staticFile("fonts/...")`, not the `/fonts/…?v=3` web path.
+- **Teko is much narrower than Inter.** For the same visual weight and line length, caption and title sizes in §1 need to go up roughly **25–30 %** (e.g. ~40 → ~52). I will calibrate against the reference text widths in step 2.
+- **Robot Reavers is a display face with one style.** Use it sparingly: one accent word per caption and the big numerals. Do not set whole captions in it, or legibility suffers at phone size. I will check it at 720 px before committing to it for numerals under ~48 px.
+- Teko has weights 300–700. Use **600–700** for captions to match the reference weight, and 500 for small UI labels.
 
 ---
 
@@ -404,7 +465,7 @@ Only the tier board (T1) is template-specific, as `TierBoard` plus `TierCard`.
 
 - **Dark matte black base.** The templates use pure `#000`, which is glossy and flat. Use `#0A0A0B` plus the template's film grain to get the matte feel.
 - **No stock people.** Every one of the five templates is built around a talking head, so this is the biggest change. See "MediaSlot" below.
-- **One accent token**, `--accent`. Everything glowing, filled, underlined or counted derives from it, including `accent-dim` (accent at about 25 % over black) and `glow` (accent at about 25 %, blurred). Swapping the colour is then a one-line change.
+- **One accent system**, defined in §0.1 (gold gradient). Everything glowing, filled, underlined or counted derives from it.
 
 ### MediaSlot (replacing the stock talking head)
 
@@ -415,16 +476,15 @@ Three supported fills, none of them stock footage:
 
 For development, the slot should show a neutral labelled block ("MEDIA SLOT"). It should not show the template's human silhouette.
 
-### Decisions needed from you
+### Decisions (resolved and open)
 
-1. **Accent: cyan or orange?** The templates are orange (`#D0702C`), so orange needs no rework. My read:
-   - **Orange** is the safe choice. The warm bokeh on black reads as heat and energy, and it is exactly what these templates were designed around.
-   - **Cyan** (about `#22D3EE`) is more ownable in supplements, where red, orange and neon green are crowded. It also pops harder on matte black. The cost is that the warm-bokeh look becomes a colder electric glow, so I would re-tune the glows by eye.
-   - Whichever you pick, **match the can and tub colour**. An accent that fights the packaging will look off in every ad.
-   - Note also that the existing `video/` project uses neon green `#00ff41` with Orbitron. If that is the real brand colour, say so, and neither cyan nor orange is right.
-2. **Serif italic accent word.** The templates' high-contrast serif italic ("*clients*", "*system*") is a coach / agency look. It does not read as an aggressive performance brand. My suggestion is a **bold italic condensed** or **Orbitron 700** in the accent colour instead. Orbitron is already bundled in `video/public/fonts/`. Captions stay Inter Tight Bold for legibility. Do you want that change, or keep the serif?
-3. **The two missing templates.** Please re-attach them.
-4. **Template content.** All five tell the "posting daily but no clients" coaching story. For ShellShock the same structures fit things like "ranking pre-workouts", "3 reasons your pre-workout is failing you" and "30 days on Shell Shock". The **ranking tier-list (T1)** is the one that transfers most directly, because it already suits "rank every flavour".
+1. **Accent: resolved.** Gold gradient on matte black, per §0.1.
+2. **Accent-word font: resolved.** Robot Reavers Italic for accent words and numerals, Teko for everything else, per §0.1.
+3. **No stock people: resolved.** The MediaSlot above (your footage, product hero cutout, or `ShellEmblem`).
+4. **Open: font files.** I need `Robot_Reavers_Italic.woff2` / `.woff` in `video/public/fonts/` (and Teko, which I can bundle from Google Fonts if you want me to).
+5. **Open: the two missing templates.** Please re-attach them.
+6. **Open: the existing neon-green `video/` project.** It uses `#00ff41` and Orbitron. With the gold brand decided, do you want that treated as legacy and left alone?
+7. **Template content.** All five tell a coaching story. For ShellShock the same structures fit "ranking pre-workouts", "3 reasons your pre-workout is failing you" and "30 days on Shell Shock". The **ranking tier-list (T1)** transfers most directly ("rank every flavour").
 
 ### What happens next (Step 2, not started)
 
