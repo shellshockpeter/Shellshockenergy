@@ -24,7 +24,7 @@ console.log(`clips found: ${have.length}/13 ${have.join(" ")}`);
 mkdirSync(resolve(root, "out"), { recursive: true });
 const args = [
   "remotion", "render", "EverythingInside", out,
-  "--codec=h264", "--crf=16",
+  "--codec=h264", "--crf=12", "--image-format=png", "--pixel-format=yuv420p",
   `--props=${JSON.stringify({ clips })}`,
 ];
 if (process.env.REMOTION_BROWSER) args.push(`--browser-executable=${process.env.REMOTION_BROWSER}`);
