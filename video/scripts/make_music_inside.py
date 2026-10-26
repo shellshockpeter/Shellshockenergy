@@ -3,7 +3,8 @@
 Different from the TRAINER cut (A minor, dark trap): four-on-the-floor kick,
 sidechain-pumped pads, bright pluck stabs + 16th arps, whooshes on every
 transition, a stripped Bm breakdown for THE TURN, and a major-chord bloom on the CTA.
-Usage: python3 make_music_inside.py out.wav
+Usage: python3 make_music_inside.py out.wav [--music]
+Default is SFX ONLY (whooshes, booms, risers, chimes; no background music). Pass --music for the full groove.
 """
 import sys
 import wave
@@ -166,8 +167,9 @@ PROG = [([62, 66, 69], 38, [74, 78, 81, 78]), ([57, 61, 64], 33, [73, 76, 81, 76
 BAR = 4 * BEAT
 TURN = (17.5, 20.5)
 
+MUSIC = "--music" in sys.argv
 kick_times = []
-for b in range(int(np.ceil(DUR / BAR))):
+for b in range(int(np.ceil(DUR / BAR)) if MUSIC else 0):
     at = b * BAR
     notes, root, arpn = PROG[b % 4]
     in_turn = TURN[0] <= at < TURN[1]
@@ -207,9 +209,9 @@ for b in range(int(np.ceil(DUR / BAR))):
 
 # transitions + impacts
 for c, kind in TRANS.items():
-    whoosh(fr(c) - 0.12, 0.3, up=(kind == "up"), g=0.9)
+    whoosh(fr(c) - 0.12, 0.3, up=(kind == "up"), g=0.9 if MUSIC else 2.4)
 boom(0.0, 0.9)
-whoosh(0.0, 0.5, up=False, g=1.0)
+whoosh(0.0, 0.5, up=False, g=1.0 if MUSIC else 2.4)
 for s_, n in zip([60, 195, 300, 390], [74, 78, 81, 86]):
     boom(fr(s_), 0.5)
     chime(fr(s_), n)
