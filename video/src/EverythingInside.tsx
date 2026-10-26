@@ -935,14 +935,14 @@ const Bored: React.FC = () => {
       <AbsoluteFill style={{ background: "radial-gradient(circle at 50% 40%, rgba(255,255,255,0.05), rgba(0,0,0,0) 60%)" }} />
       <div style={{ position: "absolute", top: 480, left: 0, right: 0, display: "flex", flexDirection: "column", alignItems: "center", transform: `scale(${drift})` }}>
         {rows.map((row, ri) => (
-          <div key={ri} style={{ display: "flex", gap: 40 }}>
+          <div key={ri} style={{ display: "flex", gap: 30 }}>
             {row.map((w, wi) => {
               const k = pop(frame, 4 + (ri * 3 + wi) * 6, 26, 55); // slow, heavy
               return (
                 <span
                   key={w}
                   style={{
-                    fontFamily: DISPLAY, fontSize: 230, lineHeight: 0.98, letterSpacing: 2, color: ri === 1 ? "#9aa0aa" : "#cfd3da",
+                    fontFamily: DISPLAY, fontSize: 168, lineHeight: 1, letterSpacing: 2, color: ri === 1 ? "#9aa0aa" : "#cfd3da",
                     opacity: Math.min(1, k * 1.2), transform: `translateY(${(1 - k) * 30}px)`,
                   }}
                 >

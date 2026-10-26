@@ -1,4 +1,5 @@
 """EVERYTHING INSIDE v2 soundtrack: uplifting premium-launch house, D major, 120 bpm.
+# NOTE: public/audio/inside-music.wav is now the user-supplied track (Thunderstruck, 27.5s-54.5s); running this script would overwrite it with the old SFX-only mix.
 
 Different from the TRAINER cut (A minor, dark trap): four-on-the-floor kick,
 sidechain-pumped pads, bright pluck stabs + 16th arps, whooshes on every
