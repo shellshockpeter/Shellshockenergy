@@ -2,20 +2,20 @@
 
 Source of truth: Lovable project `abcbd240-ef0a-491f-a882-5dc7bd3624fc` (Shell Shock Trainer), read file by file. Every label below is a string that exists in the code. Anything I could not confirm is marked **CONFIRM ON DEVICE**.
 
-Format: 9:16, ~23s, no VO, hard cuts on the beat (120 bpm = 0.5s grid), real iPhone screen recordings in a phone mockup.
+Format: 9:16, ~25s, no VO, hard cuts on the beat (120 bpm = 0.5s grid), real iPhone screen recordings in a phone mockup.
 
 ---
 
 ## 0. READ THIS FIRST — 6 things that change the script
 
 1. **"VIDEO DEMO ON EACH" does not exist.** 78 built-in exercises, zero demo videos. The only video fields in the whole database are lesson videos (Courses), PR proof and challenge proof. Cut it.
-2. **"FIRST 200 MEMBERS: FREE FOR LIFE" is not in the app.** No membership, subscription, lifetime or payment code anywhere (`featureGates.ts`, `perks.ts`, DB schema, `MOBILE.md` says "no purchase surface"). The app is free for everyone. The only real lifetime offer is **Legendary Pantheon: one free tub of Shell Shock Energy + lifetime 25% off on ShellShockEnergy.com** (`perks.ts`). Do not post the 200 line until you tell me where it lives.
+2. **"FIRST 200 MEMBERS: FREE FOR LIFE" is not in the app. Replaced.** No membership, subscription, lifetime or payment code anywhere (`featureGates.ts`, `perks.ts`, DB schema, `MOBILE.md` says "no purchase surface"). The app is free for everyone. The video now uses the real perk: **Legendary Pantheon = one free tub of Shell Shock Energy + lifetime 25% off on ShellShockEnergy.com** (`perks.ts`).
 3. **"CHALLENGE YOUR FRIENDS" is false.** Challenges are posted by the coach/admin to the whole community; users tap **JOIN CHALLENGE**. No friend-vs-friend.
 4. **"DM THE PEOPLE YOU'RE CHASING" is false as written.** DMs only work between accepted friends, and the friends system unlocks at **Silver Hero**.
 5. **"THE SHOCK CULT IS WAITING" is false.** It is an invite-only ambassador channel (GoAffPro affiliates, verified by email code). Normal users hit a lock screen. Cut it.
 6. **"NUMBERS STAY HONEST" is an overclaim.** The video-proof rule only exists on the **LOG A PERSONAL RECORD** screen. Logging sets in an active workout, or finishing a routine checklist, writes PRs with no video check. Say exactly what is true: big jumps there need video.
 
-Also: 14 beats in 23s is faster than anyone can read. I retimed it (below) and kept every overlay to what fits at 0.3s/word. If you want it comfortable, go 28–30s instead of cutting more.
+Also: 14 beats in 25s is still fast than anyone can read. I retimed it (below) and kept every overlay to what fits at 0.3s/word. If you want it comfortable, go 28–30s instead of cutting more.
 
 ---
 
@@ -31,7 +31,7 @@ Also: 14 beats in 23s is faster than anyone can read. I retimed it (below) and k
 | 4 | FUEL | 0:10.0–0:13.0 | 3.0 | +0.5s |
 | 5 | COMMUNITY | 0:13.0–0:17.5 | 4.5 | −1.0s (Shock Cult cut) |
 | 6 | THE TURN | 0:17.5–0:20.5 | 3.0 | +1.0s (10 words need 3s) |
-| 7 | OUTRO | 0:20.5–0:23.0 | 2.5 | −1.0s |
+| 7 | PERK + OUTRO | 0:20.5–0:25.0 | 4.5 | Real perk replaces "FIRST 200"; total runtime is now **25.0s** |
 
 Overlay rule: max 6 words, ALL CAPS, minimum 0.3s per word once fully on screen.
 
@@ -105,13 +105,16 @@ Privacy: the **FIND** tab lists every user's username and avatar. Do not film it
 
 ---
 
-### SCENE 7 — OUTRO (0:20.5–0:23.0) — logo card, no app screen
+### SCENE 7 — PERK + OUTRO (0:20.5–0:25.0)
 
-| Beat | Card | Overlay | Len |
-|------|------|---------|-----|
-| 7A | **SHELL SHOCK** + **trainer** wordmark (Robot Reavers) on black | **DOWNLOAD FREE ON THE APP STORE** | 2.5 |
+| Beat | Screen / card | Action | Overlay | Len | Mockup |
+|------|---------------|--------|---------|-----|--------|
+| 7A | **RANKINGS** screen (Home tile) → scroll to **BRAND REWARDS** → the **LEGENDARY PANTHEON** card ("ONE FREE TUB of Shell Shock Energy + LIFETIME 25% OFF on ShellShockEnergy.com.") | Scroll so the Legendary card fills the frame; if your account hasn't earned it, the card shows LOCKED, which is fine (it's a goal). | **REACH LEGENDARY PANTHEON.** then **FREE TUB. 25% OFF FOR LIFE.** | 2.5 | Still; punch-in 1.2× on the card text. |
+| 7B | Logo card: **SHELL SHOCK** + **trainer** wordmark (Robot Reavers) on black | — | **DOWNLOAD FREE ON THE APP STORE** | 2.0 | Hold. |
 
-The "FIRST 200 MEMBERS" line is removed until it's real (see discrepancy #16). Recommended upgrade if you want a conversion hook that is true today: add a 2.0s beat before the CTA, **"REACH LEGENDARY PANTHEON. FREE SHELL SHOCK TUB."**, and run the video at 25s. This ties the app to your energy product, and it's exactly what `perks.ts` and the RANKINGS screen say.
+Perk wording is taken from `perks.ts` and the RANKINGS screen: "ONE FREE TUB … + LIFETIME 25% OFF on ShellShockEnergy.com." The only caveat is that the discount applies on your website, not in the app. The overlay doesn't claim otherwise. Keep the perk out of the App Store listing and screenshots (see `MOBILE.md` section 7.3 on steering to outside purchases).
+
+Runtime is now 25.0s. Every cut still lands on a 0.5s beat.
 
 ---
 
@@ -141,7 +144,9 @@ The "FIRST 200 MEMBERS" line is removed until it's real (see discrepancy #16). R
 | 10 | **Home → CHALLENGES** (Scene 5C) | Challenge posted (P0.5) | Open CHALLENGES → tap JOIN CHALLENGE | 8s |
 | 11 | **Friend profile → DM** (Scene 5D) | A and B are friends | Open B's profile → MESSAGE → type + send → react to a message | 12s |
 
-Scenes 6 and 7 are text/logo cards (build in Remotion, no recording).
+| 12 | **Home → RANKINGS** (Scene 7A) | Any account | Tap RANKINGS → scroll to **BRAND REWARDS** → stop with the Legendary Pantheon card centered | 8s |
+
+Scene 6 and the Scene 7B logo are text/logo cards (build in Remotion, no recording).
 
 **Before you press record on 6 and 7:** weigh-ins also call `pushWeighInSlack`. I did not read what it sends. Check before filming on a real account.
 
@@ -167,7 +172,7 @@ Scenes 6 and 7 are text/logo cards (build in Remotion, no recording).
 | 14 | CHALLENGE YOUR FRIENDS | ✗ | Challenges are admin/coach-posted, community-wide, JOIN CHALLENGE, video proof reviewed by COACH | JOIN COMMUNITY CHALLENGES. |
 | 15 | DM THE PEOPLE YOU'RE CHASING | ✗ | DMs are friends-only; friends unlock at Silver Hero | ADD FRIENDS. SEND DMS. |
 | 16 | THE SHOCK CULT IS WAITING | ✗ | Invite-only ambassador channel (GoAffPro email + 6-digit code). Not open to users. | *(cut)* |
-| 17 | FIRST 200 MEMBERS: FREE FOR LIFE | ✗ | Not in `featureGates.ts`, `perks.ts` or the DB. No payments in the app. Real offer: Legendary Pantheon = free tub + lifetime 25% off on ShellShockEnergy.com. | DOWNLOAD FREE ON THE APP STORE (or the Pantheon perk) |
+| 17 | FIRST 200 MEMBERS: FREE FOR LIFE | ✗ → replaced | Not in `featureGates.ts`, `perks.ts` or the DB. No payments in the app. **Decision: keep the real perk.** Legendary Pantheon = free tub + lifetime 25% off on ShellShockEnergy.com. | REACH LEGENDARY PANTHEON. FREE TUB. 25% OFF FOR LIFE. |
 | 18 | Score range | ~ | Strength Score 0–1000 (Legendary Pantheon III tops it); Pantheon Ascended runs above. **SHELL SHOCK SCORE** on the app is a different number (Power Level points). My v1 video said "SCORE 914–1000". | Say **STRENGTH SCORE** |
 | 19 | Rank tier names | ✓ | Rust Mortal, Bronze Mortal, Silver Hero, Gold Warrior, Platinum Demigod, Diamond Titan, Mythic Olympian, Legendary Pantheon, Pantheon Ascended | — |
 | 20 | v1 video "225×5 → 262" | ✗ | Live LOG screen shows 263 | Re-render v1 with 180×5 → 210 |
