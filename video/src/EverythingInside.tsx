@@ -24,7 +24,6 @@ import { Badge } from "./TrainerLaunch"; // also registers Bebas Neue / DM Sans 
  */
 
 const f = (s: number) => Math.round(s * 30);
-export const INSIDE_DURATION = f(25);
 
 const DISPLAY = "'Bebas Neue', Impact, sans-serif";
 const BODY = "'DM Sans', system-ui, sans-serif";
@@ -32,8 +31,8 @@ const LOGO = "'Robot Reavers', 'Bebas Neue', Impact, sans-serif";
 
 const YELLOW = "#FACC15";
 const CYAN = "#00CFFF";
-const ORANGE = "#FF8A3D";
-const VIOLET = "#A66BFF";
+const ORANGE = YELLOW; // brand: yellow + cyan only
+const VIOLET = CYAN;
 const RED = "#FF3B1A";
 const INK = "#07070B";
 
@@ -46,12 +45,12 @@ const pop = (frame: number, delay: number, damping = 13, stiffness = 150) =>
 
 /* ───────────────────────── types ───────────────────────── */
 
-type Trans = "flash" | "push-left" | "push-up" | "zoom" | "circle" | "wipe";
+type Trans = "flash" | "push-left" | "push-up" | "zoom" | "circle" | "wipe" | "glitch";
 type Cam = { x: number; y: number; s: number; rx: number; ry: number; rz: number };
 const C = (x = 0, y = 0, s = 1, rx = 0, ry = 0, rz = 0): Cam => ({ x, y, s, rx, ry, rz });
 
 type Orb = { x: number; y: number; r: number; c: string; a?: number };
-type Bg = { orbs: Orb[]; rays?: string; light?: boolean; base?: string };
+type Bg = { orbs: Orb[]; rays?: string; light?: boolean; base?: string; grid?: string; scan?: boolean };
 
 type TitleSpec = {
   lines: string[];
@@ -87,7 +86,7 @@ type PhoneBeat = {
   phoneOpacity?: number;
   burst?: boolean;
 };
-type CardBeat = { kind: "turnA" | "turnB" | "cta"; id: string; from: number; dur: number; trans: Trans };
+type CardBeat = { kind: "bored" | "offer" | "turnA" | "turnB" | "cta"; id: string; from: number; dur: number; trans: Trans };
 type Beat = PhoneBeat | CardBeat;
 
 /* ───────────────────────── glass UI toolkit ───────────────────────── */
@@ -236,8 +235,8 @@ const TierRow: React.FC<{ at: number }> = ({ at }) => {
 const Orbit: React.FC<{ at: number }> = ({ at }) => {
   const frame = useCurrentFrame();
   const items = [
-    ["CHEST", "#FFD700"], ["BACK", "#d36bff"], ["LEGS", "#FFB347"],
-    ["SHOULDERS", CYAN], ["ARMS", "#5FD0D0"], ["ABS", ORANGE],
+    ["CHEST", YELLOW], ["BACK", CYAN], ["LEGS", YELLOW],
+    ["SHOULDERS", CYAN], ["ARMS", YELLOW], ["ABS", CYAN],
   ] as const;
   return (
     <div style={{ position: "absolute", left: 0, top: 0 }}>
@@ -359,21 +358,38 @@ const Sparks: React.FC<{ at: number; color: string; n?: number }> = ({ at, color
   );
 };
 
+const PowerHud: React.FC<{ at: number }> = ({ at }) => {
+  const frame = useCurrentFrame();
+  const p = interpolate(frame, [at + 4, at + 40], [8, 86], { ...cl, easing: ez });
+  return (
+    <Glass w={470} pad={28}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, fontFamily: BODY, fontWeight: 800, fontSize: 28, letterSpacing: 5, color: CYAN }}>
+        <Icon name="bolt" color={CYAN} size={34} /> POWER LEVEL
+      </div>
+      <div style={{ marginTop: 16, height: 22, borderRadius: 11, background: "rgba(255,255,255,0.14)", overflow: "hidden" }}>
+        <div style={{ width: `${p}%`, height: "100%", borderRadius: 11, background: `linear-gradient(90deg, ${CYAN}, ${YELLOW})`, boxShadow: `0 0 26px ${CYAN}` }} />
+      </div>
+    </Glass>
+  );
+};
+
 /* ───────────────────────── beats ───────────────────────── */
 
 const orbs = (...o: Orb[]): Bg => ({ orbs: o });
 
 export const BEATS: Beat[] = [
-  // ───────── 1 HOOK 0:00–0:02.0
+  // ───────── 1 HOOK 0:00–0:04.0 — "ARE YOU BORED OF THE GYM?" → "WE TURNED IT INTO A VIDEO GAME."
+  { kind: "bored", id: "1A", from: 0, dur: f(2), trans: "flash" },
   {
-    kind: "phone", id: "1A", from: f(0), dur: f(2), trans: "flash", accent: YELLOW, burst: true,
-    bg: { orbs: [{ x: 540, y: 760, r: 900, c: RED, a: 0.55 }, { x: 160, y: 200, r: 600, c: YELLOW, a: 0.4 }, { x: 960, y: 1500, r: 700, c: "#7a1d00", a: 0.6 }], rays: YELLOW },
-    title: { lines: ["NOT JUST A RANK.", "HERE'S WHAT'S INSIDE."], pos: "top", delays: [0, 22] },
-    cam0: C(0, 120, 0.8, 18, -30, -5), cam1: C(0, 0, 1.12, 0, 0, 0),
+    kind: "phone", id: "1B", from: 0, dur: f(2), trans: "glitch", accent: YELLOW,
+    bg: { orbs: [{ x: 540, y: 520, r: 950, c: "#6a2cff", a: 0.55 }, { x: 150, y: 1500, r: 800, c: CYAN, a: 0.38 }, { x: 980, y: 300, r: 650, c: "#ff2d95", a: 0.38 }] },
+    title: { lines: ["WE TURNED IT INTO", "A VIDEO GAME."], pos: "top", delays: [0, 14] },
+    cam0: C(0, 170, 0.8, 16, -28, -4), cam1: C(0, 50, 1.08, 0, 0, 0),
     clip: "clip01", startSec: 0, rec: 10, slot: "LOG A PERSONAL RECORD → RANK UP", action: "Tap LOG IT. Flash → NEW PR burst → RANK UP overlay.",
     bubbles: [
-      { at: 26, x: 540, y: 1420, node: <TierRow at={26} /> },
-      { at: 14, x: 880, y: 430, rot: 6, node: <Chip text="RANK UP" icon="bolt" big /> },
+      { at: 10, x: 260, y: 880, rot: -5, node: <PowerHud at={10} /> },
+      { at: 22, x: 850, y: 470, rot: 6, node: <Chip text="RANK UP" icon="bolt" big /> },
+      { at: 30, x: 540, y: 1430, node: <TierRow at={30} /> },
     ],
     loop: -1,
   },
@@ -454,9 +470,9 @@ export const BEATS: Beat[] = [
       {
         at: 20, x: 730, y: 1090, rot: 4,
         node: (
-          <Glass pad={32} w={520} tint="linear-gradient(145deg, rgba(255,70,70,0.20), rgba(255,255,255,0))">
+          <Glass pad={32} w={520} tint="linear-gradient(145deg, rgba(250,204,21,0.22), rgba(255,255,255,0))">
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <Icon name="video" color="#ff6a6a" size={44} />
+              <Icon name="video" color={YELLOW} size={44} />
               <div style={{ fontFamily: DISPLAY, fontSize: 52, letterSpacing: 3 }}>VERIFICATION REQUIRED</div>
             </div>
             <div style={{ marginTop: 12, fontFamily: BODY, fontWeight: 600, fontSize: 28, lineHeight: 1.3, color: "rgba(255,255,255,0.85)" }}>Upload a video of the lift.</div>
@@ -491,7 +507,7 @@ export const BEATS: Beat[] = [
             <div style={{ marginTop: 28, display: "grid", gap: 20 }}>
               <Bar label="PROTEIN" pct={78} at={8} color={YELLOW} />
               <Bar label="CARBS" pct={55} at={11} color={CYAN} />
-              <Bar label="FAT" pct={40} at={14} color={ORANGE} />
+              <Bar label="FAT" pct={40} at={14} color="#ffffff" />
             </div>
           </Glass>
         ),
@@ -566,51 +582,41 @@ export const BEATS: Beat[] = [
   // ───────── 6 THE TURN 0:17.5–0:20.5
   { kind: "turnA", id: "6A", from: f(17.5), dur: f(1.5), trans: "zoom" },
   { kind: "turnB", id: "6B", from: f(19), dur: f(1.5), trans: "wipe" },
-  // ───────── 7 PERK + OUTRO 0:20.5–0:25.0
-  {
-    kind: "phone", id: "7A", from: f(20.5), dur: f(2.5), trans: "circle", accent: RED,
-    bg: { orbs: [{ x: 540, y: 700, r: 1000, c: RED, a: 0.55 }, { x: 100, y: 1500, r: 800, c: "#ffb400", a: 0.38 }, { x: 950, y: 200, r: 700, c: "#7a0010", a: 0.6 }], rays: "#ffb400" },
-    title: { lines: ["REACH LEGENDARY", "PANTHEON."], pos: "top" },
-    title2: { at: f(1), spec: { lines: ["FREE TUB.", "25% OFF FOR LIFE."], pos: "top" } },
-    cam0: C(0, 230, 0.86, 10, -24, 0), cam1: C(0, 150, 1.0, 2, 8, 0), phoneOpacity: 0.7,
-    clip: "clip12", startSec: 0, rec: 8, slot: "RANKINGS → BRAND REWARDS", action: "Scroll so the LEGENDARY PANTHEON card is centered.",
-    bubbles: [
-      {
-        at: 8, x: 540, y: 1180, rot: -2,
-        node: (
-          <Glass w={900} pad={36} tint="linear-gradient(145deg, rgba(255,59,26,0.22), rgba(255,180,0,0.08))">
-            <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-              <div style={{ width: 150, height: 150, flexShrink: 0 }}><Badge img="legendary" glow={RED} size={150} /></div>
-              <div>
-                <div style={{ fontFamily: DISPLAY, fontSize: 60, letterSpacing: 3 }}>LEGENDARY PANTHEON</div>
-                <div style={{ fontFamily: BODY, fontWeight: 800, fontSize: 30, letterSpacing: 1, marginTop: 8, color: "#ffd97a", whiteSpace: "nowrap" }}>ONE FREE TUB of Shell Shock Energy</div>
-                <div style={{ fontFamily: BODY, fontWeight: 800, fontSize: 32, letterSpacing: 2, color: "#ffd97a" }}>+ LIFETIME 25% OFF</div>
-              </div>
-            </div>
-          </Glass>
-        ),
-      },
-    ],
-    loop: -1,
-  },
-  { kind: "cta", id: "7B", from: f(23), dur: f(2), trans: "flash" },
+  // ───────── 7 OFFER + OUTRO — "FIRST 200 MEMBERS: FREE FOR LIFE."
+  { kind: "offer", id: "7A", from: 0, dur: f(2.5), trans: "circle" },
+  { kind: "cta", id: "7B", from: 0, dur: f(2), trans: "flash" },
 ];
+
+/** Beats are contiguous: start frames come from the running sum of durations. */
+export const TIMELINE: Beat[] = (() => {
+  let t = 0;
+  return BEATS.map((b) => {
+    const nb = { ...b, from: t } as Beat;
+    t += b.dur;
+    return nb;
+  });
+})();
+export const INSIDE_DURATION = BEATS.reduce((sum, b) => sum + b.dur, 0);
 
 /* ───────────────────────── background / fx ───────────────────────── */
 
-const Backdrop: React.FC<{ bg: Bg }> = ({ bg }) => {
+const Backdrop: React.FC<{ bg: Bg; accent?: string }> = ({ bg, accent = YELLOW }) => {
   const frame = useCurrentFrame();
+  const primary = accent === CYAN ? CYAN : YELLOW;
+  const secondary = primary === CYAN ? YELLOW : CYAN;
   return (
-    <AbsoluteFill style={{ background: bg.base ?? INK, overflow: "hidden" }}>
-      {bg.orbs.map((o, i) => {
+    <AbsoluteFill style={{ background: "linear-gradient(180deg, #121214 0%, #050506 45%, #000000 100%)", overflow: "hidden" }}>
+      {bg.orbs.slice(0, 3).map((o, i) => {
         const dx = Math.sin(frame / 46 + i * 1.7) * 70;
         const dy = Math.cos(frame / 53 + i * 2.3) * 60;
+        const c = i === 0 ? primary : secondary;
+        const a = (i === 0 ? 0.32 : 0.2);
         return (
           <div
             key={i}
             style={{
               position: "absolute", left: o.x + dx - o.r, top: o.y + dy - o.r, width: o.r * 2, height: o.r * 2, borderRadius: "50%",
-              background: `radial-gradient(circle, ${o.c} 0%, ${o.c}00 68%)`, opacity: o.a ?? 0.4,
+              background: `radial-gradient(circle, ${c} 0%, ${c}00 66%)`, opacity: a,
             }}
           />
         );
@@ -618,8 +624,8 @@ const Backdrop: React.FC<{ bg: Bg }> = ({ bg }) => {
       {bg.rays && (
         <div
           style={{
-            position: "absolute", left: 540 - 1500, top: 780 - 1500, width: 3000, height: 3000, opacity: 0.22,
-            background: `repeating-conic-gradient(from ${frame * 1.2}deg, ${bg.rays}aa 0deg 6deg, transparent 6deg 22deg)`,
+            position: "absolute", left: 540 - 1500, top: 780 - 1500, width: 3000, height: 3000, opacity: 0.16,
+            background: `repeating-conic-gradient(from ${frame * 1.2}deg, ${YELLOW}aa 0deg 6deg, transparent 6deg 22deg)`,
             maskImage: "radial-gradient(circle, #000 0%, transparent 46%)",
             WebkitMaskImage: "radial-gradient(circle, #000 0%, transparent 46%)",
           }}
@@ -827,7 +833,7 @@ const PhoneBeatView: React.FC<{ beat: PhoneBeat; clips: Record<string, boolean> 
   const t2 = beat.title2 && frame >= beat.title2.at;
   return (
     <AbsoluteFill>
-      <Backdrop bg={beat.bg} />
+      <Backdrop bg={beat.bg} accent={beat.accent} />
       <Phone beat={beat} frame={frame} hasClip={!!clips[beat.clip]} />
       {beat.bubbles.map((b, i) => (
         <BubbleView key={i} b={b} />
@@ -856,13 +862,13 @@ const TurnA: React.FC = () => {
   const words = ["OTHER", "APPS", "LOG", "YOUR", "LIFTS."];
   const strike = interpolate(frame, [33, 43], [0, 1], { ...cl, easing: ez });
   return (
-    <AbsoluteFill style={{ background: "#F4F1EA" }}>
-      <AbsoluteFill style={{ background: "radial-gradient(circle at 20% 15%, #fff 0%, rgba(255,255,255,0) 55%)" }} />
+    <AbsoluteFill style={{ background: "linear-gradient(180deg, #131315 0%, #000000 100%)" }}>
+      <AbsoluteFill style={{ background: "radial-gradient(circle at 80% 85%, rgba(0,207,255,0.14) 0%, rgba(0,0,0,0) 55%)" }} />
       <div style={{ position: "absolute", left: 80, top: 520, right: 80, display: "flex", flexWrap: "wrap", gap: "0 34px" }}>
         {words.map((w, i) => (
-          <Word key={w} w={w} frame={frame} at={i * 3} size={230} color="#0A0A0A" />
+          <Word key={w} w={w} frame={frame} at={i * 3} size={230} color="#ffffff" />
         ))}
-        <div style={{ position: "absolute", left: -20, top: "56%", height: 26, width: `${strike * 108}%`, background: "#FF3B1A", transform: "rotate(-3deg)", transformOrigin: "left center", boxShadow: "0 8px 30px rgba(255,59,26,0.5)" }} />
+        <div style={{ position: "absolute", left: -20, top: "56%", height: 26, width: `${strike * 108}%`, background: YELLOW, transform: "rotate(-3deg)", transformOrigin: "left center", boxShadow: `0 0 36px ${YELLOW}` }} />
       </div>
       <Finish />
     </AbsoluteFill>
@@ -894,7 +900,7 @@ const Cta: React.FC = () => {
   const glow = 0.5 + 0.5 * Math.sin(frame / 5);
   return (
     <AbsoluteFill>
-      <Backdrop bg={{ orbs: [{ x: 540, y: 700, r: 1000, c: YELLOW, a: 0.55 }, { x: 100, y: 1600, r: 800, c: ORANGE, a: 0.4 }, { x: 980, y: 200, r: 700, c: RED, a: 0.3 }], rays: YELLOW }} />
+      <Backdrop bg={{ orbs: [{ x: 540, y: 700, r: 1000, c: YELLOW, a: 0.55 }, { x: 100, y: 1600, r: 800, c: ORANGE, a: 0.4 }, { x: 980, y: 200, r: 700, c: RED, a: 0.3 }], rays: YELLOW }} accent={YELLOW} />
       <div style={{ position: "absolute", top: 250, left: 0, right: 0, display: "flex", justifyContent: "center", gap: 0, transform: `scale(${0.7 + 0.3 * k})`, opacity: k }}>
         {TIERS.map((t, i) => (
           <div key={t} style={{ marginLeft: i ? -40 : 0, transform: `translateY(${Math.sin(frame / 12 + i) * 10}px)` }}>
@@ -912,6 +918,97 @@ const Cta: React.FC = () => {
         </Glass>
       </div>
       <div style={{ position: "absolute", top: 1275, width: "100%", textAlign: "center", fontFamily: DISPLAY, fontSize: 66, letterSpacing: 12, color: "#fff", opacity: pop(frame, 14, 12, 140) }}>ON THE APP STORE</div>
+      <Finish />
+    </AbsoluteFill>
+  );
+};
+
+/* ───────────────────────── hook + offer ───────────────────────── */
+
+/** 1A — the boring gym: flat, muted, sluggish. Cuts away on a glitch. */
+const Bored: React.FC = () => {
+  const frame = useCurrentFrame();
+  const rows = [["ARE", "YOU", "BORED"], ["OF", "THE", "GYM?"]];
+  const drift = 1 + frame * 0.0006;
+  const draw = interpolate(frame, [4, 44], [0, 1080], { ...cl });
+  const blip = interpolate(frame, [46, 50, 54, 58], [0, 1, -1, 0], cl);
+  return (
+    <AbsoluteFill style={{ background: "linear-gradient(180deg, #17181b 0%, #000000 100%)" }}>
+      <AbsoluteFill style={{ background: "radial-gradient(circle at 50% 40%, rgba(255,255,255,0.05), rgba(0,0,0,0) 60%)" }} />
+      <div style={{ position: "absolute", top: 480, left: 0, right: 0, display: "flex", flexDirection: "column", alignItems: "center", transform: `scale(${drift})` }}>
+        {rows.map((row, ri) => (
+          <div key={ri} style={{ display: "flex", gap: 40 }}>
+            {row.map((w, wi) => {
+              const k = pop(frame, 4 + (ri * 3 + wi) * 6, 26, 55); // slow, heavy
+              return (
+                <span
+                  key={w}
+                  style={{
+                    fontFamily: DISPLAY, fontSize: 230, lineHeight: 0.98, letterSpacing: 2, color: ri === 1 ? "#9aa0aa" : "#cfd3da",
+                    opacity: Math.min(1, k * 1.2), transform: `translateY(${(1 - k) * 30}px)`,
+                  }}
+                >
+                  {w}
+                </span>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+      <svg width="1080" height="240" style={{ position: "absolute", top: 1180, left: 0 }}>
+        <defs>
+          <clipPath id="fl"><rect x="0" y="0" width={draw} height="240" /></clipPath>
+        </defs>
+        <path
+          clipPath="url(#fl)"
+          d={`M0 120 L430 120 L470 ${120 - 20 * blip} L500 ${120 + 38 * blip} L530 120 L1080 120`}
+          fill="none" stroke="#6b7078" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round"
+        />
+      </svg>
+      <Finish />
+    </AbsoluteFill>
+  );
+};
+
+const DotGrid: React.FC<{ at: number }> = ({ at }) => {
+  const frame = useCurrentFrame();
+  const cols = 20, rows = 10, d = 34, gap = 14;
+  return (
+    <div style={{ position: "absolute", left: (1080 - (cols * d + (cols - 1) * gap)) / 2, top: 900, display: "grid", gridTemplateColumns: `repeat(${cols}, ${d}px)`, gap }}>
+      {Array.from({ length: cols * rows }, (_, i) => {
+        const k = pop(frame, at + i * 0.22, 14, 200);
+        return (
+          <div
+            key={i}
+            style={{
+              width: d, height: d, borderRadius: d / 2, transform: `scale(${k})`, opacity: Math.min(1, k * 1.5),
+              background: `radial-gradient(circle at 35% 30%, #fff, ${YELLOW} 55%, #E0A800)`, boxShadow: `0 0 16px ${YELLOW}99`,
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+};
+
+/** 7A — the offer: FIRST 200 MEMBERS: FREE FOR LIFE. */
+const Offer: React.FC = () => {
+  const frame = useCurrentFrame();
+  const k = pop(frame, 2, 12, 120);
+  return (
+    <AbsoluteFill>
+      <Backdrop bg={{ orbs: [{ x: 540, y: 800, r: 1000, c: YELLOW, a: 0.5 }, { x: 100, y: 1600, r: 800, c: ORANGE, a: 0.42 }, { x: 980, y: 250, r: 700, c: RED, a: 0.3 }], rays: YELLOW }} accent={YELLOW} />
+      <Title spec={{ lines: ["FIRST 200 MEMBERS", "FREE FOR LIFE."], pos: "top" }} accent={YELLOW} />
+      <div
+        style={{
+          position: "absolute", top: 520, left: 0, right: 0, textAlign: "center", fontFamily: DISPLAY, fontSize: 380, lineHeight: 1, letterSpacing: 6,
+          background: `linear-gradient(180deg, #fff, ${YELLOW} 70%)`, WebkitBackgroundClip: "text", color: "transparent",
+          filter: `drop-shadow(0 0 50px ${YELLOW}aa)`, transform: `scale(${0.7 + 0.3 * k})`, opacity: k,
+        }}
+      >
+        200
+      </div>
+      <DotGrid at={10} />
       <Finish />
     </AbsoluteFill>
   );
@@ -946,6 +1043,23 @@ const Stage: React.FC<{ enter: Trans; exit: Trans | null; dur: number; children:
       );
     }
     if (enter === "flash") { fl.push(`brightness(${1 + q * 2.4})`); overlay = <AbsoluteFill style={{ background: "#fff", opacity: q * 0.7 }} />; }
+    if (enter === "glitch") {
+      t.push(`translateX(${Math.sin(frame * 7) * 46 * q}px)`);
+      fl.push(`contrast(${1 + q * 0.8}) brightness(${1 + q * 0.5})`);
+      overlay = (
+        <>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              style={{
+                position: "absolute", left: 0, right: 0, top: `${(i * 23 + (frame * 17) % 37) % 100}%`, height: `${3 + ((i * 7) % 4) * 5}%`,
+                background: i % 2 ? CYAN : YELLOW, opacity: q * 0.6, mixBlendMode: "screen", transform: `translateX(${(i % 2 ? -1 : 1) * q * 120}px)`,
+              }}
+            />
+          ))}
+        </>
+      );
+    }
   }
   // outgoing (driven by the next beat's transition)
   if (exit && pout > 0) {
@@ -954,6 +1068,7 @@ const Stage: React.FC<{ enter: Trans; exit: Trans | null; dur: number; children:
     if (exit === "zoom") { t.push(`scale(${1 + pout * 0.45})`); opacity = 1 - pout; fl.push(`blur(${pout * 12}px)`); }
     if (exit === "circle" || exit === "wipe") { t.push(`scale(${1 - pout * 0.06})`); fl.push(`brightness(${1 - pout * 0.5})`); }
     if (exit === "flash") fl.push(`brightness(${1 + pout * 1.2})`);
+    if (exit === "glitch") { t.push(`translateX(${Math.sin(frame * 9) * 36 * pout}px)`); fl.push(`contrast(${1 + pout * 1.2}) brightness(${1 + pout * 0.4})`); }
   }
   return (
     <AbsoluteFill style={{ transform: t.join(" ") || undefined, filter: fl.join(" ") || undefined, clipPath: clip, opacity }}>
@@ -969,13 +1084,13 @@ export type InsideProps = { clips: Record<string, boolean> };
 
 export const EverythingInside: React.FC<InsideProps> = ({ clips }) => (
   <AbsoluteFill style={{ background: INK }}>
-    {BEATS.map((b, i) => {
-      const next = BEATS[i + 1];
+    {TIMELINE.map((b, i) => {
+      const next = TIMELINE[i + 1];
       const hasNext = !!next;
       return (
         <Sequence key={b.id} from={b.from} durationInFrames={b.dur + (hasNext ? N : 0)} layout="none">
           <Stage enter={b.trans} exit={next ? next.trans : null} dur={b.dur}>
-            {b.kind === "phone" ? <><PhoneBeatView beat={b} clips={clips} /><Finish /></> : b.kind === "turnA" ? <TurnA /> : b.kind === "turnB" ? <TurnB /> : <Cta />}
+            {b.kind === "phone" ? <><PhoneBeatView beat={b} clips={clips} /><Finish /></> : b.kind === "bored" ? <Bored /> : b.kind === "offer" ? <Offer /> : b.kind === "turnA" ? <TurnA /> : b.kind === "turnB" ? <TurnB /> : <Cta />}
           </Stage>
         </Sequence>
       );

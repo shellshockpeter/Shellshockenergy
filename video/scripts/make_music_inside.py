@@ -13,7 +13,7 @@ import numpy as np
 
 SR = 44100
 FPS = 30
-DUR = 25.0
+DUR = 27.0
 N = int(SR * DUR)
 BEAT = 0.5
 rng = np.random.default_rng(21)
@@ -156,10 +156,10 @@ def fr(x):
     return x / FPS
 
 
-CUTS = [0, 60, 105, 150, 195, 240, 300, 330, 360, 390, 435, 465, 495, 525, 570, 615, 645, 690, 750]
-# transition type per cut (matches BEATS trans): up-whoosh for pushes/wipes, down for zoom, none for flash
-TRANS = {60: "up", 105: "up", 150: "up", 195: "up", 240: "up", 300: "dn", 330: "up", 360: "up",
-         390: "up", 435: "up", 465: "up", 495: "up", 525: "dn", 570: "up", 615: "up", 690: "up"}
+# beat starts (frames) — keep in sync with BEATS durations in EverythingInside.tsx
+# 1A0 1B60 2A120 2B165 2C210 3A255 3B300 4A360 4B390 4C420 5A450 5B495 5C525 5D555 6A585 6B630 7A675 7B750 end810
+TRANS = {120: "up", 165: "up", 210: "up", 255: "up", 300: "up", 360: "dn", 390: "up",
+         450: "up", 495: "up", 525: "up", 555: "up", 585: "dn", 630: "up", 675: "up"}
 
 # progression: D  A  Bm  G  (I V vi IV)
 PROG = [([62, 66, 69], 38, [74, 78, 81, 78]), ([57, 61, 64], 33, [73, 76, 81, 76]),
@@ -173,8 +173,8 @@ for b in range(int(np.ceil(DUR / BAR)) if MUSIC else 0):
     at = b * BAR
     notes, root, arpn = PROG[b % 4]
     in_turn = TURN[0] <= at < TURN[1]
-    if at >= 23.0:
-        if abs(at - 23.0) < 1e-6:
+    if at >= 25.0:
+        if abs(at - 25.0) < 1e-6:
             pad(at, [62, 66, 69, 74], 2.6, 1.6)
             chime(at, 86)
         continue
@@ -207,22 +207,74 @@ for b in range(int(np.ceil(DUR / BAR)) if MUSIC else 0):
             if s16 % 2 == 0 or at >= 13:
                 arp(at + s16 * BEAT / 4, n, 0.8 if s16 % 4 else 1.1, -0.35 + 0.7 * (s16 % 2))
 
-# transitions + impacts
+# ---- arcade / hook helpers ----
+def square(at, note, d=0.09, g=1.0):
+    t = t_arr(d)
+    s_ = np.sign(np.sin(2 * np.pi * hz(note) * t)) * env(len(t), 0.002, d, 0.6, 0.02)
+    put(BUS_MAIN, s_, at, 0.07 * g, 0.0)
+
+
+def arcade_up(at, g=1.0):
+    for k, n in enumerate([72, 76, 79, 84, 88, 91]):
+        square(at + k * 0.065, n, 0.1, g)
+    square(at + 0.42, 96, 0.28, g)
+
+
+def glitch_burst(at, g=1.0):
+    t = t_arr(0.28)
+    n = rng.standard_normal(len(t))
+    n = np.round(n * 6) / 6  # bit-crush
+    gate = (np.sin(2 * np.pi * 38 * t) > -0.2).astype(float)
+    put(BUS_MAIN, hp(n, 900) * gate * np.exp(-t * 7), at, 0.16 * g, 0.0)
+
+
+def flatline(at, d, g=1.0):
+    t = t_arr(d)
+    put(BUS_MAIN, np.sin(2 * np.pi * 1000 * t) * env(len(t), 0.05, d, 1.0, 0.02), at, 0.05 * g, 0.0)
+
+
+def bip(at, g=1.0):
+    t = t_arr(0.16)
+    put(BUS_MAIN, np.sin(2 * np.pi * 1000 * t) * env(len(t), 0.003, 0.16, 0.0, 0.01) * np.exp(-t * 5), at, 0.10 * g, 0.0)
+
+
+def sparkle(at, n=30, g=1.0):
+    for k in range(n):
+        note = 84 + [0, 4, 7, 12, 16, 19][k % 6] + (k // 6) * 2
+        t = t_arr(0.14)
+        s_ = np.sin(2 * np.pi * hz(min(note, 108)) * t) * np.exp(-t * 26)
+        put(BUS_PAD, s_, at + k * 0.045, 0.05 * g, -0.4 + 0.8 * ((k % 5) / 4))
+
+
+# ---- transitions + impacts ----
 for c, kind in TRANS.items():
     whoosh(fr(c) - 0.12, 0.3, up=(kind == "up"), g=0.9 if MUSIC else 2.4)
-boom(0.0, 0.9)
-whoosh(0.0, 0.5, up=False, g=1.0 if MUSIC else 2.4)
-for s_, n in zip([60, 195, 300, 390], [74, 78, 81, 86]):
+
+# 1A: bored flatline, a weak heartbeat blip, then glitch into the game
+flatline(fr(4), fr(56) - fr(4), 1.0)
+bip(fr(48), 1.0)
+glitch_burst(fr(60) - 0.06, 1.0)
+arcade_up(fr(60), 1.0)
+boom(fr(60), 0.8)
+whoosh(fr(60) - 0.1, 0.35, up=True, g=1.0 if MUSIC else 2.4)
+
+for s_, n in zip([120, 255, 360, 450], [74, 78, 81, 86]):
     boom(fr(s_), 0.5)
     chime(fr(s_), n)
-chime(fr(570), 76)
-boom(fr(570), 0.45, 24)
-riser(fr(615) - 1.2, 1.2, 0.9)
-boom(fr(615), 0.8)
+chime(fr(630), 76)
+boom(fr(630), 0.45, 24)
+
+# 7A: the offer
+riser(fr(675) - 1.2, 1.2, 0.9)
+boom(fr(675), 0.9)
 for k, n in enumerate([74, 78, 81, 86, 90]):
-    chime(fr(615) + k * 0.06, n, 0.8)
-chime(fr(645), 93, 0.8)
-boom(fr(690), 1.0, 25)
+    chime(fr(675) + k * 0.06, n, 0.8)
+sparkle(fr(685), 34, 1.0)
+chime(fr(720), 93, 0.9)
+# 7B: CTA
+boom(fr(750), 1.0, 25)
+for k, n in enumerate([74, 78, 81, 86, 90, 93]):
+    chime(fr(750) + 0.03 + k * 0.05, n, 0.7)
 
 # sidechain: duck pad bus on every kick
 duck = np.ones(N)
