@@ -77,6 +77,7 @@ type PhoneBeat = {
   cam1: Cam;
   clip: string;
   startSec: number;
+  rate?: number;
   rec: number;
   slot: string;
   action: string;
@@ -446,7 +447,7 @@ export const BEATS: Beat[] = [
     bg: orbs({ x: 540, y: 800, r: 900, c: CYAN, a: 0.34 }, { x: 100, y: 1500, r: 700, c: "#0a4cff", a: 0.4 }, { x: 960, y: 200, r: 600, c: "#00ffd0", a: 0.22 }),
     title: { lines: ["6 MUSCLE GROUPS.", "6 RANKS."], pos: "top" },
     cam0: C(0, 150, 0.8, 8, -42, 0), cam1: C(0, 150, 0.86, 8, 42, 0),
-    clip: "clip05", startSec: 0, rec: 15, slot: "FITNESS → MAP: YOUR STRENGTH MAP", action: "Tap chest, then legs.",
+    clip: "clip05", startSec: 1.6, rate: 2.2, rec: 15, slot: "FITNESS → MAP: YOUR STRENGTH MAP", action: "Tap chest, then legs.",
     bubbles: [{ at: 2, x: 540, y: 840, node: <Orbit at={2} /> }],
     loop: 1,
   },
@@ -488,7 +489,7 @@ export const BEATS: Beat[] = [
     bg: orbs({ x: 200, y: 900, r: 900, c: ORANGE, a: 0.42 }, { x: 950, y: 300, r: 700, c: YELLOW, a: 0.3 }),
     title: { lines: ["SET YOUR", "GOAL."], pos: "left", size: 190 },
     cam0: C(0, 900, 1.0, 22, 0, 0), cam1: C(0, 820, 1.04, 14, 0, 0),
-    clip: "clip06", startSec: 0, rec: 30, slot: "NUTRITION → GOALS", action: "Tap GOAL: LOSE → TARGET appears.",
+    clip: "clip06", startSec: 9.3, rec: 30, slot: "NUTRITION → GOALS", action: "Tap GOAL: LOSE → TARGET appears.",
     bubbles: [{ at: 4, x: 540, y: 1080, node: <Seg options={["LOSE", "MAINTAIN", "GAIN"]} to={0} at={8} accent={ORANGE} w={860} /> }],
     loop: 2,
   },
@@ -496,11 +497,11 @@ export const BEATS: Beat[] = [
     kind: "phone", id: "4B", from: f(11), dur: f(1), trans: "push-left", accent: ORANGE,
     bg: orbs({ x: 850, y: 800, r: 850, c: ORANGE, a: 0.4 }, { x: 100, y: 1500, r: 700, c: YELLOW, a: 0.28 }),
     title: { lines: ["TRACK YOUR", "MACROS."], pos: "top" },
-    cam0: C(0, 320, 0.8, 10, -10, 0), cam1: C(0, 300, 0.84, 6, 8, 0), phoneOpacity: 0.55,
-    clip: "clip06", startSec: 15, rec: 30, slot: "NUTRITION → DIARY", action: "ADD FOOD → CALORIES REMAINING + PROTEIN / CARBS / FAT.",
+    cam0: C(0, 320, 0.8, 10, -10, 0), cam1: C(0, 300, 0.84, 6, 8, 0),
+    clip: "clip06", startSec: 0, rec: 30, slot: "NUTRITION → DIARY", action: "ADD FOOD → CALORIES REMAINING + PROTEIN / CARBS / FAT.",
     bubbles: [
       {
-        at: 2, x: 540, y: 1010,
+        at: 2, x: 540, y: 1560,
         node: (
           <Glass w={820} pad={38}>
             <RingStat pct={72} at={4} label={"CALORIES\nREMAINING"} accent={ORANGE} />
@@ -519,11 +520,11 @@ export const BEATS: Beat[] = [
     kind: "phone", id: "4C", from: f(12), dur: f(1), trans: "flash", accent: YELLOW,
     bg: orbs({ x: 540, y: 900, r: 950, c: YELLOW, a: 0.5 }, { x: 100, y: 200, r: 600, c: ORANGE, a: 0.4 }),
     title: { lines: ["HIT YOUR", "GOAL."], pos: "top" },
-    cam0: C(0, 300, 0.76, 8, 14, 3), cam1: C(0, 280, 0.8, 4, 0, 0), phoneOpacity: 0.5,
-    clip: "clip07", startSec: 0, rec: 12, slot: "LOG A WEIGH-IN → GOAL REACHED", action: "Header pill → LOG A WEIGH-IN → SAVE → GOAL REACHED / YOU DID IT.",
+    cam0: C(0, 300, 0.76, 8, 14, 3), cam1: C(0, 280, 0.8, 4, 0, 0),
+    clip: "clip07", startSec: 2.6, rec: 12, slot: "LOG A WEIGH-IN → GOAL REACHED", action: "Header pill → LOG A WEIGH-IN → SAVE → GOAL REACHED / YOU DID IT.",
     bubbles: [
       {
-        at: 3, x: 540, y: 1000,
+        at: 3, x: 540, y: 1560,
         node: (
           <Glass w={780} pad={40} tint="linear-gradient(145deg, rgba(250,204,21,0.28), rgba(255,255,255,0))" style={{ textAlign: "center" }}>
             <div style={{ fontFamily: DISPLAY, fontSize: 150, lineHeight: 0.9, color: YELLOW, textShadow: `0 0 50px ${YELLOW}88` }}>GOAL REACHED</div>
@@ -531,7 +532,7 @@ export const BEATS: Beat[] = [
           </Glass>
         ),
       },
-      { at: 3, x: 540, y: 1000, node: <Sparks at={3} color={YELLOW} /> },
+      { at: 3, x: 540, y: 1560, node: <Sparks at={3} color={YELLOW} /> },
     ],
     loop: 2,
   },
@@ -548,13 +549,12 @@ export const BEATS: Beat[] = [
   {
     kind: "phone", id: "5B", from: f(14.5), dur: f(1), trans: "wipe", accent: VIOLET,
     bg: orbs({ x: 900, y: 500, r: 850, c: VIOLET, a: 0.4 }, { x: 150, y: 1450, r: 800, c: CYAN, a: 0.26 }),
-    title: { lines: ["PUBLIC", "PROFILES."], pos: "top" },
-    cam0: C(0, 330, 0.74, 6, 20, 0), cam1: C(0, 300, 0.8, 4, -6, 0), phoneOpacity: 0.7,
-    clip: "clip09", startSec: 0, rec: 10, slot: "PUBLIC PROFILE", action: "Slow scroll: cover, badge, THIS WEEK'S LIFTS, MUSCLE RANKS.",
+    title: { lines: ["30 BADGES", "TO UNLOCK."], pos: "top" },
+    cam0: C(0, 330, 0.74, 6, 20, 0), cam1: C(0, 300, 0.8, 4, -6, 0),
+    clip: "clip09", startSec: 0.8, rate: 1.6, rec: 10, slot: "PUBLIC PROFILE", action: "Slow scroll: cover, badge, THIS WEEK'S LIFTS, MUSCLE RANKS.",
     bubbles: [
-      { at: 2, x: 330, y: 980, rot: -5, node: <Chip text="THIS WEEK'S LIFTS" icon="flame" color={VIOLET} /> },
-      { at: 7, x: 760, y: 1110, rot: 4, node: <Chip text="MUSCLE RANKS" icon="bolt" color={CYAN} /> },
-      { at: 12, x: 400, y: 1250, rot: -3, node: <Chip text="BADGES EARNED" icon="check" color={YELLOW} /> },
+      { at: 2, x: 330, y: 980, rot: -5, node: <Chip text="BADGES EARNED" icon="check" color={VIOLET} /> },
+      { at: 7, x: 760, y: 1110, rot: 4, node: <Chip text="DEMIGOD STATUS" icon="bolt" color={CYAN} /> },
     ],
     loop: 3,
   },
@@ -562,17 +562,17 @@ export const BEATS: Beat[] = [
     kind: "phone", id: "5C", from: f(15.5), dur: f(1), trans: "circle", accent: YELLOW,
     bg: orbs({ x: 540, y: 1000, r: 900, c: YELLOW, a: 0.36 }, { x: 100, y: 200, r: 700, c: VIOLET, a: 0.34 }),
     title: { lines: ["JOIN COMMUNITY", "CHALLENGES."], pos: "top" },
-    cam0: C(0, 330, 0.74, 8, -14, 0), cam1: C(0, 300, 0.8, 4, 6, 0), phoneOpacity: 0.55,
-    clip: "clip10", startSec: 0, rec: 8, slot: "CHALLENGES", action: "Tap JOIN CHALLENGE.",
-    bubbles: [{ at: 2, x: 540, y: 1050, node: <JoinCard at={2} /> }],
+    cam0: C(0, 330, 0.74, 8, -14, 0), cam1: C(0, 300, 0.8, 4, 6, 0),
+    clip: "clip10", startSec: 3.6, rate: 1.3, rec: 8, slot: "CHALLENGES", action: "Tap JOIN CHALLENGE.",
+    bubbles: [{ at: 2, x: 540, y: 1560, node: <JoinCard at={2} /> }],
     loop: 4,
   },
   {
     kind: "phone", id: "5D", from: f(16.5), dur: f(1), trans: "push-left", accent: VIOLET,
     bg: orbs({ x: 200, y: 1100, r: 850, c: VIOLET, a: 0.4 }, { x: 900, y: 300, r: 700, c: "#ff2d95", a: 0.3 }),
     title: { lines: ["ADD FRIENDS.", "SEND DMS."], pos: "top" },
-    cam0: C(0, 320, 0.76, 6, 18, -3), cam1: C(0, 290, 0.82, 4, 0, 0), phoneOpacity: 0.55,
-    clip: "clip11", startSec: 0, rec: 12, slot: "FRIEND PROFILE → MESSAGE → DM", action: "Tap MESSAGE → type + send.",
+    cam0: C(0, 320, 0.76, 6, 18, -3), cam1: C(0, 290, 0.82, 4, 0, 0),
+    clip: "clip11", startSec: 0.2, rec: 12, slot: "FRIEND PROFILE → MESSAGE → DM", action: "Tap MESSAGE → type + send.",
     bubbles: [
       { at: 2, x: 300, y: 1060, rot: -4, node: <Glass pad={28} radius={999} tint={`linear-gradient(145deg, ${YELLOW}55, ${YELLOW}11)`}><span style={{ fontFamily: DISPLAY, fontSize: 56, letterSpacing: 4 }}>ADD FRIEND</span></Glass> },
       { at: 8, x: 790, y: 1200, rot: 4, node: <Glass pad={28} radius={999}><span style={{ fontFamily: DISPLAY, fontSize: 56, letterSpacing: 4 }}>MESSAGE</span></Glass> },
@@ -690,14 +690,14 @@ const Phone: React.FC<{ beat: PhoneBeat; frame: number; hasClip: boolean }> = ({
       <div
         style={{
           position: "absolute", left: 540 - PW / 2, top: 780 - PH / 2, width: PW, height: PH, borderRadius: 78,
-          transform: `translate3d(${L(c.x, d.x)}px, ${L(c.y, d.y) + fl}px, 0) rotateX(${L(c.rx, d.rx)}deg) rotateY(${L(c.ry, d.ry)}deg) rotateZ(${L(c.rz, d.rz)}deg) scale(${L(c.s, d.s)})`,
+          transform: `translate3d(${L(c.x, d.x)}px, ${L(c.y, d.y) + fl}px, 0) rotateX(${L(c.rx, d.rx)}deg) rotateY(${L(c.ry, d.ry)}deg) rotateZ(${L(c.rz, d.rz)}deg) scale(${L(c.s, d.s) * (["4B","4C","5B","5C","5D"].includes(beat.id) ? 1.14 : 1)})`,
           background: "linear-gradient(145deg, #4a4a52, #0b0b0e 45%, #2a2a30)", padding: 5,
           boxShadow: `0 60px 120px rgba(0,0,0,0.7), 0 0 90px ${beat.accent}30, inset 0 0 0 2px rgba(255,255,255,0.18)`,
         }}
       >
         <div style={{ position: "relative", width: "100%", height: "100%", borderRadius: 73, overflow: "hidden", background: "#000", border: "9px solid #050505" }}>
           {hasClip ? (
-            <OffthreadVideo src={staticFile(`clips/${beat.clip}.mp4`)} startFrom={Math.round(beat.startSec * 30)} muted style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <OffthreadVideo src={staticFile(`clips/${beat.clip}.mp4`)} startFrom={Math.round(beat.startSec * 30)} playbackRate={beat.rate ?? 1} muted style={{ position: "absolute", left: 0, top: "-4.5%", width: "100%", height: "104.5%", objectFit: "cover" }} />
           ) : (
             <GhostScreen beat={beat} />
           )}
