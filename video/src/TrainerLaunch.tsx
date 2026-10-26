@@ -95,7 +95,7 @@ const SceneInner: React.FC<{ duration: number; children: React.ReactNode }> = ({
   return <AbsoluteFill style={{ opacity }}>{children}</AbsoluteFill>;
 };
 
-const Background: React.FC = () => {
+export const Background: React.FC = () => {
   const f = useCurrentFrame();
   const sparks = Array.from({ length: 34 }, (_, i) => {
     const x = random(`x${i}`) * 1080;
@@ -144,7 +144,7 @@ const Background: React.FC = () => {
   );
 };
 
-const Badge: React.FC<{
+export const Badge: React.FC<{
   img: string;
   glow: string;
   size: number;
