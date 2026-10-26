@@ -1,8 +1,8 @@
-"""Soundtrack for EVERYTHING INSIDE (25.0s): A minor, 120 bpm, cuts on the beat.
+"""EVERYTHING INSIDE v2 soundtrack: uplifting premium-launch house, D major, 120 bpm.
 
-Sections: hook slam (0-2s) -> full groove (2-17.5s) -> half-time breakdown for
-THE TURN (17.5-20.5s, riser out of it) -> full groove + arps for the perk
-(20.5-23s) -> final hit on the CTA (23s).
+Different from the TRAINER cut (A minor, dark trap): four-on-the-floor kick,
+sidechain-pumped pads, bright pluck stabs + 16th arps, whooshes on every
+transition, a stripped Bm breakdown for THE TURN, and a major-chord bloom on the CTA.
 Usage: python3 make_music_inside.py out.wav
 """
 import sys
@@ -15,27 +15,27 @@ FPS = 30
 DUR = 25.0
 N = int(SR * DUR)
 BEAT = 0.5
-rng = np.random.default_rng(11)
-L = np.zeros(N)
-R = np.zeros(N)
+rng = np.random.default_rng(21)
+BUS_PAD = np.zeros((N, 2))   # sidechained
+BUS_MAIN = np.zeros((N, 2))  # not ducked
 
 
 def t_arr(d):
     return np.arange(int(SR * d)) / SR
 
 
-def add(sig, at, gain=1.0, pan=0.0):
+def put(bus, sig, at, g=1.0, pan=0.0):
     i = int(at * SR)
     if i >= N:
         return
     sig = sig[: N - i]
-    L[i : i + len(sig)] += sig * gain * np.cos((pan + 1) * np.pi / 4)
-    R[i : i + len(sig)] += sig * gain * np.sin((pan + 1) * np.pi / 4)
+    bus[i : i + len(sig), 0] += sig * g * np.cos((pan + 1) * np.pi / 4)
+    bus[i : i + len(sig), 1] += sig * g * np.sin((pan + 1) * np.pi / 4)
 
 
-def lowpass(x, cutoff):
-    a = np.exp(-2 * np.pi * cutoff / SR)
-    y = np.zeros_like(x)
+def lp(x, c):
+    a = np.exp(-2 * np.pi * c / SR)
+    y = np.empty_like(x)
     p = 0.0
     for i in range(len(x)):
         p = (1 - a) * x[i] + a * p
@@ -43,8 +43,8 @@ def lowpass(x, cutoff):
     return y
 
 
-def highpass(x, cutoff):
-    return x - lowpass(x, cutoff)
+def hp(x, c):
+    return x - lp(x, c)
 
 
 def hz(n):
@@ -66,157 +66,175 @@ def env(n, a=0.005, d=0.2, s=0.0, r=0.0):
 
 
 def kick(at, g=1.0):
-    t = t_arr(0.32)
-    ph = 2 * np.pi * np.cumsum(48 + 110 * np.exp(-t * 28)) / SR
-    s = np.sin(ph) * np.exp(-t * 11)
-    s += highpass(rng.standard_normal(len(t)), 2500) * np.exp(-t * 90) * 0.15
-    add(s, at, 0.9 * g)
+    t = t_arr(0.3)
+    ph = 2 * np.pi * np.cumsum(50 + 95 * np.exp(-t * 32)) / SR
+    s = np.sin(ph) * np.exp(-t * 10) + hp(rng.standard_normal(len(t)), 3000) * np.exp(-t * 120) * 0.1
+    put(BUS_MAIN, s, at, 0.85 * g)
 
 
-def hat(at, g=1.0, open_=False):
-    t = t_arr(0.18 if open_ else 0.05)
-    n = highpass(rng.standard_normal(len(t)), 7000) * np.exp(-t * (22 if open_ else 80))
-    add(n, at, 0.10 * g, 0.25)
+def hat(at, g=1.0, open_=False, pan=0.2):
+    t = t_arr(0.2 if open_ else 0.045)
+    n = hp(rng.standard_normal(len(t)), 8000) * np.exp(-t * (16 if open_ else 90))
+    put(BUS_MAIN, n, at, 0.075 * g, pan)
 
 
-def clap(at, g=1.0):
-    t = t_arr(0.22)
-    n = lowpass(highpass(rng.standard_normal(len(t)), 1200), 6500)
-    n *= np.exp(-t * 28) + 0.6 * np.exp(-((t - 0.012) ** 2) * 9e4)
-    add(n, at, 0.20 * g)
+def snap(at, g=1.0):
+    t = t_arr(0.2)
+    n = lp(hp(rng.standard_normal(len(t)), 1500), 7000) * (np.exp(-t * 30) + 0.5 * np.exp(-((t - 0.01) ** 2) * 1e5))
+    s = np.sin(2 * np.pi * 190 * t) * np.exp(-t * 22) * 0.4
+    put(BUS_MAIN, n + s, at, 0.17 * g)
 
 
-def bass(at, note, d=0.45, g=1.0):
+def sub(at, note, d=0.24, g=1.0):
     t = t_arr(d)
-    f = hz(note)
-    s = np.tanh((np.sin(2 * np.pi * f * t) + 0.35 * np.sin(4 * np.pi * f * t)) * 1.6)
-    s *= env(len(t), 0.004, d, 0.0, 0.05) * np.exp(-t * 3.0)
-    add(s, at, 0.34 * g)
+    s = np.sin(2 * np.pi * hz(note) * t) * env(len(t), 0.004, d, 0.0, 0.03) * np.exp(-t * 2.5)
+    put(BUS_MAIN, np.tanh(s * 1.8), at, 0.30 * g)
 
 
 def pad(at, notes, d, g=1.0):
     t = t_arr(d)
     out = np.zeros_like(t)
     for n in notes:
-        for det in (-0.12, 0.0, 0.12):
+        for det in (-0.1, 0.0, 0.1):
             ph = 2 * np.pi * hz(n) * 2 ** (det / 12) * t
-            out += np.sin(ph) + 0.5 * np.sin(2 * ph) + 0.25 * np.sin(3 * ph)
-    add(lowpass(out, 1800) * env(len(t), 0.5, 0.2, 0.9, 0.6), at, 0.030 * g)
+            out += (2 * ((ph / (2 * np.pi)) % 1) - 1) * 0.5 + np.sin(ph) * 0.5  # soft saw
+    out = lp(out, 2600) * env(len(t), 0.25, 0.2, 0.9, 0.35)
+    put(BUS_PAD, out, at, 0.028 * g, 0.0)
 
 
-def pluck(at, note, g=1.0, pan=0.0):
-    t = t_arr(0.32)
+def stab(at, notes, g=1.0):
+    t = t_arr(0.38)
+    out = np.zeros_like(t)
+    for n in notes:
+        f = hz(n)
+        out += np.sin(2 * np.pi * f * t) + 0.45 * np.sin(2 * np.pi * f * 2 * t) * np.exp(-t * 9) + 0.2 * np.sin(2 * np.pi * f * 3 * t) * np.exp(-t * 14)
+    out *= np.exp(-t * 7) * env(len(t), 0.002, 0.38)
+    put(BUS_PAD, out / max(1, len(notes)) * 1.3, at, 0.12 * g, 0.15)
+
+
+def arp(at, note, g=1.0, pan=0.0):
+    t = t_arr(0.26)
     f = hz(note)
-    s = np.sin(2 * np.pi * f * t) + 0.4 * np.sin(4 * np.pi * f * t) * np.exp(-t * 14)
-    s += 0.2 * np.sin(6 * np.pi * f * t) * np.exp(-t * 20)
-    add(s * np.exp(-t * 9) * env(len(t), 0.002, 0.32), at, 0.10 * g, pan)
+    s = (np.sin(2 * np.pi * f * t) + 0.3 * np.sin(4 * np.pi * f * t) * np.exp(-t * 18)) * np.exp(-t * 12) * env(len(t), 0.002, 0.26)
+    put(BUS_PAD, s, at, 0.075 * g, pan)
+    put(BUS_PAD, s * 0.45, at + 0.1875, 0.075 * g, -pan)  # dotted-8th echo
 
 
-def ping(at, note, g=1.0):
-    t = t_arr(0.7)
-    f = hz(note)
-    s = (np.sin(2 * np.pi * f * t) + 0.3 * np.sin(2 * np.pi * f * 2.01 * t)) * np.exp(-t * 6.5)
-    add(s, at, 0.16 * g, 0.1)
-    add(s * 0.5, at + 0.19, 0.16 * g, -0.3)
-
-
-def impact(at, g=1.0, pitch=33):
-    t = t_arr(1.6)
-    ph = 2 * np.pi * np.cumsum(hz(pitch) * (1 + 1.2 * np.exp(-t * 14))) / SR
-    boom = np.sin(ph) * np.exp(-t * 2.4)
-    n = lowpass(rng.standard_normal(len(t)), 900) * np.exp(-t * 3.2) * 0.5
-    sh = highpass(rng.standard_normal(len(t)), 3000) * np.exp(-t * 10) * 0.15
-    add(boom + n + sh, at, 0.6 * g)
+def whoosh(at, d=0.3, up=True, g=1.0):
+    t = t_arr(d)
+    n = rng.standard_normal(len(t))
+    sweep = lp(n, 7000) - lp(n, 400)
+    shape = (t / d) ** 1.8 if up else (1 - t / d) ** 1.8
+    put(BUS_MAIN, sweep * shape * np.sin(np.pi * np.clip(t / d, 0, 1)) ** 0.4, at, 0.16 * g, 0.0)
 
 
 def riser(at, d, g=1.0):
     t = t_arr(d)
     n = rng.standard_normal(len(t))
-    sweep = (lowpass(n, 6000) - lowpass(n, 300)) * (t / d) ** 2.2
-    tone = np.sin(2 * np.pi * np.cumsum(hz(57) * 2 ** (t / d)) / SR) * (t / d) ** 2 * 0.4
-    add(sweep * 0.22 + tone * 0.25, at, g)
+    sweep = (lp(n, 9000) - lp(n, 500)) * (t / d) ** 2.4
+    tone = np.sin(2 * np.pi * np.cumsum(hz(62) * 2 ** (1.4 * t / d)) / SR) * (t / d) ** 2 * 0.35
+    put(BUS_MAIN, sweep * 0.2 + tone * 0.2, at, g)
 
 
-def zap(at, g=1.0):
-    t = t_arr(0.25)
-    s = np.sin(2 * np.pi * np.cumsum(3200 * np.exp(-t * 11) + 200) / SR) * np.exp(-t * 14)
-    add(s, at, 0.18 * g, 0.3)
+def boom(at, g=1.0, note=26):
+    t = t_arr(1.4)
+    ph = 2 * np.pi * np.cumsum(hz(note) * (1 + 1.4 * np.exp(-t * 16))) / SR
+    s = np.sin(ph) * np.exp(-t * 2.6) + lp(rng.standard_normal(len(t)), 700) * np.exp(-t * 4) * 0.4
+    put(BUS_MAIN, s, at, 0.5 * g)
 
 
-def tick(at, g=1.0):
-    """Tiny cut marker: high click so every hard cut is felt on the beat."""
-    t = t_arr(0.05)
-    s = highpass(rng.standard_normal(len(t)), 4500) * np.exp(-t * 110)
-    s += np.sin(2 * np.pi * 1760 * t) * np.exp(-t * 90) * 0.5
-    add(s, at, 0.10 * g, -0.1)
+def chime(at, note, g=1.0):
+    t = t_arr(1.1)
+    f = hz(note)
+    s = (np.sin(2 * np.pi * f * t) + 0.35 * np.sin(2 * np.pi * f * 2.76 * t) * np.exp(-t * 4)) * np.exp(-t * 3.2)
+    put(BUS_PAD, s, at, 0.10 * g, 0.2)
+    put(BUS_PAD, s * 0.4, at + 0.26, 0.10 * g, -0.3)
 
 
 def fr(x):
     return x / FPS
 
 
-# ---- cut points (frames) — keep in sync with BEATS in EverythingInside.tsx ----
-CUTS = [0, 60, 105, 150, 195, 240, 300, 330, 360, 390, 435, 465, 495, 525, 570,
-        615, 645, 690, 750]
-SCENE = [0, 60, 195, 300, 390, 525, 615, 690]  # scene / big-beat starts
+CUTS = [0, 60, 105, 150, 195, 240, 300, 330, 360, 390, 435, 465, 495, 525, 570, 615, 645, 690, 750]
+# transition type per cut (matches BEATS trans): up-whoosh for pushes/wipes, down for zoom, none for flash
+TRANS = {60: "up", 105: "up", 150: "up", 195: "up", 240: "up", 300: "dn", 330: "up", 360: "up",
+         390: "up", 435: "up", 465: "up", 495: "up", 525: "dn", 570: "up", 615: "up", 690: "up"}
 
-# ---- sfx ----
-for c in CUTS[1:-1]:
-    tick(fr(c))
-impact(0.0, 0.9)
-for s, n in zip([60, 195, 300, 390], [69, 72, 74, 76]):  # A C D E ascending
-    impact(fr(s), 0.55)
-    ping(fr(s), n + 12)
-zap(fr(570))                      # strike lands on the cut to 6B
-impact(fr(570), 0.45, pitch=31)
-riser(fr(615) - 1.0, 1.0, 0.9)    # into the perk
-impact(fr(615), 0.8)
-for k, n in enumerate([57, 64, 69, 72, 76]):
-    ping(fr(615) + k * 0.04, n + 12, 0.7)
-ping(fr(645), 88, 0.8)            # second perk line
-impact(fr(690), 1.0, pitch=33)    # CTA
-for k, n in enumerate([57, 64, 69, 72, 76, 81]):
-    ping(fr(690) + 0.03 + k * 0.05, n + 12, 0.7)
-
-# ---- music ----
-chords = [([57, 60, 64], 33), ([53, 57, 60], 29), ([48, 52, 55], 36), ([55, 59, 62], 31)]
+# progression: D  A  Bm  G  (I V vi IV)
+PROG = [([62, 66, 69], 38, [74, 78, 81, 78]), ([57, 61, 64], 33, [73, 76, 81, 76]),
+        ([59, 62, 66], 35, [71, 74, 78, 74]), ([55, 59, 62], 31, [71, 74, 79, 74])]
 BAR = 4 * BEAT
-HALF = (17.5, 20.5)
+TURN = (17.5, 20.5)
+
+kick_times = []
 for b in range(int(np.ceil(DUR / BAR))):
     at = b * BAR
-    notes, root = chords[b % 4]
-    pad(at, notes, BAR + 0.4, 1.0)
-    in_half = HALF[0] <= at < HALF[1]
+    notes, root, arpn = PROG[b % 4]
+    in_turn = TURN[0] <= at < TURN[1]
+    if at >= 23.0:
+        if abs(at - 23.0) < 1e-6:
+            pad(at, [62, 66, 69, 74], 2.6, 1.6)
+            chime(at, 86)
+        continue
+    if in_turn:
+        pad(at, [59, 62, 66], BAR + 0.3, 1.2)           # Bm, sparse
+        stab(at, [71, 74, 78], 0.8)
+        sub(at, 35, 1.6, 0.9)
+        kick_times += [at]
+        kick(at, 0.7)
+        continue
+    pad(at, notes, BAR + 0.3, 1.0 if at >= 2.0 else 0.8)
     if at < 2.0:
-        bass(at, root, BAR, 0.6)
-    elif at >= 23.0:
-        if at < 23.01:
-            bass(at, root, 2.0, 0.8)
-    elif in_half:
-        bass(at, root, BAR, 0.7)
-        kick(at, 0.8)
-        kick(at + 2 * BEAT, 0.7)
-    else:
-        for beat in range(4):
-            tb = at + beat * BEAT
-            kick(tb)
-            bass(tb, root + (12 if beat == 3 else 0), 0.4)
-            bass(tb + BEAT / 2, root, 0.22, 0.7)
-            hat(tb + BEAT / 2, 1.0, open_=(beat % 2 == 1))
-            if beat in (1, 3) and tb >= 6.5:
-                clap(tb)
-        if at >= 10.0 or at >= 20.5:
-            pent = [57, 60, 62, 64, 67, 69, 72, 76]
-            pat = [0, 2, 4, 2, 5, 4, 2, 1]
-            for s16 in range(16):
-                note = pent[(pat[s16 % 8] + (b % 2)) % len(pent)] + 12
-                pluck(at + s16 * BEAT / 4, note, 0.8 if s16 % 4 else 1.1, -0.3 + 0.6 * (s16 % 2))
+        sub(at, root, BAR, 0.7)
+        continue
+    for beat in range(4):
+        tb = at + beat * BEAT
+        kick(tb)
+        kick_times.append(tb)
+        hat(tb + BEAT / 2, 1.0, open_=True)
+        for q in (0.25, 0.75):
+            hat(tb + q * BEAT, 0.55)
+        sub(tb + BEAT / 2, root, 0.22, 1.0)
+        if beat in (1, 3) and tb >= 6.5:
+            snap(tb)
+        if beat in (0, 2) or tb >= 10:
+            stab(tb + BEAT * 0.75, notes, 0.85)
+    if at >= 6.5:
+        for s16 in range(16):
+            n = arpn[s16 % 4] + (12 if (s16 // 8) % 2 else 0)
+            if s16 % 2 == 0 or at >= 13:
+                arp(at + s16 * BEAT / 4, n, 0.8 if s16 % 4 else 1.1, -0.35 + 0.7 * (s16 % 2))
 
-# ---- master ----
-mix = np.stack([L, R], axis=1)
+# transitions + impacts
+for c, kind in TRANS.items():
+    whoosh(fr(c) - 0.12, 0.3, up=(kind == "up"), g=0.9)
+boom(0.0, 0.9)
+whoosh(0.0, 0.5, up=False, g=1.0)
+for s_, n in zip([60, 195, 300, 390], [74, 78, 81, 86]):
+    boom(fr(s_), 0.5)
+    chime(fr(s_), n)
+chime(fr(570), 76)
+boom(fr(570), 0.45, 24)
+riser(fr(615) - 1.2, 1.2, 0.9)
+boom(fr(615), 0.8)
+for k, n in enumerate([74, 78, 81, 86, 90]):
+    chime(fr(615) + k * 0.06, n, 0.8)
+chime(fr(645), 93, 0.8)
+boom(fr(690), 1.0, 25)
+
+# sidechain: duck pad bus on every kick
+duck = np.ones(N)
+for kt in kick_times:
+    i = int(kt * SR)
+    L_ = int(0.32 * SR)
+    if i >= N:
+        continue
+    seg = min(L_, N - i)
+    duck[i : i + seg] = np.minimum(duck[i : i + seg], 1 - 0.7 * np.exp(-np.arange(seg) / (0.09 * SR)))
+mix = BUS_MAIN + BUS_PAD * duck[:, None]
 mix = np.tanh(mix * 1.15) / np.tanh(1.15)
 mix = mix / np.max(np.abs(mix)) * 0.84
-fade = int(0.6 * SR)
+fade = int(0.7 * SR)
 mix[-fade:] *= np.linspace(1, 0, fade)[:, None]
 mix[: int(0.01 * SR)] *= np.linspace(0, 1, int(0.01 * SR))[:, None]
 out = (mix * 32767).astype(np.int16)
