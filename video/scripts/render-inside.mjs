@@ -14,12 +14,12 @@ import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const out = process.argv[2] ?? "out/everything-inside.mp4";
 const clips = {};
-for (let i = 1; i <= 12; i++) {
+for (let i = 1; i <= 13; i++) {
   const id = `clip${String(i).padStart(2, "0")}`;
   clips[id] = existsSync(resolve(root, "public/clips", `${id}.mp4`));
 }
 const have = Object.entries(clips).filter(([, v]) => v).map(([k]) => k);
-console.log(`clips found: ${have.length}/12 ${have.join(" ")}`);
+console.log(`clips found: ${have.length}/13 ${have.join(" ")}`);
 
 mkdirSync(resolve(root, "out"), { recursive: true });
 const args = [

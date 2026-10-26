@@ -359,7 +359,7 @@ const Sparks: React.FC<{ at: number; color: string; n?: number }> = ({ at, color
   );
 };
 
-const PowerHud: React.FC<{ at: number }> = ({ at }) => {
+export const PowerHud: React.FC<{ at: number }> = ({ at }) => {
   const frame = useCurrentFrame();
   const p = interpolate(frame, [at + 4, at + 40], [8, 86], { ...cl, easing: ez });
   return (
@@ -386,10 +386,8 @@ export const BEATS: Beat[] = [
     bg: { orbs: [{ x: 540, y: 520, r: 950, c: "#6a2cff", a: 0.55 }, { x: 150, y: 1500, r: 800, c: CYAN, a: 0.38 }, { x: 980, y: 300, r: 650, c: "#ff2d95", a: 0.38 }] },
     title: { lines: ["WE TURNED IT INTO", "A VIDEO GAME."], pos: "top", delays: [0, 14] },
     cam0: C(0, 170, 0.8, 16, -28, -4), cam1: C(0, 50, 1.08, 0, 0, 0),
-    clip: "clip01", startSec: 0, rec: 10, slot: "LOG A PERSONAL RECORD → RANK UP", action: "Tap LOG IT. Flash → NEW PR burst → RANK UP overlay.",
+    clip: "clip01", startSec: 1.6, rec: 10, slot: "LOG A PERSONAL RECORD → RANK UP", action: "Tap LOG IT. Flash → NEW PR burst → RANK UP overlay.",
     bubbles: [
-      { at: 10, x: 260, y: 880, rot: -5, node: <PowerHud at={10} /> },
-      { at: 22, x: 850, y: 470, rot: 6, node: <Chip text="RANK UP" icon="bolt" big /> },
       { at: 30, x: 540, y: 1430, node: <TierRow at={30} /> },
     ],
     loop: -1,
@@ -400,7 +398,7 @@ export const BEATS: Beat[] = [
     bg: orbs({ x: 200, y: 400, r: 800, c: YELLOW, a: 0.38 }, { x: 900, y: 1300, r: 800, c: ORANGE, a: 0.32 }),
     title: { lines: ["LOG EVERY", "LIFT."], pos: "left", size: 170 },
     cam0: C(250, 140, 0.92, 8, -32, 4), cam1: C(215, 90, 1.0, 4, -18, 2),
-    clip: "clip04", startSec: 0, rec: 40, slot: "ACTIVE WORKOUT → ADD EXERCISE", action: "Tap + → pick exercise → weight/reps → LOG SET.",
+    clip: "clip04", startSec: 0.2, rec: 40, slot: "ACTIVE WORKOUT → ADD EXERCISE", action: "Tap + → pick exercise → weight/reps → LOG SET.",
     taps: [{ at: 24, x: 0.5, y: 0.88 }],
     bubbles: [
       {
@@ -421,7 +419,7 @@ export const BEATS: Beat[] = [
     bg: orbs({ x: 900, y: 300, r: 800, c: YELLOW, a: 0.34 }, { x: 150, y: 1400, r: 900, c: "#ff6a00", a: 0.3 }),
     title: { lines: ["PRE-BUILT SPLITS.", "OR BUILD YOURS."], pos: "top" },
     cam0: C(0, 300, 0.78, 14, 14, 0), cam1: C(0, 250, 0.84, 6, 4, 0),
-    clip: "clip03", startSec: 0, rec: 15, slot: "ROUTINES → CREATE SPLIT → NEW SPLIT", action: "START FROM A TEMPLATE / BUILD YOUR OWN → SPLIT TEMPLATES.",
+    clip: "clip03", startSec: 0.4, rate: 3, rec: 15, slot: "ROUTINES → CREATE SPLIT → NEW SPLIT", action: "START FROM A TEMPLATE / BUILD YOUR OWN → SPLIT TEMPLATES.",
     bubbles: [
       { at: 8, x: 300, y: 1160, rot: -5, node: <Glass pad={34} w={470}><div style={{ fontFamily: BODY, fontWeight: 800, fontSize: 36, letterSpacing: 3, lineHeight: 1.2 }}>START FROM A TEMPLATE</div></Glass> },
       { at: 16, x: 790, y: 1300, rot: 5, node: <Glass pad={34} w={400}><div style={{ fontFamily: BODY, fontWeight: 800, fontSize: 36, letterSpacing: 3, lineHeight: 1.2 }}>BUILD YOUR OWN</div></Glass> },
@@ -433,7 +431,7 @@ export const BEATS: Beat[] = [
     bg: orbs({ x: 540, y: 1700, r: 900, c: YELLOW, a: 0.38 }, { x: 900, y: 200, r: 600, c: ORANGE, a: 0.3 }),
     title: { lines: ["A/B WEEKS FLIP", "AUTOMATICALLY."], pos: "bottom", plate: true },
     cam0: C(0, 430, 1.55, 0, 0, 0), cam1: C(0, 380, 1.68, 0, -7, 1),
-    clip: "clip03", startSec: 8, rec: 15, slot: "ROUTINES → THIS WEEK", action: "Tap WEEK A, then WEEK B.",
+    clip: "clip03", startSec: 5.4, rate: 3.6, rec: 15, slot: "ROUTINES → THIS WEEK", action: "Tap WEEK A, then WEEK B.",
     taps: [{ at: 20, x: 0.7, y: 0.2 }],
     bubbles: [
       { at: 6, x: 540, y: 380, node: <Seg options={["WEEK A", "WEEK B"]} to={1} at={20} accent={YELLOW} w={660} /> },
@@ -456,15 +454,15 @@ export const BEATS: Beat[] = [
     bg: orbs({ x: 850, y: 900, r: 900, c: CYAN, a: 0.3 }, { x: 100, y: 300, r: 700, c: "#ff2d95", a: 0.2 }),
     title: { lines: ["BIG JUMP?", "VIDEO PROOF REQUIRED."], pos: "top" },
     cam0: C(-215, 230, 0.88, 8, 22, -3), cam1: C(-170, 190, 0.94, 4, 12, -1),
-    clip: "clip02", startSec: 0, rec: 12, slot: "LOG A PERSONAL RECORD → VERIFICATION REQUIRED", action: "180 × 5 → ESTIMATED 1RM 210 → >15% jump → LOG IT.",
+    clip: "clip02", startSec: 1.3, rate: 2, rec: 12, slot: "LOG A PERSONAL RECORD → VERIFICATION REQUIRED", action: "180 × 5 → ESTIMATED 1RM 210 → >15% jump → LOG IT.",
     bubbles: [
       {
         at: 4, x: 330, y: 1300, rot: -4,
         node: (
           <Glass pad={30} w={440}>
             <div style={{ fontFamily: BODY, fontWeight: 800, fontSize: 26, letterSpacing: 4, color: CYAN }}>ESTIMATED 1RM</div>
-            <div style={{ fontFamily: DISPLAY, fontSize: 150, lineHeight: 0.95 }}>210 <span style={{ fontSize: 56 }}>lbs</span></div>
-            <div style={{ fontFamily: BODY, fontWeight: 600, fontSize: 26, color: "rgba(255,255,255,0.7)" }}>180 × 5 · EPLEY</div>
+            <div style={{ fontFamily: DISPLAY, fontSize: 150, lineHeight: 0.95 }}>533 <span style={{ fontSize: 56 }}>lbs</span></div>
+            <div style={{ fontFamily: BODY, fontWeight: 600, fontSize: 26, color: "rgba(255,255,255,0.7)" }}>500 × 2 · EPLEY</div>
           </Glass>
         ),
       },
@@ -498,7 +496,7 @@ export const BEATS: Beat[] = [
     bg: orbs({ x: 850, y: 800, r: 850, c: ORANGE, a: 0.4 }, { x: 100, y: 1500, r: 700, c: YELLOW, a: 0.28 }),
     title: { lines: ["TRACK YOUR", "MACROS."], pos: "top" },
     cam0: C(0, 320, 0.8, 10, -10, 0), cam1: C(0, 300, 0.84, 6, 8, 0),
-    clip: "clip06", startSec: 0, rec: 30, slot: "NUTRITION → DIARY", action: "ADD FOOD → CALORIES REMAINING + PROTEIN / CARBS / FAT.",
+    clip: "clip13", startSec: 0.75, rec: 30, slot: "NUTRITION → DIARY", action: "ADD FOOD → CALORIES REMAINING + PROTEIN / CARBS / FAT.",
     bubbles: [
       {
         at: 2, x: 540, y: 1560,

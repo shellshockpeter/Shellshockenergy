@@ -13,4 +13,16 @@ enc -i raw/C.mov -vf "$V" clip09.mp4                                  # BADGES: 
 enc -i raw/D.mp4 -t 5.8 -vf "$V" clip10.mp4                           # CHALLENGES: JOIN CHALLENGE (cut before IG banner)
 enc -i raw/E.mov -ss 1.5 -t 1.7 \
   -filter_complex "[0:v]${V},split[a][b];[b]crop=w=iw*0.55:h=ih*0.89:x=iw*0.11:y=ih*0.11,boxblur=26:4[bl];[a][bl]overlay=x=W*0.11:y=H*0.11" clip11.mp4   # FRIENDS (names blurred)
+
+# ── batch 2 ──
+# F: RANK UP screen (1094x2068 -> cover-crop to 720x1560); cut before Control Center at the end
+enc -i raw/F.mov -t 6.2 -vf "scale=-2:1560:flags=lanczos,crop=720:1560" clip01.mp4
+# G: LOG AN EXERCISE (pick, 150 x 10, est 1RM 200, save) - 5x speed ramp
+enc -i raw/G.mov -ss 0.4 -t 8.6 -vf "${V},setpts=PTS/5" clip04.mp4
+# H: LOG A PERSONAL RECORD 500 x 2 -> 533 est 1RM -> VERIFICATION REQUIRED
+enc -i raw/H.mov -vf "$V" clip02.mp4
+# I: nutrition add food -> diary -> calories remaining - 4x speed
+enc -i raw/I.mov -ss 0.4 -t 8.0 -vf "${V},setpts=PTS/4" clip13.mp4
+# J: routines (new split -> template -> this week A/B -> workout)
+enc -i raw/J.mov -vf "$V" clip03.mp4
 ls -la clip*.mp4
