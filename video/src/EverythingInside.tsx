@@ -263,7 +263,7 @@ const Orbit: React.FC<{ at: number }> = ({ at }) => {
   );
 };
 
-const PostCard: React.FC<{ at: number; accent: string }> = ({ at, accent }) => {
+export const PostCard: React.FC<{ at: number; accent: string }> = ({ at, accent }) => {
   const frame = useCurrentFrame();
   const reacts = ["⚡️", "🔥", "💪🏻", "✅"];
   const plus = interpolate(frame, [at + 14, at + 26], [0, 1], cl);
@@ -535,15 +535,6 @@ export const BEATS: Beat[] = [
     loop: 2,
   },
   // ───────── 5 COMMUNITY 0:13.0–0:17.5
-  {
-    kind: "phone", id: "5A", from: f(13), dur: f(1.5), trans: "push-up", accent: VIOLET,
-    bg: orbs({ x: 150, y: 600, r: 850, c: VIOLET, a: 0.42 }, { x: 950, y: 1400, r: 800, c: "#ff2d95", a: 0.28 }),
-    title: { lines: ["YOUR WORKOUTS", "HIT THE FEED."], pos: "left", size: 150 },
-    cam0: C(360, 260, 0.9, 6, -30, 5), cam1: C(330, 220, 0.96, 4, -18, 3),
-    clip: "clip08", startSec: 0, rec: 10, slot: "SOCIAL → SHELLSHOCK ACADEMY", action: "Workout recap post → tap one reaction.",
-    bubbles: [{ at: 6, x: 520, y: 1120, rot: -2, node: <PostCard at={6} accent={VIOLET} /> }],
-    loop: 3,
-  },
   {
     kind: "phone", id: "5B", from: f(14.5), dur: f(1), trans: "wipe", accent: VIOLET,
     bg: orbs({ x: 900, y: 500, r: 850, c: VIOLET, a: 0.4 }, { x: 150, y: 1450, r: 800, c: CYAN, a: 0.26 }),
