@@ -23,9 +23,13 @@ Remotion templates for ShellShock Energy (9:16, 30 fps, 15 s). Design spec: `../
 
 The cuts and animations are timed in code (`src/templates/Explainer.tsx`); the words are not.
 
-## Numbered-list reel (your clip)
+## Numbered-list reel (the hook)
 
-Composition **NumberedList**: your clip in the media panel, a numbered list of signs that reveal in time with the clip, the last one blurred until a punch-in "shock" beat. In the Props panel: edit the title, the four sign labels, and each sign's `reveal` frame (30 per second; the clip is 306 frames). The clip is `public/media/peter-clip.mp4` (a 720p copy of the phone video); to use another, drop it in `public/media/` and set `mediaSrc`. Use `mediaFocusY` to aim the crop at the face.
+Composition **NumberedList** (6.6 s): your clip on top (trimmed to start at your first word), a numbered list of signs below. In the hook the signs stay an **unreadable blur** the whole time (that is the point: keep them watching) while a gold highlight scans down the rows and the last sign gets a shock beat (punch-in, shake, flash, text-scramble).
+
+In the Props panel: the two title lines (`*stars*` mark the gold word), the teaser line, each sign's `label` and `ping` frame (30 per second), the footer text. **`unblurOnPing`**: leave OFF for the hook. Turn it ON to make the payoff video: each sign decodes into readable text when its highlight lands. `mediaFocusY` aims the crop at the face.
+
+The clip is `public/media/peter-hook.mp4` (a 720p copy, starting at 3.6 s of the phone video). To use another clip, drop it in `public/media/` and set `mediaSrc`, and change the composition length in `src/Root.tsx` (`durationInFrames`).
 
 ## Commands
 

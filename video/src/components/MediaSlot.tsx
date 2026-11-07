@@ -4,7 +4,9 @@ import { color, font } from "../brand/theme";
 type Props = {
   /** Footage the user supplies (no stock people). Placeholder block when omitted. */
   src?: string;
-  layout: "panel" | "full";
+  layout: "panel" | "full" | "top";
+  /** layout "top": height of the full-width top block. */
+  height?: number;
   /** Talking-head punch-in (1 = none). */
   scale?: number;
   /** Vertical focus of the crop, 0 = top, 100 = bottom (cover-fit). Pick the face. */
@@ -42,7 +44,7 @@ const Placeholder: React.FC = () => (
 );
 
 /** The talking-head / hero-footage layer. Panel = rounded inset at the bottom; full = full bleed. */
-export const MediaSlot: React.FC<Props> = ({ src, layout, scale = 1, focusY = 50, panelTop = 938 }) => {
+export const MediaSlot: React.FC<Props> = ({ src, layout, scale = 1, focusY = 50, panelTop = 938, height = 600 }) => {
   const inner = (
     <div style={{ position: "absolute", inset: 0, transform: `scale(${scale})` }}>
       {src ? (
@@ -55,6 +57,9 @@ export const MediaSlot: React.FC<Props> = ({ src, layout, scale = 1, focusY = 50
       )}
     </div>
   );
+  if (layout === "top") {
+    return <div style={{ position: "absolute", left: 0, top: 0, width: 720, height, overflow: "hidden" }}>{inner}</div>;
+  }
   if (layout === "full") {
     return <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>{inner}</div>;
   }

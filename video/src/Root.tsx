@@ -73,29 +73,26 @@ export const RemotionRoot: React.FC = () => {
         id="NumberedList"
         component={NumberedList}
         schema={numberedListSchema}
-        durationInFrames={306}
+        durationInFrames={198}
         fps={FPS}
         width={W}
         height={H}
         defaultProps={{
-          mediaSrc: "media/peter-clip.mp4",
-          mediaFocusY: 47,
-          line1: "4 Signs Your Pre-Workout",
-          lead: "Is Killing Your ",
-          accent: "Gains",
-          tail: "",
+          mediaSrc: "media/peter-hook.mp4",
+          mediaFocusY: 36,
+          teaser: "The 4th one will shock you",
+          teaserAfter: "Wait for number 4",
+          title1: "4 Signs Your Pre-Workout",
+          title2: "Is Killing Your *Gains*",
           items: [
-            { label: "Crash mid-workout", reveal: 105 },
-            { label: "Jitters, no focus", reveal: 141 },
-            { label: "No pump, flat lifts", reveal: 177 },
-            { label: "Hidden doses", reveal: 222 },
+            { label: "Caffeine crash", ping: 30 },
+            { label: "Lack of focus", ping: 59 },
+            { label: "Tastes like battery acid", ping: 101 },
+            { label: "Taking too much", ping: 130 },
           ],
+          unblurOnPing: false,
           shockLast: true,
-          progressLabel: "signs",
-          captions: [
-            { from: 18, to: 221, text: "The 4th one will *shock* you" },
-            { from: 222, to: 306, text: "Which one *hit* you?" },
-          ],
+          cta: "Keep watching to unlock",
         }}
       />
     </>
