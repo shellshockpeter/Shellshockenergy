@@ -2,6 +2,7 @@ import "./index.css";
 import { Composition } from "remotion";
 import { DURATION, FPS, H, W } from "./brand/theme";
 import { Explainer, explainerSchema } from "./templates/Explainer";
+import { FullReel, EXPLAINER_FRAMES, HOOK_FRAMES, fullReelSchema } from "./templates/FullReel";
 import { NumberedList, numberedListSchema } from "./templates/NumberedList";
 
 export const RemotionRoot: React.FC = () => {
@@ -93,6 +94,39 @@ export const RemotionRoot: React.FC = () => {
           ],
           unblurOnPing: false,
           shockLast: true,
+        }}
+      />
+      <Composition
+        id="FullReel"
+        component={FullReel}
+        schema={fullReelSchema}
+        durationInFrames={HOOK_FRAMES + EXPLAINER_FRAMES}
+        fps={FPS}
+        width={W}
+        height={H}
+        defaultProps={{
+          explainerSrc: "media/explainer.mp4",
+          voiceoverSrc: "media/voiceover.mp3",
+          explainerFit: "safe",
+          explainerScale: 0.8,
+          explainerTop: 126,
+          hook: {
+            mediaSrc: "media/peter-hook-1080.mp4",
+            mediaFocusY: 44,
+            buildFrame: 3,
+            teaser: "The 4th one will shock you",
+            teaserAfter: "Wait for number 4",
+            title1: "4 Signs Your Pre-Workout",
+            title2: "Is Killing Your *Gains*",
+            items: [
+              { label: "Caffeine crash", ping: 48 },
+              { label: "Lack of focus", ping: 72 },
+              { label: "Tastes like battery acid", ping: 102 },
+              { label: "Taking too much", ping: 130 },
+            ],
+            unblurOnPing: false,
+            shockLast: true,
+          },
         }}
       />
     </>

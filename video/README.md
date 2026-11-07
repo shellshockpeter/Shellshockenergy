@@ -31,10 +31,17 @@ In the Props panel: the two title lines (`*stars*` mark the gold word), the teas
 
 The clip is `public/media/peter-hook-1080.mp4` (1080×1920 copy of the phone video, starting at 3.6 s). To use another clip, drop it in `public/media/` and set `mediaSrc`, and change the composition length in `src/Root.tsx` (`durationInFrames`).
 
+## Full reel (hook + explainer + voiceover)
+
+Composition **FullReel** (77.3 s): the NumberedList hook, a hard cut, then your explainer video with the separate voiceover (`public/media/explainer.mp4`, `public/media/voiceover.mp3`; both 70.7 s). The hook's text is editable in the Props panel under `hook`.
+
+`explainerFit` = **safe** (default) shrinks the explainer to 80% with a blurred fill at the sides, so its top text (section titles, the "COMMENT SHELL SHOCK" offer) clears Instagram's header. Set it to **full** for the original full-bleed. `explainerScale` / `explainerTop` fine-tune it.
+
 ## Commands
 
 - `npm run dev`: preview and edit
 - `npm run render:explainer`: render to `out/explainer.mp4`
+- `npm run render:reel`: render the full reel to `out/full-reel.mp4` (1080×1920)
 - `npm run render:numbered`: render the numbered-list reel to `out/numbered-list.mp4` at **1080×1920** (the layout is 720×1280, rendered at 1.5× for sharpness)
 
 Welcome to your Remotion project!
