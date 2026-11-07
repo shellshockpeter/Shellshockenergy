@@ -2,7 +2,7 @@ import { AbsoluteFill, Easing, spring, useCurrentFrame } from "remotion";
 import { z } from "zod";
 import "../brand/fonts";
 import { KineticLine, hash, scramble, toWords } from "../components/Kinetic";
-import { LiquidBackdrop, glass } from "../components/LiquidBackdrop";
+import { glass } from "../components/LiquidBackdrop";
 import { MediaSlot } from "../components/MediaSlot";
 import { FPS, accentFill, accentGradient, color, font } from "../brand/theme";
 import { lerp, prog } from "../lib/anim";
@@ -12,7 +12,6 @@ export const numberedListSchema = z.object({
   mediaSrc: z
     .string()
     .describe("your clip: put it in video/public/media/ and enter media/yourclip.mp4. Empty = placeholder"),
-  mediaFocusY: z.number().min(0).max(100).describe("vertical crop focus of your clip (0 top, 100 bottom): aim at the face"),
   buildFrame: z
     .number()
     .describe("frame the chart starts building onto the screen: set this to when you say 'here are four signs' (30 per second)"),
@@ -37,27 +36,27 @@ export const numberedListSchema = z.object({
 
 export type NumberedListProps = z.infer<typeof numberedListSchema>;
 
-// Layout (720×1280), built for the Instagram Reels safe zone: the top ~170px and bottom ~230px are covered by
-// the app UI, so everything important sits in y 166–1046. Chart on top, the clip in a glass card below it.
-const PANEL = { x: 30, y: 166, w: 660, h: 394 };
-const T1_Y = 204;
-const T2_Y = 248;
-const ROW0 = 318;
-const PITCH = 54;
+// Layout (720×1280). Your clip is FULL FRAME; the liquid-glass chart floats on top of it. Measured on the clip:
+// eyes and mouth stay below y≈500 and the hat top is ≈ y 300–350, so a compact panel in y 166–456 (inside
+// Instagram's safe zone, below its top bar) covers only the car roof and hat, never the face.
+const PANEL = { x: 30, y: 166, w: 660, h: 290 };
+const T1_Y = 196;
+const T2_Y = 236;
+const ROW0 = 288;
+const PITCH = 42;
 const ROW_X = 54;
 const ROW_W = 612;
-const ROW_H = 44;
-const SEG_Y = 522;
-const TEASE_Y = 548;
-const CARD = { x: 90, y: 576, w: 540, h: 470 };
-const HIDDEN_BLUR = 14; // unreadable, but still clearly a smear of words
-const SCAN_FROM = 276;
-const SCAN_TO = 512;
+const ROW_H = 36;
+const SEG_Y = 444;
+const TEASE_Y = 960; // glass chip over the chest, under the chin and above the bottom UI zone
+const HIDDEN_BLUR = 11; // unreadable, but still clearly a smear of words
+const SCAN_FROM = 262;
+const SCAN_TO = 432;
 
 const rowY = (i: number): number => ROW0 + i * PITCH;
 
 const Lock: React.FC<{ rot: number }> = ({ rot }) => (
-  <svg width={22} height={26} viewBox="0 0 22 26" fill="none" stroke="rgba(255,255,255,0.65)" strokeWidth={2.2}
+  <svg width={17} height={20} viewBox="0 0 22 26" fill="none" stroke="rgba(255,255,255,0.65)" strokeWidth={2.2}
     style={{ transform: `rotate(${rot}deg)`, transformOrigin: "50% 80%" }}>
     <rect x="2" y="11" width="18" height="13" rx="3" fill="rgba(255,255,255,0.1)" />
     <path d="M6 11V8a5 5 0 0 1 10 0v3" />
@@ -65,7 +64,7 @@ const Lock: React.FC<{ rot: number }> = ({ rot }) => (
 );
 
 const Check: React.FC = () => (
-  <svg width={26} height={26} viewBox="0 0 26 26">
+  <svg width={21} height={21} viewBox="0 0 26 26">
     <circle cx="13" cy="13" r="13" fill={color.accent} />
     <path d="M7 13.5l4 4 8-9" stroke={color.onAccent} strokeWidth={3} fill="none" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
@@ -140,8 +139,24 @@ export const NumberedList: React.FC<NumberedListProps> = (c) => {
 
     return (
     <AbsoluteFill style={{ backgroundColor: color.bg }}>
-      <LiquidBackdrop />
       <div style={{ position: "absolute", inset: 0, transform: `translate(${shakeX}px, ${shakeY}px)` }}>
+        {/* your clip, full frame, with a soft top shade so the glass reads over the roof/hat */}
+        <MediaSlot src={c.mediaSrc || undefined} layout="full" scale={mediaScale} />
+        <div style={{ position: "absolute", left: 0, top: 0, width: 720, height: 520, background: "linear-gradient(180deg, rgba(8,8,10,0.55), rgba(8,8,10,0.25) 60%, transparent)" }} />
+        {/* liquid glass light: a warm gold glow drifting over the video */}
+        <div
+          style={{
+            position: "absolute",
+            left: 120 + Math.sin(f / 40) * 60,
+            top: 40 + Math.cos(f / 55) * 30,
+            width: 520,
+            height: 360,
+            borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(255,183,0,0.22), transparent 68%)",
+            filter: "blur(24px)",
+            mixBlendMode: "screen",
+          }}
+        />
         {/* the chart panel: draws, then fills with frosted glass */}
         <Wire x={PANEL.x} y={PANEL.y} w={PANEL.w} h={PANEL.h} r={28} p={panelP} />
         <div
@@ -158,8 +173,8 @@ export const NumberedList: React.FC<NumberedListProps> = (c) => {
           }}
         />
 
-        <KineticLine words={toWords(c.title1)} y={T1_Y} start={B + 2} stagger={2} size={42} />
-        <KineticLine words={toWords(c.title2)} y={T2_Y} start={B + 9} stagger={2} size={42} underlineAt={B + 18} />
+        <KineticLine words={toWords(c.title1)} y={T1_Y} start={B + 2} stagger={2} size={38} />
+        <KineticLine words={toWords(c.title2)} y={T2_Y} start={B + 9} stagger={2} size={38} underlineAt={B + 18} />
 
         {/* gold scan line sweeping down while the rows are constructed */}
         {scanOn && (
@@ -191,7 +206,7 @@ export const NumberedList: React.FC<NumberedListProps> = (c) => {
           const fill = prog(f, s0 + 4, 6);
           return (
             <div key={i}>
-              <Wire x={ROW_X + x} y={y} w={ROW_W} h={ROW_H} r={9} p={prog(f, s0, 7)} />
+              <Wire x={ROW_X + x} y={y} w={ROW_W} h={ROW_H} r={8} p={prog(f, s0, 7)} />
               <div
                 style={{
                   position: "absolute",
@@ -199,7 +214,7 @@ export const NumberedList: React.FC<NumberedListProps> = (c) => {
                   top: y,
                   width: ROW_W,
                   height: ROW_H,
-                  borderRadius: 9,
+                  borderRadius: 8,
                   ...glass(1.1),
                   border: `1px solid ${crazy ? `rgba(255,183,0,${0.4 + 0.3 * Math.sin(f / 3)})` : "rgba(255,255,255,0.24)"}`,
                   opacity: fill,
@@ -295,13 +310,13 @@ export const NumberedList: React.FC<NumberedListProps> = (c) => {
           const rings = pinged
             ? [0, isLast && c.shockLast ? 5 : -1].filter((d) => d >= 0).map((d, k) => {
                 const p = prog(f, it.ping + d, 16);
-                const r = lerp(14, k === 0 ? 70 : 150, p);
+                const r = lerp(10, k === 0 ? 50 : 110, p);
                 return (
                   <div
                     key={k}
                     style={{
                       position: "absolute",
-                      left: ROW_X + 36 - r,
+                      left: ROW_X + 30 - r,
                       top: cy - r,
                       width: r * 2,
                       height: r * 2,
@@ -332,7 +347,7 @@ export const NumberedList: React.FC<NumberedListProps> = (c) => {
                   style={{
                     position: "absolute",
                     left: 0,
-                    width: 64,
+                    width: 56,
                     top: 0,
                     height: ROW_H,
                     display: "flex",
@@ -340,7 +355,7 @@ export const NumberedList: React.FC<NumberedListProps> = (c) => {
                     justifyContent: "center",
                     fontFamily: font.sans,
                     fontWeight: 700,
-                    fontSize: 32,
+                    fontSize: 28,
                     color: ink,
                     transform: `scale(${lerp(1.7, 1, Math.min(1.15, pop))})`,
                   }}
@@ -353,14 +368,14 @@ export const NumberedList: React.FC<NumberedListProps> = (c) => {
                       key={d}
                       style={{
                         position: "absolute",
-                        left: 76 + d * split,
+                        left: 66 + d * split,
                         top: 0,
                         height: ROW_H,
                         display: "flex",
                         alignItems: "center",
                         fontFamily: font.sans,
                         fontWeight: 600,
-                        fontSize: 32,
+                        fontSize: 28,
                         color: d < 0 ? color.accentHi : "#fff",
                         opacity: 0.55,
                         filter: `blur(${Math.max(0, blur)}px)`,
@@ -373,14 +388,14 @@ export const NumberedList: React.FC<NumberedListProps> = (c) => {
                 <div
                   style={{
                     position: "absolute",
-                    left: 76 + jx,
+                    left: 66 + jx,
                     top: 0,
                     height: ROW_H,
                     display: "flex",
                     alignItems: "center",
                     fontFamily: font.sans,
                     fontWeight: 600,
-                    fontSize: 32,
+                    fontSize: 28,
                     whiteSpace: "pre",
                     color: ink,
                     opacity: revealed ? 1 : (onGold ? 0.9 : 0.85) + (crazy ? 0.1 * Math.sin(f / 2) : 0),
@@ -389,7 +404,7 @@ export const NumberedList: React.FC<NumberedListProps> = (c) => {
                 >
                   {label}
                 </div>
-                <div style={{ position: "absolute", right: 20, top: 0, height: ROW_H, display: "flex", alignItems: "center" }}>
+                <div style={{ position: "absolute", right: 16, top: 0, height: ROW_H, display: "flex", alignItems: "center" }}>
                   {revealed ? (
                     <div style={{ transform: `scale(${Math.min(1.3, pop)})` }}>
                       <Check />
@@ -421,7 +436,7 @@ export const NumberedList: React.FC<NumberedListProps> = (c) => {
                 left: ROW_X + i * (w + gap),
                 top: SEG_Y,
                 width: w,
-                height: 8,
+                height: 5,
                 borderRadius: 3,
                 background: "rgba(255,255,255,0.18)",
                 opacity: enter,
@@ -437,11 +452,17 @@ export const NumberedList: React.FC<NumberedListProps> = (c) => {
         <div
           style={{
             position: "absolute",
-            left: 0,
-            width: 720,
-            top: TEASE_Y,
-            transform: "translateY(-50%)",
-            textAlign: "center",
+            left: 110,
+            width: 500,
+            top: TEASE_Y - 27,
+            height: 54,
+            borderRadius: 27,
+            ...glass(0.5),
+            background: "rgba(10,10,12,0.58)",
+            border: "1px solid rgba(255,183,0,0.4)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             fontFamily: font.sans,
             fontWeight: 600,
             fontSize: 26,
@@ -449,22 +470,12 @@ export const NumberedList: React.FC<NumberedListProps> = (c) => {
             color: color.accent,
             opacity: kickOpacity * prog(f, B + 32, 7),
             textShadow: `0 0 12px ${color.glow}`,
+            transform: `scale(${lerp(0.9, 1, prog(f, B + 32, 7))})`,
           }}
         >
           {teaser.toUpperCase()}
         </div>
 
-        {/* the clip: a glass card, sized so the whole face fits inside the Reels safe zone */}
-        <MediaSlot
-          src={c.mediaSrc || undefined}
-          layout="card"
-          x={CARD.x}
-          top={CARD.y}
-          width={CARD.w}
-          height={CARD.h}
-          scale={mediaScale}
-          focusY={c.mediaFocusY}
-        />
       </div>
       <AbsoluteFill
         style={{

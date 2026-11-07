@@ -25,9 +25,9 @@ The cuts and animations are timed in code (`src/templates/Explainer.tsx`); the w
 
 ## Numbered-list reel (the hook)
 
-Composition **NumberedList** (6.6 s): your clip on top (trimmed to start at your first word), a numbered list of signs below. In the hook the signs stay an **unreadable blur** the whole time (that is the point: keep them watching) while a gold highlight scans down the rows and the last sign gets a shock beat (punch-in, shake, flash, text-scramble).
+Composition **NumberedList** (6.6 s): your clip **full frame** (trimmed to start at your first word) with a liquid-glass numbered chart floating over the top. In the hook the signs stay an **unreadable blur** the whole time (that is the point: keep them watching) while a gold highlight scans down the rows and the last sign gets a shock beat (punch-in, shake, flash, text-scramble).
 
-In the Props panel: the two title lines (`*stars*` mark the gold word), the teaser line, each sign's `label` and `ping` frame (30 per second). **`unblurOnPing`**: leave OFF for the hook. Turn it ON to make the payoff video: each sign decodes into readable text when its highlight lands. `mediaFocusY` aims the crop at the face.
+In the Props panel: the two title lines (`*stars*` mark the gold word), the teaser line, each sign's `label` and `ping` frame (30 per second). **`unblurOnPing`**: leave OFF for the hook. Turn it ON to make the payoff video: each sign decodes into readable text when its highlight lands.
 
 The clip is `public/media/peter-hook-1080.mp4` (1080×1920 copy of the phone video, starting at 3.6 s). To use another clip, drop it in `public/media/` and set `mediaSrc`, and change the composition length in `src/Root.tsx` (`durationInFrames`).
 
