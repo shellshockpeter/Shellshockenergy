@@ -79,7 +79,7 @@ export const RemotionRoot: React.FC = () => {
         height={H}
         defaultProps={{
           mediaSrc: "media/peter-hook.mp4",
-          mediaFocusY: 33,
+          mediaFocusY: 44,
           buildFrame: 3,
           teaser: "The 4th one will shock you",
           teaserAfter: "Wait for number 4",
@@ -93,7 +93,6 @@ export const RemotionRoot: React.FC = () => {
           ],
           unblurOnPing: false,
           shockLast: true,
-          cta: "Keep watching to unlock",
         }}
       />
     </>

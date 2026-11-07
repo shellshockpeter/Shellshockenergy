@@ -4,10 +4,14 @@ import { color, font } from "../brand/theme";
 type Props = {
   /** Footage the user supplies (no stock people). Placeholder block when omitted. */
   src?: string;
-  layout: "panel" | "full" | "top";
+  layout: "panel" | "full" | "top" | "card";
   /** layout "top": a full-width block at `top` with this `height`. */
   height?: number;
   top?: number;
+  /** layout "card": a rounded glass-edged card at (x, top) of width × height. */
+  x?: number;
+  width?: number;
+  radius?: number;
   /** Talking-head punch-in (1 = none). */
   scale?: number;
   /** Vertical focus of the crop, 0 = top, 100 = bottom (cover-fit). Pick the face. */
@@ -45,7 +49,7 @@ const Placeholder: React.FC = () => (
 );
 
 /** The talking-head / hero-footage layer. Panel = rounded inset at the bottom; full = full bleed. */
-export const MediaSlot: React.FC<Props> = ({ src, layout, scale = 1, focusY = 50, panelTop = 938, height = 600, top = 0 }) => {
+export const MediaSlot: React.FC<Props> = ({ src, layout, scale = 1, focusY = 50, panelTop = 938, height = 600, top = 0, x = 0, width = 720, radius = 22 }) => {
   const inner = (
     <div style={{ position: "absolute", inset: 0, transform: `scale(${scale})` }}>
       {src ? (
@@ -58,6 +62,25 @@ export const MediaSlot: React.FC<Props> = ({ src, layout, scale = 1, focusY = 50
       )}
     </div>
   );
+  if (layout === "card") {
+    return (
+      <div
+        style={{
+          position: "absolute",
+          left: x,
+          top,
+          width,
+          height,
+          borderRadius: radius,
+          overflow: "hidden",
+          border: "1px solid rgba(255,255,255,0.28)",
+          boxShadow: "0 18px 44px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.3)",
+        }}
+      >
+        {inner}
+      </div>
+    );
+  }
   if (layout === "top") {
     return <div style={{ position: "absolute", left: 0, top, width: 720, height, overflow: "hidden" }}>{inner}</div>;
   }

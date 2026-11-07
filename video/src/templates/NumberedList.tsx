@@ -16,7 +16,7 @@ export const numberedListSchema = z.object({
   buildFrame: z
     .number()
     .describe("frame the chart starts building onto the screen: set this to when you say 'here are four signs' (30 per second)"),
-  teaser: z.string().describe("small line at the top of the chart until the last sign pings"),
+  teaser: z.string().describe("line under the chart until the last sign pings (pulses)"),
   teaserAfter: z.string().describe("replaces the teaser when the last sign pings"),
   title1: z.string(),
   title2: z.string().describe("wrap the accent word in *stars*, e.g. Is Killing Your *Gains*"),
@@ -33,28 +33,26 @@ export const numberedListSchema = z.object({
     .boolean()
     .describe("OFF for the hook (signs stay unreadable). ON for the payoff video: each sign decodes when pinged"),
   shockLast: z.boolean().describe("punch-in, shake and flash when the last sign pings"),
-  cta: z.string().describe("label under the progress bar"),
 });
 
 export type NumberedListProps = z.infer<typeof numberedListSchema>;
 
-// Layout (720×1280). Chart on top (inside the platform-safe area), clip below.
-const PANEL = { x: 30, y: 104, w: 660, h: 512 };
-const KICK_Y = 148;
-const T1_Y = 194;
-const T2_Y = 242;
-const ROW0 = 326;
-const PITCH = 62;
+// Layout (720×1280), built for the Instagram Reels safe zone: the top ~170px and bottom ~230px are covered by
+// the app UI, so everything important sits in y 166–1046. Chart on top, the clip in a glass card below it.
+const PANEL = { x: 30, y: 166, w: 660, h: 394 };
+const T1_Y = 204;
+const T2_Y = 248;
+const ROW0 = 318;
+const PITCH = 54;
 const ROW_X = 54;
 const ROW_W = 612;
-const ROW_H = 50;
-const SEG_Y = 566;
-const CTA_Y = 596;
-const MEDIA_TOP = 634;
-const MEDIA_H = 646;
+const ROW_H = 44;
+const SEG_Y = 522;
+const TEASE_Y = 548;
+const CARD = { x: 90, y: 576, w: 540, h: 470 };
 const HIDDEN_BLUR = 14; // unreadable, but still clearly a smear of words
-const SCAN_FROM = 262;
-const SCAN_TO = 556;
+const SCAN_FROM = 276;
+const SCAN_TO = 512;
 
 const rowY = (i: number): number => ROW0 + i * PITCH;
 
@@ -138,11 +136,9 @@ export const NumberedList: React.FC<NumberedListProps> = (c) => {
 
   // Kicker (teaser) text.
   const teaser = f < lastPing ? c.teaser : scramble(c.teaserAfter, f, lastPing, 0.7);
-  const kickOpacity = f < lastPing ? 0.65 + 0.35 * Math.sin(f / 5) : 1;
+  const kickOpacity = f < lastPing ? 0.7 + 0.3 * Math.sin(f / 5) : 1;
 
-  const seamX = ((f * 9) % 1100) - 190;
-
-  return (
+    return (
     <AbsoluteFill style={{ backgroundColor: color.bg }}>
       <LiquidBackdrop />
       <div style={{ position: "absolute", inset: 0, transform: `translate(${shakeX}px, ${shakeY}px)` }}>
@@ -162,28 +158,8 @@ export const NumberedList: React.FC<NumberedListProps> = (c) => {
           }}
         />
 
-        {/* teaser kicker */}
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            width: 720,
-            top: KICK_Y,
-            transform: "translateY(-50%)",
-            textAlign: "center",
-            fontFamily: font.sans,
-            fontWeight: 600,
-            fontSize: 26,
-            letterSpacing: "0.22em",
-            color: color.accent,
-            opacity: kickOpacity * prog(f, B + 1, 6),
-            textShadow: `0 0 12px ${color.glow}`,
-          }}
-        >
-          {teaser.toUpperCase()}
-        </div>
-        <KineticLine words={toWords(c.title1)} y={T1_Y} start={B + 2} stagger={2} size={44} />
-        <KineticLine words={toWords(c.title2)} y={T2_Y} start={B + 9} stagger={2} size={44} underlineAt={B + 18} />
+        <KineticLine words={toWords(c.title1)} y={T1_Y} start={B + 2} stagger={2} size={42} />
+        <KineticLine words={toWords(c.title2)} y={T2_Y} start={B + 9} stagger={2} size={42} underlineAt={B + 18} />
 
         {/* gold scan line sweeping down while the rows are constructed */}
         {scanOn && (
@@ -356,7 +332,7 @@ export const NumberedList: React.FC<NumberedListProps> = (c) => {
                   style={{
                     position: "absolute",
                     left: 0,
-                    width: 72,
+                    width: 64,
                     top: 0,
                     height: ROW_H,
                     display: "flex",
@@ -364,7 +340,7 @@ export const NumberedList: React.FC<NumberedListProps> = (c) => {
                     justifyContent: "center",
                     fontFamily: font.sans,
                     fontWeight: 700,
-                    fontSize: 36,
+                    fontSize: 32,
                     color: ink,
                     transform: `scale(${lerp(1.7, 1, Math.min(1.15, pop))})`,
                   }}
@@ -377,14 +353,14 @@ export const NumberedList: React.FC<NumberedListProps> = (c) => {
                       key={d}
                       style={{
                         position: "absolute",
-                        left: 88 + d * split,
+                        left: 76 + d * split,
                         top: 0,
                         height: ROW_H,
                         display: "flex",
                         alignItems: "center",
                         fontFamily: font.sans,
                         fontWeight: 600,
-                        fontSize: 36,
+                        fontSize: 32,
                         color: d < 0 ? color.accentHi : "#fff",
                         opacity: 0.55,
                         filter: `blur(${Math.max(0, blur)}px)`,
@@ -397,14 +373,14 @@ export const NumberedList: React.FC<NumberedListProps> = (c) => {
                 <div
                   style={{
                     position: "absolute",
-                    left: 88 + jx,
+                    left: 76 + jx,
                     top: 0,
                     height: ROW_H,
                     display: "flex",
                     alignItems: "center",
                     fontFamily: font.sans,
                     fontWeight: 600,
-                    fontSize: 36,
+                    fontSize: 32,
                     whiteSpace: "pre",
                     color: ink,
                     opacity: revealed ? 1 : (onGold ? 0.9 : 0.85) + (crazy ? 0.1 * Math.sin(f / 2) : 0),
@@ -463,43 +439,31 @@ export const NumberedList: React.FC<NumberedListProps> = (c) => {
             position: "absolute",
             left: 0,
             width: 720,
-            top: CTA_Y,
+            top: TEASE_Y,
             transform: "translateY(-50%)",
             textAlign: "center",
             fontFamily: font.sans,
-            fontWeight: 500,
-            fontSize: 24,
+            fontWeight: 600,
+            fontSize: 26,
             letterSpacing: "0.2em",
-            color: "rgba(255,255,255,0.6)",
-            opacity: prog(f, B + 32, 7) * (0.75 + 0.25 * Math.sin(f / 6)),
+            color: color.accent,
+            opacity: kickOpacity * prog(f, B + 32, 7),
+            textShadow: `0 0 12px ${color.glow}`,
           }}
         >
-          {c.cta.toUpperCase()}
+          {teaser.toUpperCase()}
         </div>
 
-        {/* the clip, below the chart */}
-        <MediaSlot src={c.mediaSrc || undefined} layout="top" top={MEDIA_TOP} height={MEDIA_H} scale={mediaScale} focusY={c.mediaFocusY} />
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            top: MEDIA_TOP,
-            width: 720,
-            height: 60,
-            background: "linear-gradient(180deg, rgba(10,10,13,0.85), transparent)",
-          }}
-        />
-        <div style={{ position: "absolute", left: 0, top: MEDIA_TOP - 1, width: 720, height: 2, background: "rgba(255,255,255,0.14)" }} />
-        <div
-          style={{
-            position: "absolute",
-            left: seamX,
-            top: MEDIA_TOP - 2,
-            width: 190,
-            height: 3,
-            background: `linear-gradient(90deg, transparent, ${color.accentHi}, transparent)`,
-            filter: `drop-shadow(0 0 6px ${color.accent})`,
-          }}
+        {/* the clip: a glass card, sized so the whole face fits inside the Reels safe zone */}
+        <MediaSlot
+          src={c.mediaSrc || undefined}
+          layout="card"
+          x={CARD.x}
+          top={CARD.y}
+          width={CARD.w}
+          height={CARD.h}
+          scale={mediaScale}
+          focusY={c.mediaFocusY}
         />
       </div>
       <AbsoluteFill
