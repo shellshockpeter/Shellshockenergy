@@ -78,7 +78,7 @@ export const RemotionRoot: React.FC = () => {
         width={W}
         height={H}
         defaultProps={{
-          mediaSrc: "media/peter-hook.mp4",
+          mediaSrc: "media/peter-hook-1080.mp4",
           mediaFocusY: 44,
           buildFrame: 3,
           teaser: "The 4th one will shock you",

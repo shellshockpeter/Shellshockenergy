@@ -29,13 +29,13 @@ Composition **NumberedList** (6.6 s): your clip on top (trimmed to start at your
 
 In the Props panel: the two title lines (`*stars*` mark the gold word), the teaser line, each sign's `label` and `ping` frame (30 per second). **`unblurOnPing`**: leave OFF for the hook. Turn it ON to make the payoff video: each sign decodes into readable text when its highlight lands. `mediaFocusY` aims the crop at the face.
 
-The clip is `public/media/peter-hook.mp4` (a 720p copy, starting at 3.6 s of the phone video). To use another clip, drop it in `public/media/` and set `mediaSrc`, and change the composition length in `src/Root.tsx` (`durationInFrames`).
+The clip is `public/media/peter-hook-1080.mp4` (1080×1920 copy of the phone video, starting at 3.6 s). To use another clip, drop it in `public/media/` and set `mediaSrc`, and change the composition length in `src/Root.tsx` (`durationInFrames`).
 
 ## Commands
 
 - `npm run dev`: preview and edit
 - `npm run render:explainer`: render to `out/explainer.mp4`
-- `npm run render:numbered`: render the numbered-list reel to `out/numbered-list.mp4`
+- `npm run render:numbered`: render the numbered-list reel to `out/numbered-list.mp4` at **1080×1920** (the layout is 720×1280, rendered at 1.5× for sharpness)
 
 Welcome to your Remotion project!
 
