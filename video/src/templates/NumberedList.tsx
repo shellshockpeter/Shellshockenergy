@@ -12,6 +12,9 @@ export const numberedListSchema = z.object({
   mediaSrc: z
     .string()
     .describe("your clip: put it in video/public/media/ and enter media/yourclip.mp4. Empty = placeholder"),
+  endFrame: z
+    .number()
+    .describe("frame the hook ends (the cut to the next clip): set it just after you stop talking (30 per second)"),
   buildFrame: z
     .number()
     .describe("frame the chart starts building onto the screen: set this to when you say 'here are four signs' (30 per second)"),
@@ -141,7 +144,7 @@ export const NumberedList: React.FC<NumberedListProps> = (c) => {
     <AbsoluteFill style={{ backgroundColor: color.bg }}>
       <div style={{ position: "absolute", inset: 0, transform: `translate(${shakeX}px, ${shakeY}px)` }}>
         {/* your clip, full frame, with a soft top shade so the glass reads over the roof/hat */}
-        <MediaSlot src={c.mediaSrc || undefined} layout="full" scale={mediaScale} />
+        <MediaSlot src={c.mediaSrc || undefined} layout="full" scale={mediaScale} fadeOutAt={c.endFrame - 4} />
         <div style={{ position: "absolute", left: 0, top: 0, width: 720, height: 520, background: "linear-gradient(180deg, rgba(8,8,10,0.55), rgba(8,8,10,0.25) 60%, transparent)" }} />
         {/* liquid glass light: a warm gold glow drifting over the video */}
         <div

@@ -2,7 +2,6 @@ import { AbsoluteFill, Audio, OffthreadVideo, Series, staticFile } from "remotio
 import { z } from "zod";
 import { NumberedList, numberedListSchema } from "./NumberedList";
 
-export const HOOK_FRAMES = 198;
 /** The explainer is 70.73 s at 30 fps; the voiceover (70.74 s) is the same length. */
 export const EXPLAINER_FRAMES = 2122;
 
@@ -23,7 +22,7 @@ export type FullReelProps = z.infer<typeof fullReelSchema>;
 export const FullReel: React.FC<FullReelProps> = ({ hook, explainerSrc, voiceoverSrc, explainerFit, explainerScale, explainerTop }) => (
   <AbsoluteFill style={{ backgroundColor: "#000" }}>
     <Series>
-      <Series.Sequence durationInFrames={HOOK_FRAMES}>
+      <Series.Sequence durationInFrames={hook.endFrame}>
         <NumberedList {...hook} />
       </Series.Sequence>
       <Series.Sequence durationInFrames={EXPLAINER_FRAMES}>

@@ -1,4 +1,4 @@
-import { OffthreadVideo, staticFile } from "remotion";
+import { OffthreadVideo, interpolate, staticFile } from "remotion";
 import { color, font } from "../brand/theme";
 
 type Props = {
@@ -12,6 +12,8 @@ type Props = {
   x?: number;
   width?: number;
   radius?: number;
+  /** Fade the clip's audio out starting at this frame (over 4 frames), so a cut doesn't clip a breath. */
+  fadeOutAt?: number;
   /** Talking-head punch-in (1 = none). */
   scale?: number;
   /** Vertical focus of the crop, 0 = top, 100 = bottom (cover-fit). Pick the face. */
@@ -49,12 +51,13 @@ const Placeholder: React.FC = () => (
 );
 
 /** The talking-head / hero-footage layer. Panel = rounded inset at the bottom; full = full bleed. */
-export const MediaSlot: React.FC<Props> = ({ src, layout, scale = 1, focusY = 50, panelTop = 938, height = 600, top = 0, x = 0, width = 720, radius = 22 }) => {
+export const MediaSlot: React.FC<Props> = ({ src, layout, scale = 1, focusY = 50, panelTop = 938, height = 600, top = 0, x = 0, width = 720, radius = 22, fadeOutAt }) => {
   const inner = (
     <div style={{ position: "absolute", inset: 0, transform: `scale(${scale})` }}>
       {src ? (
         <OffthreadVideo
           src={/^https?:/.test(src) ? src : staticFile(src)}
+          volume={(fr) => (fadeOutAt === undefined ? 1 : interpolate(fr, [fadeOutAt, fadeOutAt + 4], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }))}
           style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: `50% ${focusY}%` }}
         />
       ) : (

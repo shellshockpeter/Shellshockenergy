@@ -1,9 +1,15 @@
 import "./index.css";
-import { Composition } from "remotion";
+import { CalculateMetadataFunction, Composition } from "remotion";
 import { DURATION, FPS, H, W } from "./brand/theme";
 import { Explainer, explainerSchema } from "./templates/Explainer";
-import { FullReel, EXPLAINER_FRAMES, HOOK_FRAMES, fullReelSchema } from "./templates/FullReel";
-import { NumberedList, numberedListSchema } from "./templates/NumberedList";
+import { FullReel, EXPLAINER_FRAMES, fullReelSchema, type FullReelProps } from "./templates/FullReel";
+import { NumberedList, numberedListSchema, type NumberedListProps } from "./templates/NumberedList";
+
+// The hook ends right after you stop talking; its length is a prop, so the total length follows it.
+const hookMeta: CalculateMetadataFunction<NumberedListProps> = ({ props }) => ({ durationInFrames: props.endFrame });
+const reelMeta: CalculateMetadataFunction<FullReelProps> = ({ props }) => ({
+  durationInFrames: props.hook.endFrame + EXPLAINER_FRAMES,
+});
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -74,12 +80,14 @@ export const RemotionRoot: React.FC = () => {
         id="NumberedList"
         component={NumberedList}
         schema={numberedListSchema}
-        durationInFrames={198}
+        durationInFrames={156}
+        calculateMetadata={hookMeta}
         fps={FPS}
         width={W}
         height={H}
         defaultProps={{
           mediaSrc: "media/peter-hook-1080.mp4",
+          endFrame: 156,
           buildFrame: 3,
           teaser: "The 4th one will shock you",
           teaserAfter: "Wait for number 4",
@@ -99,7 +107,8 @@ export const RemotionRoot: React.FC = () => {
         id="FullReel"
         component={FullReel}
         schema={fullReelSchema}
-        durationInFrames={HOOK_FRAMES + EXPLAINER_FRAMES}
+        durationInFrames={156 + EXPLAINER_FRAMES}
+        calculateMetadata={reelMeta}
         fps={FPS}
         width={W}
         height={H}
@@ -111,7 +120,8 @@ export const RemotionRoot: React.FC = () => {
           explainerTop: 126,
           hook: {
             mediaSrc: "media/peter-hook-1080.mp4",
-            buildFrame: 3,
+            endFrame: 156,
+          buildFrame: 3,
             teaser: "The 4th one will shock you",
             teaserAfter: "Wait for number 4",
             title1: "4 Signs Your Pre-Workout",

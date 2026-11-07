@@ -25,15 +25,15 @@ The cuts and animations are timed in code (`src/templates/Explainer.tsx`); the w
 
 ## Numbered-list reel (the hook)
 
-Composition **NumberedList** (6.6 s): your clip **full frame** (trimmed to start at your first word) with a liquid-glass numbered chart floating over the top. In the hook the signs stay an **unreadable blur** the whole time (that is the point: keep them watching) while a gold highlight scans down the rows and the last sign gets a shock beat (punch-in, shake, flash, text-scramble).
+Composition **NumberedList** (5.2 s): your clip **full frame** (trimmed to start at your first word) with a liquid-glass numbered chart floating over the top. In the hook the signs stay an **unreadable blur** the whole time (that is the point: keep them watching) while a gold highlight scans down the rows and the last sign gets a shock beat (punch-in, shake, flash, text-scramble).
 
-In the Props panel: the two title lines (`*stars*` mark the gold word), the teaser line, each sign's `label` and `ping` frame (30 per second). **`unblurOnPing`**: leave OFF for the hook. Turn it ON to make the payoff video: each sign decodes into readable text when its highlight lands.
+In the Props panel: **`endFrame`** (the frame the hook ends and cuts to the next clip; set it just after you stop talking, currently 156 = 5.2 s), **`buildFrame`**, the two title lines (`*stars*` mark the gold word), the teaser line, each sign's `label` and `ping` frame (30 per second). **`unblurOnPing`**: leave OFF for the hook. Turn it ON to make the payoff video: each sign decodes into readable text when its highlight lands.
 
 The clip is `public/media/peter-hook-1080.mp4` (1080×1920 copy of the phone video, starting at 3.6 s). To use another clip, drop it in `public/media/` and set `mediaSrc`, and change the composition length in `src/Root.tsx` (`durationInFrames`).
 
 ## Full reel (hook + explainer + voiceover)
 
-Composition **FullReel** (77.3 s): the NumberedList hook, a hard cut, then your explainer video with the separate voiceover (`public/media/explainer.mp4`, `public/media/voiceover.mp3`; both 70.7 s). The hook's text is editable in the Props panel under `hook`.
+Composition **FullReel** (75.9 s): the NumberedList hook, a hard cut, then your explainer video with the separate voiceover (`public/media/explainer.mp4`, `public/media/voiceover.mp3`; both 70.7 s). The hook's text is editable in the Props panel under `hook`.
 
 `explainerFit` = **full** (default) plays your explainer full-frame, as you made it. **safe** shrinks it to 80% with a blurred fill at the sides so its top text clears Instagram's header (optional). `explainerScale` / `explainerTop` fine-tune it.
 
