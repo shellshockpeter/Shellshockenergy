@@ -79,15 +79,16 @@ export const RemotionRoot: React.FC = () => {
         height={H}
         defaultProps={{
           mediaSrc: "media/peter-hook.mp4",
-          mediaFocusY: 36,
+          mediaFocusY: 33,
+          buildFrame: 3,
           teaser: "The 4th one will shock you",
           teaserAfter: "Wait for number 4",
           title1: "4 Signs Your Pre-Workout",
           title2: "Is Killing Your *Gains*",
           items: [
-            { label: "Caffeine crash", ping: 30 },
-            { label: "Lack of focus", ping: 59 },
-            { label: "Tastes like battery acid", ping: 101 },
+            { label: "Caffeine crash", ping: 48 },
+            { label: "Lack of focus", ping: 72 },
+            { label: "Tastes like battery acid", ping: 102 },
             { label: "Taking too much", ping: 130 },
           ],
           unblurOnPing: false,
