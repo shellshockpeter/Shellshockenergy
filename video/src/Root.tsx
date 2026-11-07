@@ -107,7 +107,7 @@ export const RemotionRoot: React.FC = () => {
         defaultProps={{
           explainerSrc: "media/explainer.mp4",
           voiceoverSrc: "media/voiceover.mp3",
-          explainerFit: "safe",
+          explainerFit: "full",
           explainerScale: 0.8,
           explainerTop: 126,
           hook: {
