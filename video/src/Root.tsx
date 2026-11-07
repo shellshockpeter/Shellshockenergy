@@ -114,7 +114,9 @@ export const RemotionRoot: React.FC = () => {
         height={H}
         defaultProps={{
           explainerSrc: "media/explainer.mp4",
-          explainerVolume: 1.2,
+          voiceoverSrc: "media/voiceover.mp3",
+          voiceoverDelayFrames: 1,
+          explainerVolume: 0,
           explainerFit: "full",
           explainerScale: 0.8,
           explainerTop: 126,

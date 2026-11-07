@@ -1,14 +1,20 @@
-import { AbsoluteFill, OffthreadVideo, Series, staticFile } from "remotion";
+import { AbsoluteFill, Audio, OffthreadVideo, Sequence, Series, staticFile } from "remotion";
 import { z } from "zod";
 import { NumberedList, numberedListSchema } from "./NumberedList";
 
-/** The explainer (with its voiceover built in) is 70.77 s at 30 fps. */
+/** The explainer is 70.77 s at 30 fps (2123 frames). */
 export const EXPLAINER_FRAMES = 2123;
 
 export const fullReelSchema = z.object({
   hook: numberedListSchema,
   explainerSrc: z.string().describe("the explainer video in video/public/media/ (its own audio plays)"),
-  explainerVolume: z.number().min(0).max(2).describe("1 = as exported. 1.2 matches it to the hook's loudness"),
+  voiceoverSrc: z.string().describe("your voiceover in video/public/media/ (the voice track for the explainer)"),
+  voiceoverDelayFrames: z.number().describe("shifts the voiceover later (30 per second). 1 = in sync with this explainer export"),
+  explainerVolume: z
+    .number()
+    .min(0)
+    .max(2)
+    .describe("volume of the explainer file's OWN audio. 0 = off (its audio is not your voiceover). Raise it to layer it under the voiceover"),
   explainerFit: z
     .enum(["safe", "full"])
     .describe("safe = shrink the explainer so its top text clears Instagram's header (blurred fill at the sides); full = original full-bleed"),
@@ -18,8 +24,8 @@ export const fullReelSchema = z.object({
 
 export type FullReelProps = z.infer<typeof fullReelSchema>;
 
-/** Hook (you + the numbered list) → hard cut → the explainer (voiceover is built into the video). */
-export const FullReel: React.FC<FullReelProps> = ({ hook, explainerSrc, explainerVolume, explainerFit, explainerScale, explainerTop }) => (
+/** Hook (you + the numbered list) → hard cut → the explainer video with your voiceover on top. */
+export const FullReel: React.FC<FullReelProps> = ({ hook, explainerSrc, voiceoverSrc, voiceoverDelayFrames, explainerVolume, explainerFit, explainerScale, explainerTop }) => (
   <AbsoluteFill style={{ backgroundColor: "#000" }}>
     <Series>
       <Series.Sequence durationInFrames={hook.endFrame}>
@@ -52,6 +58,9 @@ export const FullReel: React.FC<FullReelProps> = ({ hook, explainerSrc, explaine
             />
           </AbsoluteFill>
         )}
+        <Sequence from={voiceoverDelayFrames}>
+          <Audio src={staticFile(voiceoverSrc)} />
+        </Sequence>
       </Series.Sequence>
     </Series>
   </AbsoluteFill>
