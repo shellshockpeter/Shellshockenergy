@@ -35,7 +35,7 @@ The clip is `public/media/peter-hook-1080.mp4` (1080×1920 copy of the phone vid
 
 Composition **FullReel** (75.9 s): the NumberedList hook, a hard cut, then your explainer video (`public/media/explainer.mp4`, 70.8 s) with your voiceover (`public/media/voiceover.mp3`) on top. The explainer file's own audio is **off** (`explainerVolume` 0): analysis showed it is not your voiceover. `voiceoverDelayFrames` = 1 keeps your voiceover in sync with this export (the picture is your first explainer delayed by one frame). The hook's text is editable in the Props panel under `hook`.
 
-`explainerFit` = **full** (default) plays your explainer full-frame, as you made it. **safe** shrinks it to 80% with a blurred fill at the sides so its top text clears Instagram's header (optional). `explainerScale` / `explainerTop` fine-tune it.
+`explainerFit` = **lowered** (default) moves the explainer picture down by `explainerShift` (120) so its top text (section titles, the offer) clears Instagram's "Reels / Friends" header; the strip it opens at the top is filled by stretching the picture's top edge, so it stays full-frame with no blur (the bottom 120 px, which Instagram's caption area covers, is cropped). **full** = exactly as exported. **safe** = shrink to 80% with a blurred fill.
 
 ## Commands
 

@@ -16,8 +16,9 @@ export const fullReelSchema = z.object({
     .max(2)
     .describe("volume of the explainer file's OWN audio. 0 = off (its audio is not your voiceover). Raise it to layer it under the voiceover"),
   explainerFit: z
-    .enum(["safe", "full"])
-    .describe("safe = shrink the explainer so its top text clears Instagram's header (blurred fill at the sides); full = original full-bleed"),
+    .enum(["lowered", "full", "safe"])
+    .describe("lowered = move the picture down so its top text clears Instagram's header (stays full-frame); full = exactly as exported; safe = shrink with a blurred fill"),
+  explainerShift: z.number().describe("lowered: how far down to move the explainer (720×1280 space; 120 clears the Reels header)"),
   explainerScale: z.number().min(0.6).max(1).describe("safe fit: size of the explainer (0.8 = 80%)"),
   explainerTop: z.number().describe("safe fit: y position of the explainer's top edge (720×1280 space)"),
 });
@@ -25,14 +26,41 @@ export const fullReelSchema = z.object({
 export type FullReelProps = z.infer<typeof fullReelSchema>;
 
 /** Hook (you + the numbered list) → hard cut → the explainer video with your voiceover on top. */
-export const FullReel: React.FC<FullReelProps> = ({ hook, explainerSrc, voiceoverSrc, voiceoverDelayFrames, explainerVolume, explainerFit, explainerScale, explainerTop }) => (
+export const FullReel: React.FC<FullReelProps> = ({ hook, explainerSrc, voiceoverSrc, voiceoverDelayFrames, explainerVolume, explainerFit, explainerShift, explainerScale, explainerTop }) => (
   <AbsoluteFill style={{ backgroundColor: "#000" }}>
     <Series>
       <Series.Sequence durationInFrames={hook.endFrame}>
         <NumberedList {...hook} />
       </Series.Sequence>
       <Series.Sequence durationInFrames={EXPLAINER_FRAMES}>
-        {explainerFit === "full" ? (
+        {explainerFit === "lowered" ? (
+          <AbsoluteFill style={{ overflow: "hidden" }}>
+            {/* the top two rows, stretched upward to fill the strip the shift opens at the top (no blur, still full frame) */}
+            <div
+              style={{
+                position: "absolute",
+                left: 0,
+                top: 0,
+                width: 720,
+                height: 2,
+                overflow: "hidden",
+                transform: `scaleY(${explainerShift / 2})`,
+                transformOrigin: "0 0",
+              }}
+            >
+              <OffthreadVideo
+                src={staticFile(explainerSrc)}
+                muted
+                style={{ position: "absolute", left: 0, top: 0, width: 720, height: 1280, objectFit: "cover" }}
+              />
+            </div>
+            <OffthreadVideo
+              src={staticFile(explainerSrc)}
+              volume={explainerVolume}
+              style={{ position: "absolute", left: 0, top: explainerShift, width: 720, height: 1280, objectFit: "cover" }}
+            />
+          </AbsoluteFill>
+        ) : explainerFit === "full" ? (
           <OffthreadVideo src={staticFile(explainerSrc)} volume={explainerVolume} style={{ width: 720, height: 1280, objectFit: "cover" }} />
         ) : (
           <AbsoluteFill>

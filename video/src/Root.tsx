@@ -117,7 +117,8 @@ export const RemotionRoot: React.FC = () => {
           voiceoverSrc: "media/voiceover.mp3",
           voiceoverDelayFrames: 1,
           explainerVolume: 0,
-          explainerFit: "full",
+          explainerFit: "lowered",
+          explainerShift: 120,
           explainerScale: 0.8,
           explainerTop: 126,
           hook: {
