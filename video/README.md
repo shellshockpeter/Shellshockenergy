@@ -33,7 +33,7 @@ The clip is `public/media/peter-hook-1080.mp4` (1080×1920 copy of the phone vid
 
 ## Full reel (hook + explainer + voiceover)
 
-Composition **FullReel** (75.9 s): the NumberedList hook, a hard cut, then your explainer video with the separate voiceover (`public/media/explainer.mp4`, `public/media/voiceover.mp3`; both 70.7 s). The hook's text is editable in the Props panel under `hook`.
+Composition **FullReel** (75.9 s): the NumberedList hook, a hard cut, then your explainer video (`public/media/explainer.mp4`, 70.8 s, voiceover built into the video). The hook's text is editable in the Props panel under `hook`.
 
 `explainerFit` = **full** (default) plays your explainer full-frame, as you made it. **safe** shrinks it to 80% with a blurred fill at the sides so its top text clears Instagram's header (optional). `explainerScale` / `explainerTop` fine-tune it.
 

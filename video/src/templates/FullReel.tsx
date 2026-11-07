@@ -1,14 +1,14 @@
-import { AbsoluteFill, Audio, OffthreadVideo, Series, staticFile } from "remotion";
+import { AbsoluteFill, OffthreadVideo, Series, staticFile } from "remotion";
 import { z } from "zod";
 import { NumberedList, numberedListSchema } from "./NumberedList";
 
-/** The explainer is 70.73 s at 30 fps; the voiceover (70.74 s) is the same length. */
-export const EXPLAINER_FRAMES = 2122;
+/** The explainer (with its voiceover built in) is 70.77 s at 30 fps. */
+export const EXPLAINER_FRAMES = 2123;
 
 export const fullReelSchema = z.object({
   hook: numberedListSchema,
-  explainerSrc: z.string().describe("the explainer video in video/public/media/ (no audio of its own)"),
-  voiceoverSrc: z.string().describe("the voiceover track in video/public/media/, plays with the explainer"),
+  explainerSrc: z.string().describe("the explainer video in video/public/media/ (its own audio plays)"),
+  explainerVolume: z.number().min(0).max(2).describe("1 = as exported. 1.2 matches it to the hook's loudness"),
   explainerFit: z
     .enum(["safe", "full"])
     .describe("safe = shrink the explainer so its top text clears Instagram's header (blurred fill at the sides); full = original full-bleed"),
@@ -18,8 +18,8 @@ export const fullReelSchema = z.object({
 
 export type FullReelProps = z.infer<typeof fullReelSchema>;
 
-/** Hook (you + the numbered list) → hard cut → the explainer with its separate voiceover. */
-export const FullReel: React.FC<FullReelProps> = ({ hook, explainerSrc, voiceoverSrc, explainerFit, explainerScale, explainerTop }) => (
+/** Hook (you + the numbered list) → hard cut → the explainer (voiceover is built into the video). */
+export const FullReel: React.FC<FullReelProps> = ({ hook, explainerSrc, explainerVolume, explainerFit, explainerScale, explainerTop }) => (
   <AbsoluteFill style={{ backgroundColor: "#000" }}>
     <Series>
       <Series.Sequence durationInFrames={hook.endFrame}>
@@ -27,7 +27,7 @@ export const FullReel: React.FC<FullReelProps> = ({ hook, explainerSrc, voiceove
       </Series.Sequence>
       <Series.Sequence durationInFrames={EXPLAINER_FRAMES}>
         {explainerFit === "full" ? (
-          <OffthreadVideo src={staticFile(explainerSrc)} muted style={{ width: 720, height: 1280, objectFit: "cover" }} />
+          <OffthreadVideo src={staticFile(explainerSrc)} volume={explainerVolume} style={{ width: 720, height: 1280, objectFit: "cover" }} />
         ) : (
           <AbsoluteFill>
             {/* blurred, darkened copy fills the space the shrunk video leaves */}
@@ -38,7 +38,7 @@ export const FullReel: React.FC<FullReelProps> = ({ hook, explainerSrc, voiceove
             />
             <OffthreadVideo
               src={staticFile(explainerSrc)}
-              muted
+              volume={explainerVolume}
               style={{
                 position: "absolute",
                 left: (720 - 720 * explainerScale) / 2,
@@ -52,7 +52,6 @@ export const FullReel: React.FC<FullReelProps> = ({ hook, explainerSrc, voiceove
             />
           </AbsoluteFill>
         )}
-        <Audio src={staticFile(voiceoverSrc)} />
       </Series.Sequence>
     </Series>
   </AbsoluteFill>
