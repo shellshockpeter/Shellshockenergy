@@ -17,7 +17,7 @@ export const Accent: React.FC<{ children: React.ReactNode; size?: string }> = ({
       backgroundClip: "text",
       color: "transparent",
       display: "inline-block",
-      paddingRight: "0.12em",
+      paddingRight: "0.06em",
       lineHeight: 1,
     }}
   >

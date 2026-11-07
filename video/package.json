@@ -29,6 +29,7 @@
     "build": "remotion bundle",
     "upgrade": "remotion upgrade",
     "render:explainer": "remotion render Explainer out/explainer.mp4 --codec=h264 --crf=16",
+    "render:numbered": "remotion render NumberedList out/numbered-list.mp4 --codec=h264 --crf=18",
     "lint": "eslint src && tsc"
   },
   "sideEffects": [

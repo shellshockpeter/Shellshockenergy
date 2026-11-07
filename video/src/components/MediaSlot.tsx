@@ -7,6 +7,10 @@ type Props = {
   layout: "panel" | "full";
   /** Talking-head punch-in (1 = none). */
   scale?: number;
+  /** Vertical focus of the crop, 0 = top, 100 = bottom (cover-fit). Pick the face. */
+  focusY?: number;
+  /** Panel layout: y of the panel's top edge (default 938). */
+  panelTop?: number;
 };
 
 const Placeholder: React.FC = () => (
@@ -38,11 +42,14 @@ const Placeholder: React.FC = () => (
 );
 
 /** The talking-head / hero-footage layer. Panel = rounded inset at the bottom; full = full bleed. */
-export const MediaSlot: React.FC<Props> = ({ src, layout, scale = 1 }) => {
+export const MediaSlot: React.FC<Props> = ({ src, layout, scale = 1, focusY = 50, panelTop = 938 }) => {
   const inner = (
     <div style={{ position: "absolute", inset: 0, transform: `scale(${scale})` }}>
       {src ? (
-        <OffthreadVideo src={/^https?:/.test(src) ? src : staticFile(src)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        <OffthreadVideo
+          src={/^https?:/.test(src) ? src : staticFile(src)}
+          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: `50% ${focusY}%` }}
+        />
       ) : (
         <Placeholder />
       )}
@@ -56,9 +63,9 @@ export const MediaSlot: React.FC<Props> = ({ src, layout, scale = 1 }) => {
       style={{
         position: "absolute",
         left: 46,
-        top: 938,
+        top: panelTop,
         width: 628,
-        height: 420,
+        height: 1280 - panelTop + 78,
         borderRadius: 22,
         overflow: "hidden",
         border: "1px solid rgba(255,255,255,0.12)",

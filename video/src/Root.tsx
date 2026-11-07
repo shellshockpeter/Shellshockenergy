@@ -2,6 +2,7 @@ import "./index.css";
 import { Composition } from "remotion";
 import { DURATION, FPS, H, W } from "./brand/theme";
 import { Explainer, explainerSchema } from "./templates/Explainer";
+import { NumberedList, numberedListSchema } from "./templates/NumberedList";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -66,6 +67,35 @@ export const RemotionRoot: React.FC = () => {
               { from: 416, to: 449, text: "what happens." },
             ],
           },
+        }}
+      />
+      <Composition
+        id="NumberedList"
+        component={NumberedList}
+        schema={numberedListSchema}
+        durationInFrames={306}
+        fps={FPS}
+        width={W}
+        height={H}
+        defaultProps={{
+          mediaSrc: "media/peter-clip.mp4",
+          mediaFocusY: 47,
+          line1: "4 Signs Your Pre-Workout",
+          lead: "Is Killing Your ",
+          accent: "Gains",
+          tail: "",
+          items: [
+            { label: "Crash mid-workout", reveal: 105 },
+            { label: "Jitters, no focus", reveal: 141 },
+            { label: "No pump, flat lifts", reveal: 177 },
+            { label: "Hidden doses", reveal: 222 },
+          ],
+          shockLast: true,
+          progressLabel: "signs",
+          captions: [
+            { from: 18, to: 221, text: "The 4th one will *shock* you" },
+            { from: 222, to: 306, text: "Which one *hit* you?" },
+          ],
         }}
       />
     </>

@@ -23,10 +23,15 @@ Remotion templates for ShellShock Energy (9:16, 30 fps, 15 s). Design spec: `../
 
 The cuts and animations are timed in code (`src/templates/Explainer.tsx`); the words are not.
 
+## Numbered-list reel (your clip)
+
+Composition **NumberedList**: your clip in the media panel, a numbered list of signs that reveal in time with the clip, the last one blurred until a punch-in "shock" beat. In the Props panel: edit the title, the four sign labels, and each sign's `reveal` frame (30 per second; the clip is 306 frames). The clip is `public/media/peter-clip.mp4` (a 720p copy of the phone video); to use another, drop it in `public/media/` and set `mediaSrc`. Use `mediaFocusY` to aim the crop at the face.
+
 ## Commands
 
 - `npm run dev`: preview and edit
 - `npm run render:explainer`: render to `out/explainer.mp4`
+- `npm run render:numbered`: render the numbered-list reel to `out/numbered-list.mp4`
 
 Welcome to your Remotion project!
 
