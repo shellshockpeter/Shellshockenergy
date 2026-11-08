@@ -19,9 +19,13 @@ export const callOverlaySchema = z.object({
   timerStartSeconds: z.number().describe("where the call timer starts, in seconds (it counts up the whole time)"),
   y: z.number().describe("top edge of the call UI in the 720×1280 layout (172 = just under Instagram's header)"),
   showButtons: z.boolean().describe("show the call buttons row (mute, keypad, speaker, add, end)"),
-  startLive: z
-    .boolean()
-    .describe("true = the call is already in progress at frame 0 (no ringing / 'Calling…' intro). Use for the second half of a call"),
+  pickupFrame: z
+    .number()
+    .describe("frame the call is answered (30 per second). Before it, the island rings and vibrates 'Calling…'. -1 = already in progress"),
+  hangupFrame: z.number().describe("frame the call is hung up (30 per second). -1 = never"),
+  afterHangup: z
+    .enum(["stay", "leave"])
+    .describe("stay = the red 'Call ended' bar stays until the end of the video; leave = it slides away"),
 });
 
 export type CallOverlayProps = z.infer<typeof callOverlaySchema>;
@@ -159,56 +163,107 @@ const Logo: React.FC<{ src: string; size: number; shine: number }> = ({ src, siz
 export const CallOverlay: React.FC<CallOverlayProps> = (c) => {
   const frame = useCurrentFrame();
   const L = c.loopFrames;
-  // startLive: begin part-way through a repeat, in the settled live state, so there is no ringing intro.
-  const phase = frame + (c.startLive ? 70 : 0);
-  const cycle = Math.floor(phase / L);
-  const t = phase % L; // time inside this repeat
-  const first = !c.startLive && cycle === 0;
+  const P = c.pickupFrame;
+  const Hg = c.hangupFrame;
+  const scripted = P >= 0; // ring → answer, otherwise the call is already live at frame 0
+  const calling = scripted && frame < P;
+  const hung = Hg >= 0 && frame >= Hg;
+  const d = frame - Hg; // frames since hangup
 
-  // Timeline inside a repeat. The first repeat starts with the island popping in and "ringing";
-  // later repeats start from the idle pill and re-expand.
-  const popEnd = first ? 12 : 0;
-  const ringEnd = first ? 38 : 0;
-  const expandAt = first ? 38 : 20;
+  // Cycle clock: the island expands, stays live, collapses to a pill, and repeats every L frames.
+  const expandStart = scripted ? P + 4 : 0;
+  const expandAt = 20;
   const collapseAt = Math.round(L * 0.78);
-  const expanded = t >= expandAt && t < collapseAt;
-  const m = (() => {
+  const origin = scripted ? expandStart - expandAt : -70; // unscripted: start part-way through, already live
+  const cycleOf = (fr: number): { t: number; cycle: number } => {
+    const ph = fr - origin;
+    return { t: ((ph % L) + L) % L, cycle: Math.floor(ph / L) };
+  };
+  const cycleM = (fr: number): number => {
+    if (scripted && fr < expandStart) return 0;
+    const { t } = cycleOf(fr);
     if (t < expandAt) return 0;
     if (t < collapseAt) return Math.min(1.04, spr(t - expandAt));
     return Math.max(0, 1 - spr(t - collapseAt, 15, 170, 0.7));
-  })();
+  };
+  const { t, cycle } = cycleOf(frame);
+
+  // Hangup: hold the banner expanded while the end button is pressed, then collapse to a red pill.
+  const mH0 = Hg >= 0 ? cycleM(Hg) : 0;
+  const m = hung
+    ? Math.min(1.04, lerp(mH0, 1, prog(d, 0, 6))) * (d < 34 ? 1 : Math.max(0, 1 - spr(d - 34, 15, 170, 0.7)))
+    : cycleM(frame);
   const mm = Math.min(1, Math.max(0, m));
-  const calling = first && t < expandAt;
 
   const x = (720 - lerp(W_PILL, W_BANNER, mm)) / 2;
   const w = lerp(W_PILL, W_BANNER, m);
   const h = lerp(H_PILL, H_BANNER, m);
   const r = lerp(28, 40, mm);
 
-  // island entrance + incoming-call vibration (first repeat only)
-  const pop = first ? spr(t, 11, 220, 0.6) : 1;
-  const buzz = calling && t > popEnd ? Math.sin(t * 3.4) * 5 * (1 - (t - popEnd) / (ringEnd - popEnd) * 0.5) : 0;
+  // island entrance + incoming-call vibration + the answer bump
+  const pop = scripted ? spr(frame, 11, 220, 0.6) : 1;
+  const callingT = frame - 12;
+  const buzz = calling && callingT > 0 ? Math.sin(frame * 3.4) * 5 * (1 - Math.min(1, callingT / Math.max(1, P - 12)) * 0.5) : 0;
+  const answerD = scripted ? frame - P : 99;
+  const bump = answerD >= 0 && answerD < 10 ? 0.09 * Math.sin((Math.PI * answerD) / 10) : 0;
+  const answered = answerD >= 0 && answerD < 5;
 
+  // "after hangup": leave = slide up and fade away after the bar has collapsed
+  const leaveP = hung && c.afterHangup === "leave" ? prog(d, 62, 16) : 0;
+
+  const base = scripted ? P : 0;
+  const tf = Math.max(0, (hung ? Hg : frame) - base); // timer frame (freezes at hangup)
   const startSec = c.timerStartSeconds;
-  const logoPop = expanded || m > 0.2 ? spr(Math.max(0, t - expandAt - 4), 9, 200, 0.55) : 0;
+  const ended = hung;
+  const dotColor = ended ? "#E5342B" : "#3DDC84";
+  const logoPop = m > 0.2 ? spr(Math.max(0, (hung ? 99 : t - expandAt - 4)), 9, 200, 0.55) : 0;
   const logoRot = lerp(-18, 0, Math.min(1, logoPop));
-  const contentIn = prog(t, expandAt + 6, 8);
+  const contentIn = hung ? 1 : scripted && frame < expandStart + 6 ? 0 : prog(t, expandAt + 6, 8);
   const pillContent = 1 - Math.min(1, mm * 2.2);
+  const waveActive = ended ? Math.max(0, 1 - d / 8) : 1;
+  const hangPress = ended && d < 10 ? Math.sin((Math.PI * d) / 10) : 0;
 
   // kinetic loops while live
-  const shineP = ((frame % 100) / 100);
+  const shineP = (frame % 100) / 100;
   const ripple = (k: number): { r: number; o: number } => {
-    const p = ((frame + k * 22) % 66) / 66;
-    return { r: lerp(70, 168, p), o: (1 - p) * 0.55 * mm };
+    const pp = ((frame + k * 22) % 66) / 66;
+    return { r: lerp(70, 168, pp), o: (1 - pp) * 0.55 * mm * (ended ? 0 : 1) };
   };
   const btnKinds = ["mute", "keypad", "speaker", "add"] as const;
   const hot = Math.floor(frame / 60) % 4; // which button is "pressed" now
   const hotP = (frame % 60) / 60;
 
+  const ringBurst = (pp: number, col: string, spreadX: number, spreadY: number, k: number): React.ReactNode => (
+    <div
+      key={k}
+      style={{
+        position: "absolute",
+        left: 360 - (W_PILL / 2 + pp * spreadX),
+        top: H_PILL / 2 - (H_PILL / 2 + pp * spreadY),
+        width: W_PILL + pp * spreadX * 2,
+        height: H_PILL + pp * spreadY * 2,
+        borderRadius: 40 + pp * 40,
+        border: `2px solid ${col}`,
+        opacity: (1 - pp) * 0.75,
+      }}
+    />
+  );
+
+  const pillLabel = calling ? "Calling…" : answered ? "Connected" : ended ? "Call ended" : c.callerName;
+
   return (
     <AbsoluteFill style={{ background: "transparent" }}>
-      <div style={{ position: "absolute", left: 0, top: c.y, width: 720, height: H_BANNER + 80 }}>
-        {/* ripples from the logo */}
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          top: c.y - leaveP * 140,
+          width: 720,
+          height: H_BANNER + 80,
+          opacity: 1 - leaveP,
+        }}
+      >
+        {/* ripples from the logo while live */}
         {mm > 0.6 &&
           [0, 1].map((k) => {
             const rp = ripple(k);
@@ -218,7 +273,7 @@ export const CallOverlay: React.FC<CallOverlayProps> = (c) => {
                 style={{
                   position: "absolute",
                   left: x + 24 + 64 - rp.r,
-                  top: 24 + 64 - rp.r + (h - H_BANNER) * 0,
+                  top: 24 + 64 - rp.r,
                   width: rp.r * 2,
                   height: rp.r * 2,
                   borderRadius: "50%",
@@ -228,26 +283,25 @@ export const CallOverlay: React.FC<CallOverlayProps> = (c) => {
               />
             );
           })}
-        {/* ringing rings from the island */}
-        {calling &&
-          [0, 1, 2].map((k) => {
-            const p = Math.max(0, ((t - popEnd - k * 8) % 24) / 24);
-            return (
-              <div
-                key={k}
-                style={{
-                  position: "absolute",
-                  left: 360 - (W_PILL / 2 + p * 60),
-                  top: H_PILL / 2 - (H_PILL / 2 + p * 50),
-                  width: W_PILL + p * 120,
-                  height: H_PILL + p * 100,
-                  borderRadius: 40 + p * 40,
-                  border: `2px solid ${color.accent}`,
-                  opacity: (1 - p) * 0.7,
-                }}
-              />
-            );
-          })}
+        {/* ringing rings from the island (before pickup) */}
+        {calling && frame >= 12 && [0, 1, 2].map((k) => ringBurst(Math.max(0, ((frame - 12 - k * 8) % 24) / 24), color.accent, 60, 50, k))}
+        {/* green answer burst */}
+        {answerD >= 0 && answerD < 16 && ringBurst(answerD / 16, "#3DDC84", 90, 70, 10)}
+        {/* red hang-up burst */}
+        {ended && d < 14 && mm > 0.5 && (
+          <div
+            style={{
+              position: "absolute",
+              left: x + (W_BANNER - 24 - 32) - (32 + (d / 14) * 70),
+              top: 172 + 32 - (32 + (d / 14) * 70),
+              width: (32 + (d / 14) * 70) * 2,
+              height: (32 + (d / 14) * 70) * 2,
+              borderRadius: "50%",
+              border: "2px solid #E5342B",
+              opacity: 1 - d / 14,
+            }}
+          />
+        )}
 
         {/* the island / banner */}
         <div
@@ -258,58 +312,66 @@ export const CallOverlay: React.FC<CallOverlayProps> = (c) => {
             width: w,
             height: h,
             borderRadius: r,
-            transform: `translateY(${mm > 0.9 ? Math.sin(frame / 18) * 3 : 0}px) scale(${Math.min(1.05, pop)})`,
+            transform: `translateY(${mm > 0.9 && !ended ? Math.sin(frame / 18) * 3 : 0}px) scale(${Math.min(1.05, pop) + bump})`,
             transformOrigin: "50% 0%",
             background: "linear-gradient(150deg, rgba(26,26,30,0.97), rgba(9,9,11,0.97))",
-            border: `1.5px solid rgba(255,183,0,${0.25 + 0.35 * mm})`,
-            boxShadow: `0 0 ${10 + 26 * mm}px rgba(255,183,0,${0.12 + 0.2 * mm}), inset 0 1px 0 rgba(255,255,255,0.22), 0 18px 40px rgba(0,0,0,0.5)`,
+            border: `1.5px solid ${ended ? `rgba(229,52,43,${0.35 + 0.3 * mm})` : `rgba(255,183,0,${0.25 + 0.35 * mm})`}`,
+            boxShadow: `0 0 ${10 + 26 * mm}px ${ended ? "rgba(229,52,43,0.25)" : `rgba(255,183,0,${0.12 + 0.2 * mm})`}, inset 0 1px 0 rgba(255,255,255,0.22), 0 18px 40px rgba(0,0,0,0.5)`,
             overflow: "hidden",
             opacity: Math.min(1, pop * 2),
           }}
         >
-          {/* pill content (calling / idle) */}
+          {/* pill content (calling / idle / ended) */}
           <div style={{ position: "absolute", inset: 0, opacity: pillContent, display: "flex", alignItems: "center", gap: 12, padding: "0 16px" }}>
-            <div style={{ width: 36, height: 36, flexShrink: 0 }}>
+            <div style={{ width: 36, height: 36, flexShrink: 0, opacity: ended ? 0.7 : 1 }}>
               <Logo src={c.logoSrc} size={36} shine={shineP} />
             </div>
-            <div style={{ fontFamily: font.sans, fontWeight: 600, fontSize: 24, color: "#fff", lineHeight: 1, whiteSpace: "nowrap", width: 120 }}>
-              {calling ? "Calling…" : c.callerName}
+            <div style={{ fontFamily: font.sans, fontWeight: 600, fontSize: 24, color: ended ? "#FF6B63" : "#fff", lineHeight: 1, whiteSpace: "nowrap", width: 120 }}>
+              {pillLabel}
             </div>
             {calling ? (
-              <div style={{ marginLeft: "auto", width: 12, height: 12, borderRadius: "50%", background: "#3DDC84", boxShadow: "0 0 12px #3DDC84", opacity: 0.5 + 0.5 * Math.sin(t / 2) }} />
+              <div style={{ marginLeft: "auto", width: 12, height: 12, borderRadius: "50%", background: "#3DDC84", boxShadow: "0 0 12px #3DDC84", opacity: 0.5 + 0.5 * Math.sin(frame / 2) }} />
             ) : (
               <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
-                <Wave f={frame} n={7} w={4} gap={3} maxH={26} seed={cycle} />
-                <Timer f={frame} startSec={startSec} size={22} />
+                <Wave f={frame} n={7} w={4} gap={3} maxH={26} seed={cycle} active={waveActive} />
+                <Timer f={tf} startSec={startSec} size={22} />
               </div>
             )}
           </div>
 
           {/* banner content */}
           <div style={{ position: "absolute", left: 0, top: 0, width: W_BANNER, height: H_BANNER, opacity: Math.min(1, contentIn) * Math.min(1, mm * 1.6) }}>
-            {/* avatar + name */}
-            <div style={{ position: "absolute", left: 24, top: 22, width: 128, height: 128, transform: `scale(${Math.min(1.18, logoPop)}) rotate(${logoRot}deg)` }}>
+            <div
+              style={{
+                position: "absolute",
+                left: 24,
+                top: 22,
+                width: 128,
+                height: 128,
+                opacity: ended ? 0.7 : 1,
+                transform: `scale(${Math.min(1.18, logoPop)}) rotate(${logoRot}deg)`,
+              }}
+            >
               <Logo src={c.logoSrc} size={128} shine={shineP} />
             </div>
             <div style={{ position: "absolute", left: 172, top: 24, fontFamily: font.sans, fontWeight: 700, fontSize: 54, lineHeight: 1, color: "#fff", letterSpacing: "0.01em" }}>
               {c.callerName}
             </div>
-            <div style={{ position: "absolute", left: 172, top: 84, display: "flex", alignItems: "center", gap: 10, fontFamily: font.sans, fontWeight: 500, fontSize: 28, color: "rgba(255,255,255,0.72)", lineHeight: "32px" }}>
-              <span style={{ width: 12, height: 12, borderRadius: "50%", background: "#3DDC84", boxShadow: `0 0 ${8 + 8 * Math.sin(frame / 5)}px #3DDC84` }} />
-              <span>{c.status}</span>
+            <div style={{ position: "absolute", left: 172, top: 84, display: "flex", alignItems: "center", gap: 10, fontFamily: font.sans, fontWeight: 500, fontSize: 28, color: ended ? "#FF6B63" : "rgba(255,255,255,0.72)", lineHeight: "32px" }}>
+              <span style={{ width: 12, height: 12, borderRadius: "50%", background: dotColor, boxShadow: `0 0 ${ended ? 6 : 8 + 8 * Math.sin(frame / 5)}px ${dotColor}` }} />
+              <span>{ended ? "Call ended" : c.status}</span>
               <span style={{ color: "rgba(255,255,255,0.4)" }}>·</span>
-              <Timer f={frame} startSec={startSec} />
+              <Timer f={tf} startSec={startSec} />
             </div>
             <div style={{ position: "absolute", left: 172, top: 120 }}>
-              <Wave f={frame} n={22} w={8} gap={5} maxH={42} seed={cycle + 3} />
+              <Wave f={frame} n={22} w={8} gap={5} maxH={42} seed={cycle + 3} active={waveActive} />
             </div>
-            {/* buttons */}
             {c.showButtons && (
               <div style={{ position: "absolute", left: 24, top: 172, width: 592, display: "flex", justifyContent: "space-between" }}>
                 {btnKinds.map((kind, i) => {
-                  const on = i === hot;
+                  const on = !ended && i === hot;
                   const press = on ? Math.sin(Math.PI * Math.min(1, hotP * 3)) : 0;
-                  const enter = prog(t, expandAt + 12 + i * 3, 8);
+                  const enter = hung ? 1 : prog(t, expandAt + 12 + i * 3, 8);
                   return (
                     <div
                       key={kind}
@@ -323,7 +385,7 @@ export const CallOverlay: React.FC<CallOverlayProps> = (c) => {
                         alignItems: "center",
                         justifyContent: "center",
                         transform: `scale(${(0.6 + 0.4 * enter) * (1 + 0.14 * press)})`,
-                        opacity: enter,
+                        opacity: enter * (ended ? Math.max(0.3, 1 - d / 8) : 1),
                         boxShadow: on ? `0 0 ${14 + 14 * press}px ${color.glow}` : "none",
                       }}
                     >
@@ -340,8 +402,9 @@ export const CallOverlay: React.FC<CallOverlayProps> = (c) => {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    transform: `scale(${0.6 + 0.4 * prog(t, expandAt + 24, 8)})`,
-                    opacity: prog(t, expandAt + 24, 8),
+                    transform: `scale(${(hung ? 1 : 0.6 + 0.4 * prog(t, expandAt + 24, 8)) * (1 + 0.3 * hangPress)})`,
+                    opacity: hung ? 1 : prog(t, expandAt + 24, 8),
+                    boxShadow: hangPress > 0 ? `0 0 ${10 + 24 * hangPress}px rgba(229,52,43,0.8)` : "none",
                   }}
                 >
                   <Icon kind="end" ink="#fff" />

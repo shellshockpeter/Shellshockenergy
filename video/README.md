@@ -51,6 +51,10 @@ Props: `callerName`, `status`, `logoSrc` (transparent PNG in `public/`), `second
 
 Composition **CallOnVideo**: your video (`public/media/gym-call.mp4`) with the call UI on top (not transparent). The call is already in progress at frame 0 (no ringing), the timer starts at **00:17** (`timerStartSeconds`) and counts up, and the video **ends when your clip ends**: the length is read from the video file, so to use the full 53 s version, replace `public/media/gym-call.mp4` with it (same name) and the length and timer follow. `npm run render:call:video` writes `out/gym-call-with-ui.mp4` at 1080×1920 (your clip is 720p, so the UI is sharp and the video is upscaled).
 
+### First half of the call (ring, pickup, hangup)
+
+Composition **CallOnVideoFirstHalf** (`public/media/gym-call-first-half.mp4`, 30.3 s): the island rings and vibrates "Calling…" from frame 0, she picks up at **1.0 s** (`pickupFrame` 30: green "Connected" burst, the island expands into the live banner), the timer starts at 00:00 on pickup, and at **15.2 s** (`hangupFrame` 456) the call is hung up: the end button pulses red, the waveform flattens, the timer freezes (00:14) and the banner collapses into a red "Call ended" bar. `afterHangup` = **stay** (default) keeps that red bar until the end of the video; **leave** slides it away. `npm run render:call:first` makes `out/gym-call-first-half-with-ui.mp4`. In the Props panel, `pickupFrame` / `hangupFrame` are frames (30 per second); `-1` for both = no ring and no hangup (the second half of the call).
+
 ## Commands
 
 - `npm run dev`: preview and edit

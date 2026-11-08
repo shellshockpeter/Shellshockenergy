@@ -180,7 +180,9 @@ export const RemotionRoot: React.FC = () => {
           timerStartSeconds: 17,
           y: 172,
           showButtons: true,
-          startLive: true,
+          pickupFrame: -1,
+          hangupFrame: -1,
+          afterHangup: "stay",
         }}
       />
       <Composition
@@ -202,7 +204,33 @@ export const RemotionRoot: React.FC = () => {
           timerStartSeconds: 17,
           y: 172,
           showButtons: true,
-          startLive: true,
+          pickupFrame: -1,
+          hangupFrame: -1,
+          afterHangup: "stay",
+        }}
+      />
+      <Composition
+        id="CallOnVideoFirstHalf"
+        component={CallOnVideo}
+        schema={callOnVideoSchema}
+        durationInFrames={910}
+        calculateMetadata={callOnVideoMeta}
+        fps={FPS}
+        width={W}
+        height={H}
+        defaultProps={{
+          videoSrc: "media/gym-call-first-half.mp4",
+          callerName: "Gym Scene",
+          status: "On call",
+          logoSrc: "brand/gym-scene-logo.png",
+          seconds: 30.33,
+          loopFrames: 265,
+          timerStartSeconds: 0,
+          y: 172,
+          showButtons: true,
+          pickupFrame: 30,
+          hangupFrame: 456,
+          afterHangup: "stay",
         }}
       />
     </>
