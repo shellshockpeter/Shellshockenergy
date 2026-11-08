@@ -47,6 +47,10 @@ Props: `callerName`, `status`, `logoSrc` (transparent PNG in `public/`), `second
 - `npm run render:call:webm`: `out/call-overlay.webm`, VP9 with alpha, much smaller.
 - For 720×1280 (smaller), remove `--scale=1.5` from the script.
 
+## Call UI baked onto your video
+
+Composition **CallOnVideo**: your video (`public/media/gym-call.mp4`) with the call UI on top (not transparent). The call is already in progress at frame 0 (no ringing), the timer starts at **00:17** (`timerStartSeconds`) and counts up, and the video **ends when your clip ends**: the length is read from the video file, so to use the full 53 s version, replace `public/media/gym-call.mp4` with it (same name) and the length and timer follow. `npm run render:call:video` writes `out/gym-call-with-ui.mp4` at 1080×1920 (your clip is 720p, so the UI is sharp and the video is upscaled).
+
 ## Commands
 
 - `npm run dev`: preview and edit

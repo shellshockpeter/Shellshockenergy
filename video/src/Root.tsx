@@ -1,7 +1,9 @@
 import "./index.css";
-import { CalculateMetadataFunction, Composition } from "remotion";
+import { CalculateMetadataFunction, Composition, staticFile } from "remotion";
 import { DURATION, FPS, H, W } from "./brand/theme";
 import { Explainer, explainerSchema } from "./templates/Explainer";
+import { parseMedia } from "@remotion/media-parser";
+import { CallOnVideo, callOnVideoSchema, type CallOnVideoProps } from "./templates/CallOnVideo";
 import { CallOverlay, callOverlaySchema, type CallOverlayProps } from "./templates/CallOverlay";
 import { FullReel, EXPLAINER_FRAMES, fullReelSchema, type FullReelProps } from "./templates/FullReel";
 import { NumberedList, numberedListSchema, type NumberedListProps } from "./templates/NumberedList";
@@ -15,6 +17,21 @@ const reelMeta: CalculateMetadataFunction<FullReelProps> = ({ props }) => ({
 const callMeta: CalculateMetadataFunction<CallOverlayProps> = ({ props }) => ({
   durationInFrames: Math.round(props.seconds * FPS),
 });
+
+// The call-on-video length follows the video file itself, so swapping in the full-length clip just works.
+const callOnVideoMeta: CalculateMetadataFunction<CallOnVideoProps> = async ({ props }) => {
+  try {
+    const { durationInSeconds } = await parseMedia({
+      src: staticFile(props.videoSrc),
+      fields: { durationInSeconds: true },
+      acknowledgeRemotionLicense: true,
+    });
+    if (durationInSeconds) return { durationInFrames: Math.round(durationInSeconds * FPS) };
+  } catch {
+    // fall through to the `seconds` prop
+  }
+  return { durationInFrames: Math.round(props.seconds * FPS) };
+};
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -160,9 +177,32 @@ export const RemotionRoot: React.FC = () => {
           logoSrc: "brand/gym-scene-logo.png",
           seconds: 53,
           loopFrames: 265,
-          timerStartSeconds: 0,
+          timerStartSeconds: 17,
           y: 172,
           showButtons: true,
+          startLive: true,
+        }}
+      />
+      <Composition
+        id="CallOnVideo"
+        component={CallOnVideo}
+        schema={callOnVideoSchema}
+        durationInFrames={647}
+        calculateMetadata={callOnVideoMeta}
+        fps={FPS}
+        width={W}
+        height={H}
+        defaultProps={{
+          videoSrc: "media/gym-call.mp4",
+          callerName: "Gym Scene",
+          status: "On call",
+          logoSrc: "brand/gym-scene-logo.png",
+          seconds: 21.57,
+          loopFrames: 265,
+          timerStartSeconds: 17,
+          y: 172,
+          showButtons: true,
+          startLive: true,
         }}
       />
     </>

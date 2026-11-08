@@ -19,6 +19,9 @@ export const callOverlaySchema = z.object({
   timerStartSeconds: z.number().describe("where the call timer starts, in seconds (it counts up the whole time)"),
   y: z.number().describe("top edge of the call UI in the 720×1280 layout (172 = just under Instagram's header)"),
   showButtons: z.boolean().describe("show the call buttons row (mute, keypad, speaker, add, end)"),
+  startLive: z
+    .boolean()
+    .describe("true = the call is already in progress at frame 0 (no ringing / 'Calling…' intro). Use for the second half of a call"),
 });
 
 export type CallOverlayProps = z.infer<typeof callOverlaySchema>;
@@ -156,9 +159,11 @@ const Logo: React.FC<{ src: string; size: number; shine: number }> = ({ src, siz
 export const CallOverlay: React.FC<CallOverlayProps> = (c) => {
   const frame = useCurrentFrame();
   const L = c.loopFrames;
-  const cycle = Math.floor(frame / L);
-  const t = frame % L; // time inside this repeat
-  const first = cycle === 0;
+  // startLive: begin part-way through a repeat, in the settled live state, so there is no ringing intro.
+  const phase = frame + (c.startLive ? 70 : 0);
+  const cycle = Math.floor(phase / L);
+  const t = phase % L; // time inside this repeat
+  const first = !c.startLive && cycle === 0;
 
   // Timeline inside a repeat. The first repeat starts with the island popping in and "ringing";
   // later repeats start from the idle pill and re-expand.
