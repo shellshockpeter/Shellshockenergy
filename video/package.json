@@ -30,6 +30,8 @@
     "upgrade": "remotion upgrade",
     "render:explainer": "remotion render Explainer out/explainer.mp4 --scale=1.5 --codec=h264 --crf=14 --x264-preset=slow --image-format=png --color-space=bt709",
     "render:reel": "remotion render FullReel out/full-reel.mp4 --scale=1.5 --codec=h264 --crf=14 --x264-preset=slow --image-format=png --color-space=bt709",
+    "render:call": "remotion render CallOverlay out/call-overlay.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png --scale=1.5",
+    "render:call:webm": "remotion render CallOverlay out/call-overlay.webm --codec=vp9 --pixel-format=yuva420p --image-format=png --scale=1.5",
     "render:numbered": "remotion render NumberedList out/numbered-list.mp4 --scale=1.5 --codec=h264 --crf=14 --x264-preset=slow --image-format=png --color-space=bt709",
     "lint": "eslint src && tsc"
   },

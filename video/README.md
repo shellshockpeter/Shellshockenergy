@@ -37,6 +37,16 @@ Composition **FullReel** (75.9 s): the NumberedList hook, a hard cut, then your 
 
 `explainerFit` = **lowered** (default) moves the explainer picture down by `explainerShift` (120) so its top text (section titles, the offer) clears Instagram's "Reels / Friends" header; the strip it opens at the top is filled by stretching the picture's top edge, so it stays full-frame with no blur (the bottom 120 px, which Instagram's caption area covers, is cropped). **full** = exactly as exported. **safe** = shrink to 80% with a blurred fill.
 
+## Call overlay (transparent, for your own video)
+
+Composition **CallOverlay**: a phone-call motion graphic with a **transparent background** to overlay on any video. An iPhone-style island rings ("Calling…"), expands into a live call banner (your logo pops in, name, a ticking timer, waveform, call buttons), then collapses back to a pill, and repeats. The timer counts up the whole time. Default length 53 s; one repeat is 265 frames, so 53 s is exactly 6 repeats.
+
+Props: `callerName`, `status`, `logoSrc` (transparent PNG in `public/`), `seconds`, `loopFrames`, `timerStartSeconds`, `y` (vertical position), `showButtons`.
+
+- `npm run render:call`: `out/call-overlay.mov`, ProRes 4444 with alpha, 1080×1920 (works in Final Cut, Premiere, DaVinci, CapCut). Large file (about 800 MB for 53 s).
+- `npm run render:call:webm`: `out/call-overlay.webm`, VP9 with alpha, much smaller.
+- For 720×1280 (smaller), remove `--scale=1.5` from the script.
+
 ## Commands
 
 - `npm run dev`: preview and edit

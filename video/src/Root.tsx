@@ -2,6 +2,7 @@ import "./index.css";
 import { CalculateMetadataFunction, Composition } from "remotion";
 import { DURATION, FPS, H, W } from "./brand/theme";
 import { Explainer, explainerSchema } from "./templates/Explainer";
+import { CallOverlay, callOverlaySchema, type CallOverlayProps } from "./templates/CallOverlay";
 import { FullReel, EXPLAINER_FRAMES, fullReelSchema, type FullReelProps } from "./templates/FullReel";
 import { NumberedList, numberedListSchema, type NumberedListProps } from "./templates/NumberedList";
 
@@ -9,6 +10,10 @@ import { NumberedList, numberedListSchema, type NumberedListProps } from "./temp
 const hookMeta: CalculateMetadataFunction<NumberedListProps> = ({ props }) => ({ durationInFrames: props.endFrame });
 const reelMeta: CalculateMetadataFunction<FullReelProps> = ({ props }) => ({
   durationInFrames: props.hook.endFrame + EXPLAINER_FRAMES,
+});
+
+const callMeta: CalculateMetadataFunction<CallOverlayProps> = ({ props }) => ({
+  durationInFrames: Math.round(props.seconds * FPS),
 });
 
 export const RemotionRoot: React.FC = () => {
@@ -138,6 +143,26 @@ export const RemotionRoot: React.FC = () => {
             unblurOnPing: false,
             shockLast: true,
           },
+        }}
+      />
+      <Composition
+        id="CallOverlay"
+        component={CallOverlay}
+        schema={callOverlaySchema}
+        durationInFrames={1590}
+        calculateMetadata={callMeta}
+        fps={FPS}
+        width={W}
+        height={H}
+        defaultProps={{
+          callerName: "Gym Scene",
+          status: "On call",
+          logoSrc: "brand/gym-scene-logo.png",
+          seconds: 53,
+          loopFrames: 265,
+          timerStartSeconds: 0,
+          y: 172,
+          showButtons: true,
         }}
       />
     </>
