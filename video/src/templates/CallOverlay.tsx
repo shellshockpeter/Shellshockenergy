@@ -23,6 +23,9 @@ export const callOverlaySchema = z.object({
     .number()
     .describe("frame the call is answered (30 per second). Before it, the island rings and vibrates 'Calling…'. -1 = already in progress"),
   hangupFrame: z.number().describe("frame the call is hung up (30 per second). -1 = never"),
+  uiEndFrame: z
+    .number()
+    .describe("frame the call UI is completely gone, for afterHangup = fade (480 = 16.0 s). The hangup animation is squeezed to fit. -1 = default timing"),
   afterHangup: z
     .enum(["fade", "leave", "stay"])
     .describe("fade = the UI fades out almost instantly once the hangup animation ends; leave = it collapses to a red bar then slides away; stay = the red 'Call ended' bar stays to the end"),
@@ -214,7 +217,8 @@ export const CallOverlay: React.FC<CallOverlayProps> = (c) => {
   // "after hangup": leave = slide up and fade away after the bar has collapsed
   const leaveP = hung && c.afterHangup === "leave" ? prog(d, 62, 16) : 0;
   // fade: the whole UI disappears almost instantly right after the hangup animation
-  const fadeP = hung && c.afterHangup === "fade" ? prog(d, HANG_HOLD, HANG_FADE, (x) => x) : 0;
+  const holdFrames = c.uiEndFrame >= 0 ? Math.max(10, c.uiEndFrame - Hg - HANG_FADE) : HANG_HOLD;
+  const fadeP = hung && c.afterHangup === "fade" ? prog(d, holdFrames, HANG_FADE, (x) => x) : 0;
 
   const base = scripted ? P : 0;
   const tf = Math.max(0, (hung ? Hg : frame) - base); // timer frame (freezes at hangup)

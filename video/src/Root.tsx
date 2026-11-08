@@ -182,6 +182,7 @@ export const RemotionRoot: React.FC = () => {
           showButtons: true,
           pickupFrame: -1,
           hangupFrame: -1,
+          uiEndFrame: -1,
           afterHangup: "stay",
         }}
       />
@@ -206,6 +207,7 @@ export const RemotionRoot: React.FC = () => {
           showButtons: true,
           pickupFrame: -1,
           hangupFrame: -1,
+          uiEndFrame: -1,
           afterHangup: "stay",
         }}
       />
@@ -230,6 +232,7 @@ export const RemotionRoot: React.FC = () => {
           showButtons: true,
           pickupFrame: 30,
           hangupFrame: 456,
+          uiEndFrame: 480,
           afterHangup: "fade",
         }}
       />
