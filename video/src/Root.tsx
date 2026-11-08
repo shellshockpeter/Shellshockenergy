@@ -230,7 +230,7 @@ export const RemotionRoot: React.FC = () => {
           showButtons: true,
           pickupFrame: 30,
           hangupFrame: 456,
-          afterHangup: "stay",
+          afterHangup: "fade",
         }}
       />
     </>

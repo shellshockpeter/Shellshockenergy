@@ -24,8 +24,8 @@ export const callOverlaySchema = z.object({
     .describe("frame the call is answered (30 per second). Before it, the island rings and vibrates 'Calling…'. -1 = already in progress"),
   hangupFrame: z.number().describe("frame the call is hung up (30 per second). -1 = never"),
   afterHangup: z
-    .enum(["stay", "leave"])
-    .describe("stay = the red 'Call ended' bar stays until the end of the video; leave = it slides away"),
+    .enum(["fade", "leave", "stay"])
+    .describe("fade = the UI fades out almost instantly once the hangup animation ends; leave = it collapses to a red bar then slides away; stay = the red 'Call ended' bar stays to the end"),
 });
 
 export type CallOverlayProps = z.infer<typeof callOverlaySchema>;
@@ -33,6 +33,9 @@ export type CallOverlayProps = z.infer<typeof callOverlaySchema>;
 const W_PILL = 300;
 const H_PILL = 56;
 const W_BANNER = 640;
+/** Frames the 'Call ended' state is held before the instant fade (end-button press + a beat to read it). */
+const HANG_HOLD = 24;
+const HANG_FADE = 5;
 const H_BANNER = 262;
 
 const spr = (f: number, damping = 13, stiffness = 150, mass = 0.8): number =>
@@ -191,7 +194,7 @@ export const CallOverlay: React.FC<CallOverlayProps> = (c) => {
   // Hangup: hold the banner expanded while the end button is pressed, then collapse to a red pill.
   const mH0 = Hg >= 0 ? cycleM(Hg) : 0;
   const m = hung
-    ? Math.min(1.04, lerp(mH0, 1, prog(d, 0, 6))) * (d < 34 ? 1 : Math.max(0, 1 - spr(d - 34, 15, 170, 0.7)))
+    ? Math.min(1.04, lerp(mH0, 1, prog(d, 0, 6))) * (c.afterHangup === "fade" || d < 34 ? 1 : Math.max(0, 1 - spr(d - 34, 15, 170, 0.7)))
     : cycleM(frame);
   const mm = Math.min(1, Math.max(0, m));
 
@@ -210,6 +213,8 @@ export const CallOverlay: React.FC<CallOverlayProps> = (c) => {
 
   // "after hangup": leave = slide up and fade away after the bar has collapsed
   const leaveP = hung && c.afterHangup === "leave" ? prog(d, 62, 16) : 0;
+  // fade: the whole UI disappears almost instantly right after the hangup animation
+  const fadeP = hung && c.afterHangup === "fade" ? prog(d, HANG_HOLD, HANG_FADE, (x) => x) : 0;
 
   const base = scripted ? P : 0;
   const tf = Math.max(0, (hung ? Hg : frame) - base); // timer frame (freezes at hangup)
@@ -260,7 +265,7 @@ export const CallOverlay: React.FC<CallOverlayProps> = (c) => {
           top: c.y - leaveP * 140,
           width: 720,
           height: H_BANNER + 80,
-          opacity: 1 - leaveP,
+          opacity: (1 - leaveP) * (1 - fadeP),
         }}
       >
         {/* ripples from the logo while live */}
