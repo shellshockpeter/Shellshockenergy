@@ -16,7 +16,7 @@ Config.setOverwriteOutput(true);
 Config.setDefaultPremountInSeconds(2);
 
 // Sound effects are optional: warn (don't crash) if they're missing.
-for (const file of ['tick.mp3', 'stamp.mp3']) {
+for (const file of ['tick.mp3', 'stamp.mp3', 'whoosh.mp3', 'thud.mp3']) {
 	if (!existsSync(path.join(process.cwd(), 'public', 'sfx', file))) {
 		console.warn(
 			`[PlugBeat] TODO: add public/sfx/${file} — that sound will be skipped (render stays silent).`,

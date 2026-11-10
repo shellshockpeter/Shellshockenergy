@@ -25,6 +25,7 @@
     "@types/web": "0.0.166",
     "eslint": "10.12.0",
     "prettier": "3.8.1",
+    "tsx": "4.20.6",
     "typescript": "5.9.3"
   },
   "scripts": {
@@ -34,7 +35,18 @@
     "upgrade": "remotion upgrade",
     "render": "remotion render PlugBeat out/plug-beat.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png",
     "render:webm": "remotion render PlugBeat out/plug-beat.webm --codec=vp9 --pixel-format=yuva420p --image-format=png",
-    "lint": "eslint src && tsc"
+    "lint": "eslint src && tsc",
+    "render:map-intro": "remotion render MapIntro out/map-intro.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png",
+    "render:map-intro:webm": "remotion render MapIntro out/map-intro.webm --codec=vp9 --pixel-format=yuva420p --image-format=png",
+    "render:map-slam-1": "remotion render MapSlam1 out/map-slam-1.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png",
+    "render:map-slam-1:webm": "remotion render MapSlam1 out/map-slam-1.webm --codec=vp9 --pixel-format=yuva420p --image-format=png",
+    "render:map-slam-2": "remotion render MapSlam2 out/map-slam-2.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png",
+    "render:map-slam-2:webm": "remotion render MapSlam2 out/map-slam-2.webm --codec=vp9 --pixel-format=yuva420p --image-format=png",
+    "render:map-slam-3": "remotion render MapSlam3 out/map-slam-3.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png",
+    "render:map-slam-3:webm": "remotion render MapSlam3 out/map-slam-3.webm --codec=vp9 --pixel-format=yuva420p --image-format=png",
+    "render:map": "npm run render:map-intro && npm run render:map-slam-1 && npm run render:map-slam-2 && npm run render:map-slam-3",
+    "render:map:webm": "npm run render:map-intro:webm && npm run render:map-slam-1:webm && npm run render:map-slam-2:webm && npm run render:map-slam-3:webm",
+    "layout-check": "tsx scripts/layout-check.ts"
   },
   "allowScripts": {
     "esbuild": false

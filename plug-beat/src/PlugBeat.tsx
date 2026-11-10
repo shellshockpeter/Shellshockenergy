@@ -3,6 +3,7 @@ import {AbsoluteFill, Sequence, staticFile} from 'remotion';
 import {Audio} from '@remotion/media';
 import {z} from 'zod';
 import {CouponChip, flipStartFrame} from './CouponChip';
+import {fileExists} from './sfx';
 import {TubCard} from './TubCard';
 import {CANVAS, TIMING} from './theme';
 
@@ -115,19 +116,6 @@ export const PlugBeat: React.FC<PlugBeatProps> = ({
 /* ------------------------------------------------------------------ */
 /* Sound-file detection: never crash on a missing mp3                  */
 /* ------------------------------------------------------------------ */
-const fileExists = async (path: string): Promise<boolean> => {
-	try {
-		const res = await fetch(staticFile(path));
-		const type = res.headers.get('content-type') ?? '';
-		// the dev server may answer unknown paths with index.html (200)
-		const ok = res.ok && !type.includes('text/html');
-		void res.body?.cancel();
-		return ok;
-	} catch {
-		return false;
-	}
-};
-
 export const calculateMetadata = async ({
 	props,
 }: {
