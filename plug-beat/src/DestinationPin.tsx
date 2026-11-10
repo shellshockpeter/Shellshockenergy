@@ -2,7 +2,7 @@ import React from 'react';
 import {Easing, interpolate, spring, useVideoConfig} from 'remotion';
 import {NeonText} from './NeonText';
 import {BODY_FONT, DISPLAY_FONT} from './theme';
-import {LOOP, MAP_COLORS, redA, gold, goldWarm, type Stop} from './mapConfig';
+import {LOOP, MAP_COLORS, textA, gold, goldWarm, type Stop} from './mapConfig';
 
 /* ------------------------------------------------------------------ */
 /* Shared pin state logic                                              */
@@ -235,8 +235,8 @@ export const DestinationPin: React.FC<PinProps> = ({
 			: side === 'left'
 				? {left: -(PIN_W / 2 + gapPx) + dx - (PIN_W / 2) * ex, top: -HOLE_Y + dy, transform: 'translate(-100%, -50%)', flexDirection: 'row-reverse'}
 				: side === 'above'
-					? {left: dx, top: -(PIN_H + gapPx) + dy - PIN_H * ex, transform: 'translate(-50%, -100%)', flexDirection: 'row'}
-					: {left: dx, top: gapPx + dy, transform: 'translate(-50%, 0)', flexDirection: 'row'};
+					? {left: dx, top: -(PIN_H + gapPx) + dy - PIN_H * ex, transform: 'translate(-50%, -100%)', flexDirection: stop.labelStack ? 'column' : 'row'}
+					: {left: dx, top: gapPx + dy, transform: 'translate(-50%, 0)', flexDirection: stop.labelStack ? 'column' : 'row'};
 
 	return (
 		<div
@@ -303,7 +303,7 @@ export const DestinationPin: React.FC<PinProps> = ({
 			</div>
 
 			{/* label (+ DONE stamp) */}
-			<div style={{position: 'absolute', display: 'flex', alignItems: 'center', gap: 14, ...labelPos}}>
+			<div style={{position: 'absolute', display: 'flex', alignItems: 'center', gap: stop.labelStack ? 10 : 14, ...labelPos}}>
 				<NeonText size={34} glow={1}>
 					{stop.label}
 				</NeonText>
@@ -312,10 +312,10 @@ export const DestinationPin: React.FC<PinProps> = ({
 						style={{
 							transform: `rotate(-4deg) scale(${tagScale})`,
 							opacity: tagOpacity,
-							border: `2px solid ${MAP_COLORS.red}`,
+							border: `2px solid ${MAP_COLORS.text}`,
 							borderRadius: 7,
 							padding: '5px 10px 4px',
-							boxShadow: `0 0 10px ${redA(0.8)}, inset 0 0 8px ${redA(0.5)}`,
+							boxShadow: `0 0 10px ${textA(0.8)}, inset 0 0 8px ${textA(0.45)}`,
 							fontFamily: BODY_FONT,
 						}}
 					>

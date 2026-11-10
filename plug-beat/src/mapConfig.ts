@@ -16,18 +16,19 @@ export const MAP_SAFE = {left: 80, right: 80, top: 150, bottom: 250} as const;
 /* Colours                                                             */
 /* ------------------------------------------------------------------ */
 export const MAP_COLORS = {
-	red: '#FF2A2A', // neon text core
+	text: '#FFC400', // golden neon text core
 	gold: '#FFC400', // pin core
 	goldHot: '#FFE27A',
 	goldDeep: '#FF9F00',
-	glassEdge: 'rgba(205, 225, 255, 0.34)',
-	line: 'rgba(190, 215, 255, 0.34)', // regular town outline
-	lineFocus: 'rgba(225, 240, 255, 0.85)', // Avon + West Hartford outline
+	glassEdge: 'rgba(255, 255, 255, 0.30)',
+	line: 'rgba(255, 255, 255, 0.42)', // regular town outline
+	lineFocus: 'rgba(255, 244, 214, 0.95)', // Avon + West Hartford outline
 } as const;
 
 export const gold = (a: number) => `rgba(255, 196, 0, ${a})`;
 export const goldWarm = (a: number) => `rgba(255, 150, 0, ${a})`;
-export const redA = (a: number) => `rgba(255, 42, 42, ${a})`;
+/** golden neon text glow */
+export const textA = (a: number) => `rgba(255, 196, 0, ${a})`;
 
 /* ------------------------------------------------------------------ */
 /* Glass panel + camera                                                */
@@ -79,6 +80,8 @@ export type Stop = {
 	/** fine-tune label position (px, relative to the side anchor) */
 	labelDx?: number;
 	labelDy?: number;
+	/** for 'above'/'below' labels: put the DONE stamp UNDER the label instead of beside it (narrower block) */
+	labelStack?: boolean;
 };
 
 /**
@@ -89,15 +92,15 @@ export type Stop = {
  */
 export const STOPS: readonly Stop[] = [
 	{id: 1, label: 'WHOLE FOODS', town: 'Avon', lat: 41.8, lng: -72.83, labelSide: 'right'},
-	{id: 2, label: 'CVS', town: 'Avon', lat: 41.79, lng: -72.86, labelSide: 'above'},
+	{id: 2, label: 'CVS', town: 'Avon', lat: 41.79, lng: -72.86, labelSide: 'above', labelStack: true},
 	{
 		id: 3,
-		label: 'VITAMIN SHOPPER',
+		label: 'VITAMIN SHOPPE',
 		town: 'West Hartford',
 		lat: 41.76,
 		lng: -72.74,
 		labelSide: 'below',
-		labelDx: -150,
+		labelDx: -140,
 	},
 ] as const;
 
@@ -117,6 +120,8 @@ export type TownLabel = {
 	focus?: boolean;
 	/** font size override (px) */
 	size?: number;
+	/** keep a multi-word name on one line */
+	oneLine?: boolean;
 };
 
 /** Multi-word town names wrap onto two lines so they fit inside their town. */
@@ -125,16 +130,15 @@ export const labelLines = (town: string): string[] => town.toUpperCase().split('
 /**
  * Positions come from `npx tsx scripts/place-labels.ts` (re-run it if you move pins/labels).
  * Burlington and Hartford sit almost entirely outside the panel at this zoom (pins 1/2 must be
- * >=150px apart, which fixes the scale), so they get no label; Canton is only a sliver.
+ * >=150px apart, which fixes the scale), so they get no label; Canton is only a sliver (no label).
  */
 export const TOWN_LABELS: readonly TownLabel[] = [
-	{town: 'Avon', focus: true, at: [319, 396], size: 30},
-	{town: 'West Hartford', focus: true, at: [589, 461], size: 24},
-	{town: 'Simsbury', at: [275, 108], size: 21},
-	{town: 'Canton', at: [63, 135], size: 17},
-	{town: 'Bloomfield', at: [706, 84], size: 21},
-	{town: 'Farmington', at: [190, 714], size: 21},
-	{town: 'Newington', at: [740, 1074], size: 21},
+	{town: 'Avon', focus: true, at: [143, 513], size: 54},
+	{town: 'West Hartford', focus: true, at: [660, 436], size: 28, oneLine: true},
+	{town: 'Simsbury', at: [288, 103], size: 23},
+	{town: 'Bloomfield', at: [708, 79], size: 23},
+	{town: 'Farmington', at: [222, 775], size: 23},
+	{town: 'Newington', at: [742, 1031], size: 20},
 	{town: 'New Britain', at: [586, 1112], size: 17},
 ] as const;
 

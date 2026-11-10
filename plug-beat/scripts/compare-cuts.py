@@ -28,7 +28,7 @@ BOXES = {
     'pin 1 body': (320, 280, 455, 405),
     'pin 1 label+stamp': (440, 320, 930, 395),
     'pin 2 body': (185, 360, 252, 440),
-    'pin 2 label+stamp': (100, 255, 380, 335),
+    'pin 2 label+stamp': (170, 265, 305, 360),
 }
 
 

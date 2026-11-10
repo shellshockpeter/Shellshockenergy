@@ -52,13 +52,13 @@ export const MapPanel: React.FC<Props> = ({camera, opacity = 1, children}) => {
 					borderRadius: PANEL.radius,
 					overflow: 'hidden',
 					background:
-						'linear-gradient(152deg, rgba(120, 165, 255, 0.20) 0%, rgba(38, 52, 92, 0.34) 34%, rgba(12, 16, 30, 0.56) 100%)',
+						'linear-gradient(152deg, rgba(58, 58, 64, 0.62) 0%, rgba(14, 14, 17, 0.80) 30%, rgba(2, 2, 4, 0.90) 100%)',
 					boxShadow: [
 						`inset 0 0 0 1px ${MAP_COLORS.glassEdge}`,
-						'inset 4px 4px 6px -2px rgba(255, 255, 255, 0.55)',
-						'inset -3px -4px 10px -3px rgba(150, 195, 255, 0.30)',
-						'inset 0 0 80px rgba(110, 165, 255, 0.17)',
-						'0 0 60px rgba(90, 150, 255, 0.28)',
+						'inset 4px 4px 6px -2px rgba(255, 255, 255, 0.60)',
+						'inset -3px -4px 10px -3px rgba(255, 255, 255, 0.20)',
+						'inset 0 0 90px rgba(255, 255, 255, 0.07)',
+						'0 0 50px rgba(0, 0, 0, 0.55)',
 					].join(', '),
 				}}
 			>
@@ -68,7 +68,7 @@ export const MapPanel: React.FC<Props> = ({camera, opacity = 1, children}) => {
 						position: 'absolute',
 						inset: 0,
 						backgroundImage:
-							'linear-gradient(rgba(190,215,255,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(190,215,255,0.07) 1px, transparent 1px)',
+							'linear-gradient(rgba(255,255,255,0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.055) 1px, transparent 1px)',
 						backgroundSize: '62px 62px',
 						backgroundPosition: `${MAP_ORIGIN.x % 62}px ${MAP_ORIGIN.y % 62}px`,
 					}}
@@ -92,8 +92,8 @@ export const MapPanel: React.FC<Props> = ({camera, opacity = 1, children}) => {
 				>
 					<defs>
 						<linearGradient id="focusFill" x1="0" y1="0" x2="1" y2="1">
-							<stop offset="0" stopColor="rgba(190,220,255,0.22)" />
-							<stop offset="1" stopColor="rgba(120,170,255,0.08)" />
+							<stop offset="0" stopColor="rgba(255,255,255,0.20)" />
+							<stop offset="1" stopColor="rgba(255,255,255,0.06)" />
 						</linearGradient>
 					</defs>
 					<g transform={`translate(${MAP_ORIGIN.x} ${MAP_ORIGIN.y})`} strokeLinejoin="round">
@@ -103,7 +103,7 @@ export const MapPanel: React.FC<Props> = ({camera, opacity = 1, children}) => {
 								<path
 									key={name}
 									d={t.d}
-									fill="rgba(160,195,255,0.025)"
+									fill="rgba(255,255,255,0.02)"
 									stroke={MAP_COLORS.line}
 									strokeWidth={1.6}
 								/>
@@ -117,7 +117,7 @@ export const MapPanel: React.FC<Props> = ({camera, opacity = 1, children}) => {
 									fill="url(#focusFill)"
 									stroke={MAP_COLORS.lineFocus}
 									strokeWidth={2.4}
-									style={{filter: 'drop-shadow(0 0 6px rgba(170, 205, 255, 0.65))'}}
+									style={{filter: 'drop-shadow(0 0 6px rgba(255, 236, 190, 0.6))'}}
 								/>
 							))}
 					</g>
@@ -142,15 +142,15 @@ export const MapPanel: React.FC<Props> = ({camera, opacity = 1, children}) => {
 								transform: 'translate(-50%, -50%)',
 							}}
 						>
-							{labelLines(l.town).map((line) => (
+							{(l.oneLine ? [l.town.toUpperCase()] : labelLines(l.town)).map((line) => (
 								<div key={line} style={{textAlign: 'center', marginTop: 2}}>
 									<NeonText
 										font="body"
-										size={l.size ?? (focus ? 30 : 21)}
-										glow={focus ? 0.9 : 0.55}
-										weight={focus ? 700 : 600}
-										letterSpacing={focus ? '0.12em' : '0.12em'}
-										opacity={focus ? 1 : 0.85}
+										size={l.size ?? (focus ? 44 : 23)}
+										glow={focus ? 1.3 : 0.7}
+										weight={700}
+										letterSpacing={focus ? '0.14em' : '0.12em'}
+										opacity={1}
 									>
 										{line}
 									</NeonText>
@@ -166,7 +166,7 @@ export const MapPanel: React.FC<Props> = ({camera, opacity = 1, children}) => {
 						position: 'absolute',
 						inset: 0,
 						background:
-							'linear-gradient(118deg, rgba(255,255,255,0) 22%, rgba(255,255,255,0.10) 38%, rgba(255,255,255,0.02) 52%, rgba(255,255,255,0) 64%), radial-gradient(90% 38% at 8% 0%, rgba(255,255,255,0.26), rgba(255,255,255,0) 70%)',
+							'linear-gradient(118deg, rgba(255,255,255,0) 22%, rgba(255,255,255,0.11) 38%, rgba(255,255,255,0.02) 52%, rgba(255,255,255,0) 64%), radial-gradient(90% 38% at 8% 0%, rgba(255,255,255,0.26), rgba(255,255,255,0) 70%)',
 						pointerEvents: 'none',
 					}}
 				/>
@@ -180,7 +180,7 @@ export const MapPanel: React.FC<Props> = ({camera, opacity = 1, children}) => {
 					borderRadius: PANEL.radius,
 					padding: 2.5,
 					background:
-						'linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.55) 14%, rgba(255,255,255,0) 42%, rgba(150,195,255,0) 66%, rgba(150,195,255,0.45) 100%)',
+						'linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.55) 14%, rgba(255,255,255,0) 42%, rgba(255,255,255,0) 66%, rgba(255,255,255,0.32) 100%)',
 					WebkitMask: 'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
 					WebkitMaskComposite: 'xor',
 					mask: 'linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0)',

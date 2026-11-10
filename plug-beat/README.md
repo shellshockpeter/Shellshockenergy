@@ -70,7 +70,7 @@ npm run render:map:webm         # VP9 + alpha fallbacks (or render:map-slam-2:we
 ```
 
 Props (Studio): `showPending` (default true — dim pins/route visible before each slam; false hides un-slammed pins),
-`title`, `subtitle`. `sfx` is auto-detected.
+`title` (default "3 DIFFERENT LOCATIONS", bottom of the glass), optional `subtitle` (empty = hidden). `sfx` is auto-detected.
 
 ## ⚠️ Replace the placeholder store coordinates
 
@@ -104,7 +104,8 @@ Real boundary downloads (Census TIGER / CT Open Data) were not reachable when th
 affine georeference against approximate town centres, ~1.6 km RMS). They give the right neighbours and relative positions
 but are **not survey-accurate**. To use real data, replace `src/geo/townPaths.ts` (see the docstring in `trace_towns.py`).
 The map is zoomed so pins 1 and 2 are ≥150 px apart, so only part of the county fits: Simsbury, Canton (sliver), Bloomfield,
-Farmington, Newington and New Britain are labelled; Burlington and Hartford fall almost entirely outside the panel.
+Farmington, Newington and New Britain are labelled; Burlington, Canton and Hartford fall almost entirely outside the panel.
+Look: black translucent liquid glass, golden-yellow neon text (`MAP_COLORS.text` / `NeonText.tsx`), gold pins. AVON is 54px; WEST HARTFORD is capped near 28px because the route, pin 3 and its label crowd that town.
 
 ## Sound (optional, don't ship fake files)
 

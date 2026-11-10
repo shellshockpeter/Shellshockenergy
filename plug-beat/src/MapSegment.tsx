@@ -41,8 +41,8 @@ export type MapProps = z.infer<typeof mapSchema>;
 
 export const mapDefaults: MapProps = {
 	showPending: true,
-	title: '3 STOPS',
-	subtitle: 'AVON → WEST HARTFORD',
+	title: '3 DIFFERENT LOCATIONS',
+	subtitle: '',
 	sfx: {whoosh: false, thud: false, stamp: false},
 };
 
@@ -184,14 +184,18 @@ export const MapSegment: React.FC<MapProps & {slam: 0 | 1 | 2 | 3}> = ({
 				)}
 
 				{/* title: fixed screen position, never moves with the camera */}
-				<div style={{position: 'absolute', left: 150, top: 1122, opacity: titleOpacity}}>
-					<NeonText size={54} glow={1.1}>
+				<div style={{position: 'absolute', left: 150, top: 1124, width: 480, opacity: titleOpacity}}>
+					<NeonText size={50} glow={1.1} style={{whiteSpace: 'normal', lineHeight: 1.08, display: 'block'}}>
 						{title}
 					</NeonText>
-					<div style={{height: 12}} />
-					<NeonText font="body" size={22} glow={0.7} weight={600} letterSpacing="0.3em">
-						{subtitle}
-					</NeonText>
+					{subtitle ? (
+						<>
+							<div style={{height: 12}} />
+							<NeonText font="body" size={22} glow={0.7} weight={600} letterSpacing="0.3em">
+								{subtitle}
+							</NeonText>
+						</>
+					) : null}
 				</div>
 			</div>
 

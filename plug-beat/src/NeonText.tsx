@@ -2,14 +2,14 @@ import React from 'react';
 import {BODY_FONT, DISPLAY_FONT} from './theme';
 import {MAP_COLORS} from './mapConfig';
 
-/** Layered red-neon text-shadow. glow = 1 is the standard strength. */
+/** Layered golden-yellow neon text-shadow. glow = 1 is the standard strength. */
 export const neonShadow = (glow = 1): string =>
 	[
-		`0 0 ${1.5 * glow}px rgba(255, 226, 226, 0.95)`, // hot core
-		`0 0 ${5 * glow}px ${MAP_COLORS.red}`,
-		`0 0 ${12 * glow}px ${MAP_COLORS.red}`,
-		`0 0 ${26 * glow}px rgba(255, 42, 42, 0.75)`,
-		`0 0 ${46 * glow}px rgba(255, 42, 42, 0.42)`,
+		`0 0 ${1.5 * glow}px rgba(255, 246, 205, 0.95)`, // hot core
+		`0 0 ${5 * glow}px ${MAP_COLORS.text}`,
+		`0 0 ${12 * glow}px ${MAP_COLORS.text}`,
+		`0 0 ${26 * glow}px rgba(255, 170, 0, 0.75)`,
+		`0 0 ${46 * glow}px rgba(255, 140, 0, 0.42)`,
 	].join(', ');
 
 type Props = {
@@ -41,7 +41,7 @@ export const NeonText: React.FC<Props> = ({
 			fontSize: size,
 			lineHeight: 1,
 			letterSpacing,
-			color: MAP_COLORS.red,
+			color: MAP_COLORS.text,
 			textShadow: neonShadow(glow),
 			opacity,
 			whiteSpace: 'nowrap',
