@@ -8,6 +8,7 @@ import {CANVAS, TIMING} from './theme';
 
 export const plugBeatSchema = z.object({
 	tubPrice: z.string(),
+	salePrice: z.string(),
 	siteUrl: z.string(),
 	brandName: z.string(),
 	code: z.string(),
@@ -24,6 +25,7 @@ export type PlugBeatProps = z.infer<typeof plugBeatSchema>;
 
 export const plugBeatDefaults: PlugBeatProps = {
 	tubPrice: '49.99',
+	salePrice: '39.99',
 	siteUrl: 'shellshockenergy.com',
 	brandName: 'SHELLSHOCK ENERGY',
 	code: 'SHOCK20',
@@ -46,6 +48,7 @@ const STAMP_SFX = 'sfx/stamp.mp3';
  */
 export const PlugBeat: React.FC<PlugBeatProps> = ({
 	tubPrice,
+	salePrice,
 	siteUrl,
 	brandName,
 	code,
@@ -65,6 +68,7 @@ export const PlugBeat: React.FC<PlugBeatProps> = ({
 			>
 				<TubCard
 					tubPrice={tubPrice}
+					salePrice={salePrice}
 					siteUrl={siteUrl}
 					brandName={brandName}
 					top={CARD_TOP}

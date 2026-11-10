@@ -11,7 +11,7 @@ npm run render       # out/plug-beat.mov  (ProRes 4444 + alpha)
 npm run render:webm  # out/plug-beat.webm (VP9 + alpha, fallback)
 ```
 
-Props (editable in Studio): `tubPrice`, `siteUrl`, `brandName`, `code`,
+Props (editable in Studio): `tubPrice`, `salePrice`, `siteUrl`, `brandName`, `code`,
 `discountLabel`, `finePrint`. (`sfx` is auto-detected — leave it.)
 
 ## Timeline

@@ -3,6 +3,7 @@ import {
 	Easing,
 	Img,
 	interpolate,
+	interpolateColors,
 	spring,
 	staticFile,
 	useCurrentFrame,
@@ -17,11 +18,14 @@ import {
 	PANEL,
 	TIMING,
 	green,
+	red,
 } from './theme';
 import {useFitFontSize} from './useFitFontSize';
 
 export type TubCardProps = {
 	tubPrice: string;
+	/** Price shown after the coupon is applied (the old price gets struck through). */
+	salePrice: string;
 	siteUrl: string;
 	brandName: string;
 	/** Top edge of the card (px). Keep >= 150 for the top safe zone. */
@@ -32,6 +36,9 @@ export type TubCardProps = {
 
 const PAD = 34;
 const TUB_ASPECT = 850 / 1100;
+/** Height of the price area: shrunk old price stacked above the sale price. */
+const PRICE_BOX = 176;
+const OLD_PRICE_MAX = 138;
 
 /** "SHELLSHOCK ENERGY" -> ["SHELLSHOCK", "ENERGY"]; balances longer names. */
 const splitBrand = (name: string): string[] => {
@@ -54,9 +61,13 @@ const splitBrand = (name: string): string[] => {
  * Website-style product card. Render it INSIDE a <Sequence>: it reads the
  * local frame, slides in from the right with a spring at frame 0 and slides
  * back out during the last `exitFrames` frames of the Sequence.
+ *
+ * When the coupon lands (TIMING.card.strikeStart) a red glowing dash is drawn
+ * through the old price, which shrinks away while the sale price pops in.
  */
 export const TubCard: React.FC<TubCardProps> = ({
 	tubPrice,
+	salePrice,
 	siteUrl,
 	brandName,
 	top = 170,
@@ -88,6 +99,44 @@ export const TubCard: React.FC<TubCardProps> = ({
 	const borderAlpha = 0.38 + 0.4 * breath;
 	const bob = Math.sin((frame / (fps * 3)) * Math.PI * 2) * 4;
 
+	/* ---- coupon applied: strike old price, reveal sale price ------ */
+	const {strikeStart, strikeDuration, salePriceStart} = TIMING.card;
+	const clamp = {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'} as const;
+	const strike = interpolate(
+		frame,
+		[strikeStart, strikeStart + strikeDuration],
+		[0, 1],
+		{...clamp, easing: Easing.out(Easing.cubic)},
+	);
+	// the dash flares as it lands, then settles to a steady burn
+	const strikeFlare = interpolate(
+		frame,
+		[strikeStart + strikeDuration, strikeStart + strikeDuration + 14],
+		[1, 0],
+		clamp,
+	);
+	const shrink = interpolate(
+		frame,
+		[salePriceStart - 2, salePriceStart + 10],
+		[0, 1],
+		{...clamp, easing: Easing.inOut(Easing.cubic)},
+	);
+	const oldScale = 1 - shrink * 0.54;
+	const oldY = ((PRICE_BOX - OLD_PRICE_MAX) / 2) * (1 - shrink);
+	const oldColor = interpolateColors(shrink, [0, 1], [COLORS.green, COLORS.silver]);
+	const oldOpacity = 1 - shrink * 0.4;
+	const sale = spring({
+		frame: frame - salePriceStart,
+		fps,
+		config: {damping: 11, stiffness: 180, mass: 0.7},
+	});
+	const saleOpacity = interpolate(
+		frame,
+		[salePriceStart, salePriceStart + 4],
+		[0, 1],
+		clamp,
+	);
+
 	/* ---- layout / fitting ---------------------------------------- */
 	const tubH = height - 60;
 	const tubW = tubH * TUB_ASPECT;
@@ -99,16 +148,24 @@ export const TubCard: React.FC<TubCardProps> = ({
 		text: brandLines,
 		fontFamily: DISPLAY_FONT,
 		maxWidth: textW,
-		maxFontSize: 62,
+		maxFontSize: 54,
 		minFontSize: 24,
 	});
 	const priceText = `$${tubPrice}`;
+	const saleText = `$${salePrice}`;
 	const priceSize = useFitFontSize({
 		text: priceText,
 		fontFamily: DISPLAY_FONT,
 		maxWidth: textW,
-		maxFontSize: 138,
+		maxFontSize: OLD_PRICE_MAX,
 		minFontSize: 40,
+	});
+	const saleSize = useFitFontSize({
+		text: saleText,
+		fontFamily: DISPLAY_FONT,
+		maxWidth: textW,
+		maxFontSize: 112,
+		minFontSize: 36,
 	});
 	const urlSize = useFitFontSize({
 		text: siteUrl,
@@ -119,6 +176,8 @@ export const TubCard: React.FC<TubCardProps> = ({
 		maxFontSize: 30,
 		minFontSize: 14,
 	});
+
+	const dashH = Math.max(8, priceSize * 0.075);
 
 	return (
 		<div
@@ -170,7 +229,7 @@ export const TubCard: React.FC<TubCardProps> = ({
 						display: 'flex',
 						flexDirection: 'column',
 						justifyContent: 'center',
-						gap: 14,
+						gap: 12,
 					}}
 				>
 					<div
@@ -196,18 +255,76 @@ export const TubCard: React.FC<TubCardProps> = ({
 							boxShadow: `0 0 14px ${green(0.8)}`,
 						}}
 					/>
-					<div
-						style={{
-							fontFamily: DISPLAY_FONT,
-							fontSize: priceSize,
-							lineHeight: 1,
-							color: COLORS.green,
-							whiteSpace: 'nowrap',
-							textShadow: `0 0 ${18 + 14 * breath}px ${green(0.55)}`,
-						}}
-					>
-						{priceText}
+
+					<div style={{position: 'relative', height: PRICE_BOX, width: textW}}>
+						{/* original price: struck through, then shrinks away */}
+						<div
+							style={{
+								position: 'absolute',
+								left: 0,
+								top: 0,
+								transformOrigin: '0 0',
+								transform: `translateY(${oldY}px) scale(${oldScale})`,
+								opacity: oldOpacity,
+							}}
+						>
+							<span
+								style={{
+									position: 'relative',
+									display: 'inline-block',
+									fontFamily: DISPLAY_FONT,
+									fontSize: priceSize,
+									lineHeight: 1,
+									color: oldColor,
+									whiteSpace: 'nowrap',
+									textShadow:
+										shrink < 1
+											? `0 0 ${18 + 14 * breath}px ${green(0.55 * (1 - shrink))}`
+											: 'none',
+								}}
+							>
+								{priceText}
+								{/* red glowing dash, drawn left -> right */}
+								<span
+									style={{
+										position: 'absolute',
+										left: -12,
+										right: -12,
+										top: '50%',
+										height: dashH,
+										marginTop: -dashH / 2,
+										borderRadius: 999,
+										background: `linear-gradient(90deg, ${red(0.95)}, #FF5A5A 50%, ${red(0.95)})`,
+										boxShadow: `0 0 ${14 + 26 * strikeFlare}px ${3 + 5 * strikeFlare}px ${red(0.7 + 0.3 * strikeFlare)}, 0 0 46px ${red(0.35)}`,
+										transformOrigin: '0 50%',
+										transform: `rotate(-7deg) scaleX(${strike})`,
+										opacity: strike > 0 ? 1 : 0,
+									}}
+								/>
+							</span>
+						</div>
+
+						{/* new price */}
+						<div
+							style={{
+								position: 'absolute',
+								left: 0,
+								bottom: 0,
+								fontFamily: DISPLAY_FONT,
+								fontSize: saleSize,
+								lineHeight: 1,
+								color: COLORS.green,
+								whiteSpace: 'nowrap',
+								opacity: saleOpacity,
+								transformOrigin: '0 100%',
+								transform: `scale(${0.6 + 0.4 * sale})`,
+								textShadow: `0 0 ${22 + 14 * breath}px ${green(0.65)}`,
+							}}
+						>
+							{saleText}
+						</div>
 					</div>
+
 					<div
 						style={{
 							fontFamily: BODY_FONT,

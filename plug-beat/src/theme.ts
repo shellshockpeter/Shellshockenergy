@@ -17,6 +17,9 @@ export const COLORS = {
 /** `rgba()` helper for the neon green accent. */
 export const green = (alpha: number) => `rgba(57, 255, 20, ${alpha})`;
 
+/** `rgba()` helper for the red sale strike-through. */
+export const red = (alpha: number) => `rgba(255, 45, 45, ${alpha})`;
+
 /* ------------------------------------------------------------------ */
 /* Canvas + social-app safe zones (px, 1080x1920)                      */
 /* ------------------------------------------------------------------ */
@@ -38,7 +41,16 @@ export const PANEL = {
 /* Timeline (global frames) — one place to tweak the beat sheet        */
 /* ------------------------------------------------------------------ */
 export const TIMING = {
-	card: {start: 30, end: 195, exitFrames: 15},
+	card: {
+		start: 30,
+		end: 195,
+		exitFrames: 15,
+		/** local frame the red strike-through starts (just after the chip slams at 105) */
+		strikeStart: 78,
+		strikeDuration: 8,
+		/** local frame the new price pops in */
+		salePriceStart: 90,
+	},
 	chip: {
 		start: 105,
 		end: 195,
