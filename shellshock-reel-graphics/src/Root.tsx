@@ -27,7 +27,7 @@ export const Root: React.FC = () => (
       id="FullPreview"
       component={FullPreview}
       durationInFrames={Math.round(REEL_DURATION_SEC * FPS)}
-      defaultProps={{ showGuides: false }}
+      defaultProps={{ showGuides: false, showTimecode: false }}
       {...common}
     />
   </>

@@ -13,7 +13,7 @@ const tc = (sec: number) => {
 };
 
 /** Sync preview ONLY: hook + rundown at their absolute reel times over a dark placeholder. */
-export const FullPreview: React.FC<{ showGuides?: boolean }> = ({ showGuides }) => {
+export const FullPreview: React.FC<{ showGuides?: boolean; showTimecode?: boolean }> = ({ showGuides, showTimecode }) => {
   const frame = useCurrentFrame();
   const footageFile = findFootage();
   const footage = footageFile !== null;
@@ -60,9 +60,11 @@ export const FullPreview: React.FC<{ showGuides?: boolean }> = ({ showGuides }) 
         />
       ) : null}
 
-      <div style={{ position: "absolute", left: 0, width: 1080, top: 1760, textAlign: "center", fontFamily: MONO, fontSize: 30, color: "rgba(255,255,255,0.55)" }}>
+      {showTimecode ? (
+        <div style={{ position: "absolute", left: 0, width: 1080, top: 1760, textAlign: "center", fontFamily: MONO, fontSize: 30, color: "rgba(255,255,255,0.55)" }}>
         REEL {tc(frame / FPS)} / 01:01.5
       </div>
+      ) : null}
     </AbsoluteFill>
   );
 };
