@@ -1,0 +1,27 @@
+{
+  "name": "shellshock-reel-graphics",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shell Shock Energy reel motion graphics (Remotion)",
+  "scripts": {
+    "preview": "remotion studio src/index.ts",
+    "render:hook": "remotion render src/index.ts HookOverlay out/hook-overlay.webm --codec=vp9 --pixel-format=yuva420p --image-format=png",
+    "render:hook:prores": "remotion render src/index.ts HookOverlay out/hook-overlay.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png",
+    "render:rundown": "remotion render src/index.ts IngredientRundown out/ingredient-rundown.mp4 --codec=h264 --crf=16",
+    "render:preview": "remotion render src/index.ts FullPreview out/full-preview.mp4 --codec=h264 --crf=20",
+    "render:all": "npm run render:hook && npm run render:rundown && npm run render:preview",
+    "stills": "node scripts/stills.mjs",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.544",
+    "@remotion/google-fonts": "4.0.544",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.544"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.7",
+    "typescript": "5.9.3"
+  }
+}
