@@ -4,13 +4,16 @@
   "private": true,
   "description": "Shell Shock Energy reel motion graphics (Remotion)",
   "scripts": {
-    "preview": "remotion studio src/index.ts",
-    "render:hook": "remotion render src/index.ts HookOverlay out/hook-overlay.webm --codec=vp9 --pixel-format=yuva420p --image-format=png",
-    "render:hook:prores": "remotion render src/index.ts HookOverlay out/hook-overlay.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png",
-    "render:rundown": "remotion render src/index.ts IngredientRundown out/ingredient-rundown.mp4 --codec=h264 --crf=16",
-    "render:preview": "remotion render src/index.ts FullPreview out/full-preview.mp4 --codec=h264 --crf=20",
-    "render:all": "npm run render:hook && npm run render:rundown && npm run render:preview",
-    "stills": "node scripts/stills.mjs",
+    "preview": "node scripts/ensure-assets.mjs && remotion studio src/index.ts",
+    "sfx": "python3 scripts/make_sfx.py",
+    "render:hook": "node scripts/ensure-assets.mjs && remotion render src/index.ts HookOverlay out/hook-overlay.webm --codec=vp9 --pixel-format=yuva420p --image-format=png",
+    "render:hook:prores": "node scripts/ensure-assets.mjs && remotion render src/index.ts HookOverlay out/hook-overlay.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png",
+    "render:rundown": "node scripts/ensure-assets.mjs && remotion render src/index.ts IngredientRundown out/rundown_composited.mp4 --codec=h264 --crf=16 --audio-codec=aac",
+    "render:rundown:overlay": "node scripts/ensure-assets.mjs && remotion render src/index.ts IngredientRundownOverlay out/rundown_overlay.webm --codec=vp9 --pixel-format=yuva420p --image-format=png --muted",
+    "render:preview": "node scripts/ensure-assets.mjs && remotion render src/index.ts FullPreview out/full-preview.mp4 --codec=h264 --crf=20 --audio-codec=aac",
+    "render:all": "npm run render:hook && npm run render:rundown && npm run render:rundown:overlay && npm run render:preview",
+    "stills": "node scripts/ensure-assets.mjs && node scripts/stills.mjs",
+    "contrast": "python3 scripts/contrast.py",
     "lint": "tsc --noEmit"
   },
   "dependencies": {

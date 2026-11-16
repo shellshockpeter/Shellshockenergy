@@ -1,11 +1,12 @@
 import React from "react";
-import { AbsoluteFill, Easing, interpolate, useCurrentFrame, useVideoConfig, random } from "remotion";
-import { AUDIO_OFFSET, BEATS, Beat, COLORS, FPS, GOLD_SHIFT, Item, RUNDOWN } from "./config";
+import { AbsoluteFill, Audio, Easing, interpolate, staticFile, useCurrentFrame, useVideoConfig, random } from "remotion";
+import { AUDIO_OFFSET, BEATS, BG_TRANSITION_FRAMES, Beat, COLORS, FOOTAGE_FILE, FPS, GOLD_SHIFT, Item, RUNDOWN, SFX_STEM_FILE, secToFrames } from "./config";
 import { easeInOut, enterSpring, ramp } from "./ease";
 import { HEAD, MONO } from "./fonts";
 import { CountUp } from "./components/CountUp";
 import { GlassCard } from "./components/GlassCard";
 import { GoldFoilText } from "./components/GoldFoilText";
+import { FootageBackdrop, hasStaticFile } from "./components/FootageBackdrop";
 import { LiquidBackground } from "./components/LiquidBackground";
 import { NeonCheck } from "./components/NeonCheck";
 import { DotSpec, ProgressDots } from "./components/ProgressDots";
@@ -119,12 +120,12 @@ const Row: React.FC<{
   );
 };
 
-const BeatCard: React.FC<{ beat: Beat; index: number; next?: Beat }> = ({ beat, index, next }) => {
+const BeatCard: React.FC<{ beat: Beat; index: number; next?: Beat; finaleExitAt?: number }> = ({ beat, index, next, finaleExitAt }) => {
   const frame = useCurrentFrame();
   const cue = useCueFrame();
   const gold = !!beat.finale;
   const enterAt = cue(beat.start);
-  const exitStart = beat.finale ? undefined : cue(beat.exitAt ?? (next ? next.start - 0.1 : beat.end));
+  const exitStart = beat.finale ? finaleExitAt : cue(beat.exitAt ?? (next ? next.start - 0.1 : beat.end));
   const exitEnd = exitStart !== undefined ? exitStart + EXIT_FRAMES : undefined;
   const two = beat.items.length > 1;
 
@@ -252,9 +253,9 @@ const BeatCard: React.FC<{ beat: Beat; index: number; next?: Beat }> = ({ beat, 
 };
 
 /** ~36 tiny gold dust motes drifting upward (finale only). */
-const GoldDust: React.FC<{ fadeStart: number }> = ({ fadeStart }) => {
+const GoldDust: React.FC<{ fadeStart: number; endFade?: number }> = ({ fadeStart, endFade = 1 }) => {
   const frame = useCurrentFrame();
-  const master = ramp(frame, fadeStart, fadeStart + 36);
+  const master = ramp(frame, fadeStart, fadeStart + 36) * endFade;
   if (master <= 0) return null;
   const N = 38;
   return (
@@ -291,11 +292,15 @@ const GoldDust: React.FC<{ fadeStart: number }> = ({ fadeStart }) => {
   );
 };
 
-const RundownInner: React.FC = () => {
+const RundownInner: React.FC<{ overlay: boolean; audio: boolean }> = ({ overlay, audio }) => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
   const cue = useCueFrame();
   const t = useReelTime();
+
+  // plain = original opaque liquid background (no footage in ./public); footage = blurred footage; overlay = alpha graphics
+  const mode: "plain" | "footage" | "overlay" = overlay ? "overlay" : hasStaticFile(FOOTAGE_FILE) ? "footage" : "plain";
+  const withBackdrop = mode !== "plain";
 
   const goldMix = ramp(t, GOLD_SHIFT.from + AUDIO_OFFSET, GOLD_SHIFT.to + AUDIO_OFFSET, easeInOut);
 
@@ -311,24 +316,36 @@ const RundownInner: React.FC = () => {
   const fadeIn = 1 - ramp(frame, 0, 10);
   const fadeOut = ramp(frame, durationInFrames - Math.round(RUNDOWN.fadeOutSec * FPS), durationInFrames - 1, Easing.linear);
   const veil = Math.max(fadeIn, fadeOut);
+  // with a footage/alpha backdrop the graphics fade out themselves (no base-colour veil over the footage)
+  const finaleExitAt = withBackdrop ? durationInFrames - BG_TRANSITION_FRAMES : undefined;
+  const dustFade = withBackdrop ? 1 - ramp(frame, durationInFrames - BG_TRANSITION_FRAMES, durationInFrames) : 1;
 
   return (
-    <AbsoluteFill style={{ background: COLORS.base }}>
-      <LiquidBackground goldMix={goldMix} />
-      <GoldDust fadeStart={cue(finale.start)} />
+    <AbsoluteFill style={{ background: withBackdrop ? undefined : COLORS.base }}>
+      {withBackdrop ? <FootageBackdrop mode={mode === "overlay" ? "overlay" : "footage"} goldMix={goldMix} audio={audio} /> : <LiquidBackground goldMix={goldMix} />}
+      <GoldDust fadeStart={cue(finale.start)} endFade={dustFade} />
       <ProgressDots dots={dots} cx={CX} y={300} appearAt={cue(BEATS[0].start) - 6} fadeOutAt={durationInFrames - 14} />
       {BEATS.map((b, i) => (
-        <BeatCard key={b.id} beat={b} index={i} next={BEATS[i + 1]} />
+        <BeatCard key={b.id} beat={b} index={i} next={BEATS[i + 1]} finaleExitAt={finaleExitAt} />
       ))}
-      <AbsoluteFill style={{ background: COLORS.base, opacity: veil, pointerEvents: "none" }} />
+      {withBackdrop ? null : <AbsoluteFill style={{ background: COLORS.base, opacity: veil, pointerEvents: "none" }} />}
+      {audio && mode !== "overlay" && hasStaticFile(SFX_STEM_FILE) ? (
+        <Audio src={staticFile(SFX_STEM_FILE)} startFrom={secToFrames(RUNDOWN.startSec)} />
+      ) : null}
     </AbsoluteFill>
   );
 };
 
-/** Opaque. Frame 0 == reel time 18.6s, so drop it at 18.6s in your editor with no offset. */
-export const IngredientRundown: React.FC = () => (
+/**
+ * Frame 0 == reel time 18.6s, so drop it at 18.6s in your editor with no offset.
+ * Default = "composited": footage (blurred) + glass + graphics + voice + sfx.
+ * `overlay` = alpha graphics + liquid layers only (no footage, no audio).
+ * `audio={false}` mutes footage + sfx (FullPreview supplies its own audio).
+ */
+export const IngredientRundown: React.FC<{ overlay?: boolean; audio?: boolean }> = ({ overlay = false, audio = true }) => (
   <ReelStart sec={RUNDOWN.startSec}>
-    <RundownInner />
+    <RundownInner overlay={overlay} audio={audio} />
   </ReelStart>
 );
 
+export const IngredientRundownOverlay: React.FC = () => <IngredientRundown overlay audio={false} />;

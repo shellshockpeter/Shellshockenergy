@@ -14,14 +14,14 @@ const BLOBS: Blob[] = [
   { size: 380, x: 450, y: 170, ax: 70, ay: 100, w: 0.25, p: 4.4, neonColor: "#39FF14", goldColor: "#B8892A", alpha: 0.20 },
 ];
 
-export const LiquidBackground: React.FC<{ goldMix: number; fadeIn?: number; id?: string }> = ({ goldMix, fadeIn = 1, id = "liq" }) => {
-  const frame = useCurrentFrame();
+/** Blobs + feTurbulence warp + champagne light. Transparent background. */
+export const LiquidBlobs: React.FC<{ goldMix: number; fadeIn?: number; id?: string }> = ({ goldMix, fadeIn = 1, id = "liq" }) => {
   const t = useReelTime();
   const fx = 0.0075 + Math.sin(t * 0.21) * 0.0012;
   const fy = 0.0105 + Math.cos(t * 0.17) * 0.0014;
 
   return (
-    <div style={{ position: "absolute", inset: 0, background: COLORS.base, overflow: "hidden" }}>
+    <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
       <svg width={0} height={0} style={{ position: "absolute" }}>
         <defs>
           <filter id={`${id}-warp`} x="-10%" y="-10%" width="120%" height="120%">
@@ -79,24 +79,39 @@ export const LiquidBackground: React.FC<{ goldMix: number; fadeIn?: number; id?:
           }}
         />
       </div>
-
-      {/* vignette */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "radial-gradient(ellipse 85% 70% at 50% 46%, rgba(0,0,0,0) 38%, rgba(0,0,0,0.72) 100%)",
-        }}
-      />
-      {/* 4% film grain */}
-      <svg width={WIDTH} height={HEIGHT} style={{ position: "absolute", inset: 0, opacity: 0.04, mixBlendMode: "overlay" }}>
-        <filter id={`${id}-grain`}>
-          <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves={2} seed={frame % 9} stitchTiles="stitch" />
-          <feColorMatrix type="saturate" values="0" />
-        </filter>
-        <rect width="100%" height="100%" filter={`url(#${id}-grain)`} />
-      </svg>
     </div>
   );
 };
 
+export const Vignette: React.FC = () => (
+  <div
+    style={{
+      position: "absolute",
+      inset: 0,
+      background: "radial-gradient(ellipse 85% 70% at 50% 46%, rgba(0,0,0,0) 38%, rgba(0,0,0,0.72) 100%)",
+    }}
+  />
+);
+
+/** 4% film grain. */
+export const Grain: React.FC<{ id?: string }> = ({ id = "liq" }) => {
+  const frame = useCurrentFrame();
+  return (
+    <svg width={WIDTH} height={HEIGHT} style={{ position: "absolute", inset: 0, opacity: 0.04, mixBlendMode: "overlay" }}>
+      <filter id={`${id}-grain`}>
+        <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves={2} seed={frame % 9} stitchTiles="stitch" />
+        <feColorMatrix type="saturate" values="0" />
+      </filter>
+      <rect width="100%" height="100%" filter={`url(#${id}-grain)`} />
+    </svg>
+  );
+};
+
+/** The original opaque liquid-glass background (used when no footage is present). */
+export const LiquidBackground: React.FC<{ goldMix: number; fadeIn?: number; id?: string }> = ({ goldMix, fadeIn = 1, id = "liq" }) => (
+  <div style={{ position: "absolute", inset: 0, background: COLORS.base, overflow: "hidden" }}>
+    <LiquidBlobs goldMix={goldMix} fadeIn={fadeIn} id={id} />
+    <Vignette />
+    <Grain id={id} />
+  </div>
+);

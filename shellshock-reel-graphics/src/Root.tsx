@@ -2,7 +2,7 @@ import React from "react";
 import { Composition } from "remotion";
 import { FPS, HEIGHT, HOOK, REEL_DURATION_SEC, RUNDOWN, WIDTH } from "./config";
 import { HookOverlay } from "./HookOverlay";
-import { IngredientRundown } from "./IngredientRundown";
+import { IngredientRundown, IngredientRundownOverlay } from "./IngredientRundown";
 import { FullPreview } from "./FullPreview";
 import "./fonts";
 
@@ -14,6 +14,12 @@ export const Root: React.FC = () => (
     <Composition
       id="IngredientRundown"
       component={IngredientRundown}
+      durationInFrames={Math.round((RUNDOWN.endSec - RUNDOWN.startSec) * FPS)}
+      {...common}
+    />
+    <Composition
+      id="IngredientRundownOverlay"
+      component={IngredientRundownOverlay}
       durationInFrames={Math.round((RUNDOWN.endSec - RUNDOWN.startSec) * FPS)}
       {...common}
     />
