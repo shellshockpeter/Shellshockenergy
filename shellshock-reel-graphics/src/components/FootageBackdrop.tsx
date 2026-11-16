@@ -18,6 +18,16 @@ import { Grain, LiquidBlobs, Vignette } from "./LiquidBackground";
 export const hasStaticFile = (name: string) => getStaticFiles().some((f) => f.name === name);
 
 /**
+ * The footage file in ./public: FOOTAGE_FILE if it exists, otherwise the first video file found
+ * (so a file uploaded under any name, e.g. video.mp4 or IMG_1234.mov, just works). null = no footage.
+ */
+export const findFootage = (): string | null => {
+  const names = getStaticFiles().map((f) => f.name);
+  if (names.includes(FOOTAGE_FILE)) return FOOTAGE_FILE;
+  return names.find((n) => /\.(mp4|mov|m4v|webm)$/i.test(n)) ?? null;
+};
+
+/**
  * 0 -> 1 over BG_TRANSITION_FRAMES at the start of the rundown (18.6s),
  * 1 -> 0 over BG_TRANSITION_FRAMES at the end (58.0s).
  * Drives blur, dim, tint, blobs, vignette and grain together.
@@ -38,8 +48,9 @@ export const useBackdropVisibility = () => {
  * mode "overlay": same layers, no footage, no blend, whole group at OVERLAY_BG_OPACITY (alpha render).
  */
 export const FootageBackdrop: React.FC<{ mode: "footage" | "overlay"; goldMix: number; audio: boolean }> = ({ mode, goldMix, audio }) => {
+  const footageFile = findFootage();
   const bg = useBackdropVisibility();
-  const footage = mode === "footage";
+  const footage = mode === "footage" && footageFile !== null;
 
   const top = interpolateColors(goldMix, [0, 1], ["rgb(4,46,29)", "rgb(74,55,16)"]);
   const bottom = interpolateColors(goldMix, [0, 1], ["rgb(3,12,8)", "rgb(16,17,10)"]);
@@ -62,7 +73,7 @@ export const FootageBackdrop: React.FC<{ mode: "footage" | "overlay"; goldMix: n
       {footage ? (
         <AbsoluteFill style={{ background: "#000", overflow: "hidden" }}>
           <OffthreadVideo
-            src={staticFile(FOOTAGE_FILE)}
+            src={staticFile(footageFile ?? FOOTAGE_FILE)}
             startFrom={secToFrames(RUNDOWN.startSec)}
             muted={!audio}
             style={{

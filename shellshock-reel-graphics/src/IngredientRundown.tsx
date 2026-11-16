@@ -1,12 +1,12 @@
 import React from "react";
 import { AbsoluteFill, Audio, Easing, interpolate, staticFile, useCurrentFrame, useVideoConfig, random } from "remotion";
-import { AUDIO_OFFSET, BEATS, BG_TRANSITION_FRAMES, Beat, COLORS, FOOTAGE_FILE, FPS, GOLD_SHIFT, Item, RUNDOWN, SFX_STEM_FILE, secToFrames } from "./config";
+import { AUDIO_OFFSET, BEATS, BG_TRANSITION_FRAMES, Beat, COLORS, FPS, GOLD_SHIFT, Item, RUNDOWN, SFX_STEM_FILE, secToFrames } from "./config";
 import { easeInOut, enterSpring, ramp } from "./ease";
 import { HEAD, MONO } from "./fonts";
 import { CountUp } from "./components/CountUp";
 import { GlassCard } from "./components/GlassCard";
 import { GoldFoilText } from "./components/GoldFoilText";
-import { FootageBackdrop, hasStaticFile } from "./components/FootageBackdrop";
+import { FootageBackdrop, findFootage, hasStaticFile } from "./components/FootageBackdrop";
 import { LiquidBackground } from "./components/LiquidBackground";
 import { NeonCheck } from "./components/NeonCheck";
 import { DotSpec, ProgressDots } from "./components/ProgressDots";
@@ -299,7 +299,7 @@ const RundownInner: React.FC<{ overlay: boolean; audio: boolean }> = ({ overlay,
   const t = useReelTime();
 
   // plain = original opaque liquid background (no footage in ./public); footage = blurred footage; overlay = alpha graphics
-  const mode: "plain" | "footage" | "overlay" = overlay ? "overlay" : hasStaticFile(FOOTAGE_FILE) ? "footage" : "plain";
+  const mode: "plain" | "footage" | "overlay" = overlay ? "overlay" : findFootage() ? "footage" : "plain";
   const withBackdrop = mode !== "plain";
 
   const goldMix = ramp(t, GOLD_SHIFT.from + AUDIO_OFFSET, GOLD_SHIFT.to + AUDIO_OFFSET, easeInOut);

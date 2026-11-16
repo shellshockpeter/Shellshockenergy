@@ -13,6 +13,6 @@ if (stale) {
     console.warn("\n[assets] WARNING: sound generation failed (need python3 + `pip install numpy scipy`). Continuing WITHOUT sfx audio.\n");
   }
 }
-if (!fs.existsSync("public/reel.mp4")) {
-  console.warn("[assets] NOTE: public/reel.mp4 not found -> rundown uses its original opaque liquid background (no footage, no voice).");
-}
+const vids = fs.existsSync("public") ? fs.readdirSync("public").filter((n) => /\.(mp4|mov|m4v|webm)$/i.test(n)) : [];
+if (vids.length) console.log(`[assets] footage: public/${fs.existsSync("public/reel.mp4") ? "reel.mp4" : vids[0]}`);
+else console.warn("[assets] NOTE: no video found in ./public -> rundown uses its original opaque liquid background (no footage, no voice).");

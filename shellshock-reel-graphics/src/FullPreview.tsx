@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, Audio, OffthreadVideo, Sequence, staticFile, useCurrentFrame } from "remotion";
 import { FOOTAGE_FILE, FPS, HOOK, RUNDOWN, SAFE, SFX_STEM_FILE, secToFrames } from "./config";
-import { hasStaticFile } from "./components/FootageBackdrop";
+import { findFootage, hasStaticFile } from "./components/FootageBackdrop";
 import { HEAD, MONO } from "./fonts";
 import { HookOverlay } from "./HookOverlay";
 import { IngredientRundown } from "./IngredientRundown";
@@ -15,11 +15,12 @@ const tc = (sec: number) => {
 /** Sync preview ONLY: hook + rundown at their absolute reel times over a dark placeholder. */
 export const FullPreview: React.FC<{ showGuides?: boolean }> = ({ showGuides }) => {
   const frame = useCurrentFrame();
-  const footage = hasStaticFile(FOOTAGE_FILE);
+  const footageFile = findFootage();
+  const footage = footageFile !== null;
   return (
     <AbsoluteFill style={{ background: "linear-gradient(170deg, #2b302d 0%, #171b19 55%, #0f1211 100%)" }}>
       {footage ? (
-        <OffthreadVideo src={staticFile(FOOTAGE_FILE)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+        <OffthreadVideo src={staticFile(footageFile ?? FOOTAGE_FILE)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
       ) : null}
       {hasStaticFile(SFX_STEM_FILE) ? <Audio src={staticFile(SFX_STEM_FILE)} /> : null}
       {footage ? null : <div
