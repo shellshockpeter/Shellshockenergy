@@ -1,7 +1,7 @@
 {
   "name": "plug-beat",
   "version": "1.0.0",
-  "description": "ShellShock Energy — transparent PlugBeat video overlay (tub card + SHOCK20 chip)",
+  "description": "ShellShock Energy \u2014 transparent PlugBeat video overlay (tub card + SHOCK20 chip)",
   "repository": {},
   "license": "UNLICENSED",
   "engines": {
@@ -50,7 +50,8 @@
     "layout-check": "tsx scripts/layout-check.ts",
     "render:overlay": "remotion render Video1Overlay out/video1-overlay.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png --scale=1.3333333333333333 --props=./video1.overlay.props.json",
     "render:preview": "remotion render Video1Overlay out/video1-preview.mp4 --codec=h264 --crf=18 --props=./video1.preview.props.json",
-    "sync-report": "tsx scripts/sync-report.ts"
+    "sync-report": "tsx scripts/sync-report.ts",
+    "track-tub": "python3 scripts/track_tub.py"
   },
   "allowScripts": {
     "esbuild": false
