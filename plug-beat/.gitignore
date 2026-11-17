@@ -12,3 +12,6 @@ public/source-*.mp4
 public/A57BF0BA-*
 public/*.MOV
 public/*.mov
+
+__pycache__/
+*.pyc
