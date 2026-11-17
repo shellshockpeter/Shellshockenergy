@@ -4,7 +4,7 @@ import {NeonText} from '../NeonText';
 import {BODY_FONT, DISPLAY_FONT} from '../theme';
 import {useFitFontSize} from '../useFitFontSize';
 import {LiquidGlass} from './LiquidGlass';
-import {BOARD_REVEAL, BOARD_TILES, BUDGET, TIMELINE, type BoardTile, type ResolvedTimeline, type TileIcon} from './timeline';
+import {BOARD_REVEAL, BOARD_TILES, BUDGET, TIMELINE, revealStartFrame, type BoardTile, type ResolvedTimeline, type TileIcon} from './timeline';
 
 const CARD_W = 900;
 const PAD = 28;
@@ -236,16 +236,6 @@ type Appearance = {
 	/** pickup index (= tile index) revealed during this appearance */
 	pickupIndex?: number;
 	revealAt?: number;
-};
-
-/**
- * Frame the board pop-up for pickup `i` starts at. Normally the pickup frame, but if a map slam is on screen
- * then, the pop-up waits until the slam ends so the two big panels never stack.
- */
-export const revealStartFrame = (t: ResolvedTimeline, i: number): number => {
-	const at = t.pickups[i].atFrame;
-	const clash = t.mapSlams.find((m) => at < m.end && at + BOARD_REVEAL.exitEnd > m.start);
-	return clash ? Math.max(at, clash.end) : at;
 };
 
 /** The intro board plus (optionally) one brief pop-up per found ingredient. */

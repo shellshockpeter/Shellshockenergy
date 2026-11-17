@@ -276,6 +276,16 @@ export const resolveTimeline = (offset: number = DEFAULT_SYNC_OFFSET_FRAMES) => 
 
 export type ResolvedTimeline = ReturnType<typeof resolveTimeline>;
 
+/**
+ * Frame the board pop-up for pickup `i` starts at. Normally the pickup frame, but if a map slam is on screen
+ * then, the pop-up waits until the slam ends so the two big panels never stack.
+ */
+export const revealStartFrame = (t: ResolvedTimeline, i: number): number => {
+	const at = t.pickups[i].atFrame;
+	const clash = t.mapSlams.find((m) => at < m.end && at + BOARD_REVEAL.exitEnd > m.start);
+	return clash ? Math.max(at, clash.end) : at;
+};
+
 /** Counter total (dollars) at `frame`, counting every pickup whose chip has landed. */
 export const totalAtFrame = (t: ResolvedTimeline, frame: number): number => {
 	let total = 0;

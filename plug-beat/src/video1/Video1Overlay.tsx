@@ -9,11 +9,11 @@ import {fileExists, detectSfx} from '../sfx';
 import {CostBreak} from './CostBreak';
 import {DollarCounter} from './DollarCounter';
 import {MapIntroScene} from './MapIntroScene';
-import {NineBoard, revealStartFrame, tileStartFrames} from './NineBoard';
+import {NineBoard, tileStartFrames} from './NineBoard';
 import {PickupChip} from './PickupChip';
 import {TubOutline} from './TubOutline';
 import {getVideoMetadata} from '@remotion/media-utils';
-import {BOARD_REVEAL, FPS, TIMELINE, TOTAL_FRAMES, DEFAULT_SYNC_OFFSET_FRAMES, VIDEO_IS_ALREADY_TRIMMED, keptRanges, resolveTimeline, toOutputSeconds, validateTimeline} from './timeline';
+import {BOARD_REVEAL, FPS, revealStartFrame, TIMELINE, TOTAL_FRAMES, DEFAULT_SYNC_OFFSET_FRAMES, VIDEO_IS_ALREADY_TRIMMED, keptRanges, resolveTimeline, toOutputSeconds, validateTimeline} from './timeline';
 
 /* ------------------------------------------------------------------ */
 /* Props                                                               */

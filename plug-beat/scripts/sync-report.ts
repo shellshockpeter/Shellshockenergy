@@ -6,7 +6,6 @@
  *   npx tsx scripts/sync-report.ts -3        # try another offset
  */
 import {writeFileSync} from 'node:fs';
-import {revealStartFrame} from '../src/video1/NineBoard';
 import path from 'node:path';
 import {
 	BOARD_REVEAL,
@@ -20,6 +19,7 @@ import {
 	TIMELINE,
 	TOTAL_FRAMES,
 	resolveTimeline,
+	revealStartFrame,
 	totalAtFrame,
 	validateTimeline,
 } from '../src/video1/timeline';
