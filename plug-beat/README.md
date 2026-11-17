@@ -119,7 +119,7 @@ same name. If a file is missing the render stays silent for that sound and a `TO
 # Video 1 master overlay — `Video1Overlay`
 
 One transparent 1080×1920 / 30 fps / 1680-frame (56 s) overlay synced to the voiceover of `public/source.mp4`
-(put your video there; it is git-ignored and stays on your machine).
+(background video: put it in `public/`. It is auto-detected: `A57BF0BA-A76E-42EB-AD03-2F7AE0100196.mp4/.mov` first, then `source.mp4/.mov`; add other names in `SOURCE_BASENAMES` in `Video1Overlay.tsx`, or set the `sourceFile` prop. Video files in `public/` are git-ignored and stay on your machine).
 
 ```bash
 npm run studio             # pick Video1Overlay; preview=true shows source.mp4 underneath

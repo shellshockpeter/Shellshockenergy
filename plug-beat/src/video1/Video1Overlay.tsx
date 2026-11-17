@@ -26,6 +26,8 @@ export const video1Schema = z.object({
 	sfxVolume: z.number().min(0).max(1),
 	/** Auto-detected from public/ — leave as-is. */
 	sfx: z.object({whoosh: z.boolean(), thud: z.boolean(), tick: z.boolean(), stamp: z.boolean()}),
+	/** file in public/ used as the background video. Leave empty to auto-detect (see SOURCE_CANDIDATES). */
+	sourceFile: z.string(),
 	hasSource: z.boolean(),
 });
 export type Video1Props = z.infer<typeof video1Schema>;
@@ -37,6 +39,7 @@ export const video1Defaults: Video1Props = {
 	mapTextColor: 'gold',
 	sfxVolume: 0.8,
 	sfx: {whoosh: false, thud: false, tick: false, stamp: false},
+	sourceFile: '',
 	hasSource: false,
 };
 
@@ -46,18 +49,30 @@ const SFX_FILES = {
 	tick: 'sfx/tick.mp3',
 	stamp: 'sfx/stamp.mp3',
 } as const;
-const SOURCE = 'source.mp4';
+/** Background video lookup: first file found in public/ wins. Add your own names here. */
+const SOURCE_BASENAMES = ['A57BF0BA-A76E-42EB-AD03-2F7AE0100196', 'source'];
+const SOURCE_EXTENSIONS = ['mp4', 'mov', 'MOV', 'MP4', 'm4v', 'webm'];
+
+const findSource = async (explicit: string): Promise<string> => {
+	const candidates = [explicit, ...SOURCE_BASENAMES.flatMap((b) => SOURCE_EXTENSIONS.map((e) => `${b}.${e}`))].filter(Boolean);
+	for (const name of candidates) {
+		if (await fileExists(name)) return name;
+	}
+	return '';
+};
 
 export const video1CalculateMetadata = async ({props}: {props: Video1Props}) => {
-	const [sfx, hasSource] = await Promise.all([
+	const [sfx, sourceFile] = await Promise.all([
 		detectSfx('Video1', SFX_FILES),
-		props.preview ? fileExists(SOURCE) : Promise.resolve(false),
+		props.preview ? findSource(props.sourceFile) : Promise.resolve(''),
 	]);
-	if (props.preview && !hasSource) {
-		console.warn(`[Video1] TODO: put your video at public/${SOURCE} — preview is showing graphics only.`);
+	if (props.preview && !sourceFile) {
+		console.warn(`[Video1] TODO: put your video in public/ (e.g. public/${SOURCE_BASENAMES[0]}.mp4 or public/source.mp4) — preview is showing graphics only.`);
+	} else if (sourceFile) {
+		console.log(`[Video1] background video: public/${sourceFile}`);
 	}
 	for (const w of validateTimeline(resolveTimeline(props.syncOffsetFrames))) console.warn(`[Video1] ⚠ ${w}`);
-	return {durationInFrames: TOTAL_FRAMES, props: {...props, sfx: sfx as Video1Props['sfx'], hasSource}};
+	return {durationInFrames: TOTAL_FRAMES, props: {...props, sfx: sfx as Video1Props['sfx'], sourceFile, hasSource: !!sourceFile}};
 };
 
 /* ------------------------------------------------------------------ */
@@ -75,7 +90,7 @@ const SlamFade: React.FC<{fadeIn: number; fadeOut: number; children: React.React
 /* ------------------------------------------------------------------ */
 /* The master composition                                              */
 /* ------------------------------------------------------------------ */
-export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames, hudPosition, mapTextColor, sfxVolume, sfx, hasSource}) => {
+export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames, hudPosition, mapTextColor, sfxVolume, sfx, sourceFile, hasSource}) => {
 	const T = resolveTimeline(syncOffsetFrames);
 	const target = hudTarget(hudPosition);
 	const tiles = tileStartFrames(T);
@@ -85,12 +100,12 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 			{/* ---- preview video (off for the real alpha render) ---- */}
 			{preview && hasSource ? (
 				<AbsoluteFill style={{zIndex: 0}}>
-					<OffthreadVideo src={staticFile(SOURCE)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+					<OffthreadVideo src={staticFile(sourceFile)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
 				</AbsoluteFill>
 			) : null}
 			{preview && !hasSource ? (
 				<div style={{zIndex: 5, position: 'absolute', left: 80, right: 80, top: 160, textAlign: 'center', fontFamily: 'sans-serif', fontSize: 26, color: '#FFD60A', background: 'rgba(0,0,0,0.6)', padding: 12, borderRadius: 12}}>
-					public/source.mp4 not found — showing graphics only
+					background video not found in public/ — showing graphics only
 				</div>
 			) : null}
 

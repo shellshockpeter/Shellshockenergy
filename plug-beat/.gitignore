@@ -9,3 +9,6 @@ out
 # your voiceover footage (large, stays local)
 public/source.mp4
 public/source-*.mp4
+public/A57BF0BA-*
+public/*.MOV
+public/*.mov
