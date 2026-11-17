@@ -92,9 +92,10 @@ export const TIMELINE = {
 			at: 33.0,
 		},
 
+		{id: 5, name: 'CAFFEINE', price: 4.0, at: 49.11, note: 'energy drink held up (CVS)'},
+
 		// ┌──────────────────────────────────────────────────────────────────┐
 		// │  ADD LATER — uncomment / fill in (nothing else needs to change)  │
-		// │  CVS:              { id: 5, name: 'CAFFEINE',      price: 0, at: 0 },
 		// │  Vitamin Shoppe:   { id: 6, name: 'BETA-ALANINE',  price: 0, at: 0 },
 		// │                    { id: 7, name: 'CITRULLINE',    price: 0, at: 0 },
 		// │                    { id: 8, name: 'ALPHA GPC',     price: 0, at: 0 },
@@ -128,7 +129,7 @@ export const BOARD_TILES: BoardTile[] = [
 	{name: 'CORDYCEPS', icon: 'mushroom'},
 	{name: "LION'S MANE", icon: 'sun'},
 	// Tiles 5-9: add a name now or later (e.g. {name: 'CAFFEINE', icon: 'bolt'}); if you leave it out, the pickup's own name is used on reveal.
-	{icon: 'bolt'}, // 5  CVS caffeine
+	{name: 'CAFFEINE', icon: 'bolt'}, // 5  CVS (blurred on the board until it's found)
 	{icon: 'wave'}, // 6  beta-alanine
 	{icon: 'triangle'}, // 7  citrulline
 	{icon: 'ring'}, // 8  alpha GPC
