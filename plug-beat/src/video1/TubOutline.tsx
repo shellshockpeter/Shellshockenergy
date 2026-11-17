@@ -1,6 +1,6 @@
 import React from 'react';
 import {Easing, interpolate, useCurrentFrame} from 'remotion';
-import {TUB_OUTLINE_PATH, TUB_SEAM_PATH, TUB_VIEWBOX} from './tubOutline';
+import {TUB_OUTLINE_PATH, TUB_SEAM_PATH, TUB_VIEWBOX} from './tubSilhouette';
 import type {ResolvedTimeline} from './timeline';
 
 type Props = {
