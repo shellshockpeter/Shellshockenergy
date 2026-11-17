@@ -135,6 +135,7 @@ First 6 s: golden neon outline around the tub ("this product"), then a red neon 
 pip install opencv-contrib-python numpy
 python3 scripts/track_tub.py --start 1.0 --end 6.0 --debug
 ```
+The tracker detects **mirrored (selfie-camera) footage** by itself (`--mirror auto`) and prints which it found.
 1. Look at the frames in `out/track-debug/` (green outline = found, red "NOT FOUND" = gaps, which are filled in from the neighbours). If most are good, you're done.
 2. In Studio turn on the `showTubGuide` prop (green outline follows the tub on every frame) and scrub to double-check.
 3. If the label is rarely visible (tub turned away / covered): lower `--min-inliers 8`, or use the box fallback `python3 scripts/track_tub.py --mode box --select`, or edit keyframes by hand in `tubTrack.ts`.

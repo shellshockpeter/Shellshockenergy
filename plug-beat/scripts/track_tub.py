@@ -20,6 +20,7 @@ Options:
   --start / --end                     seconds of the (already trimmed) video to track
   --ref public/tub.png                the product photo to look for (use a photo of the SAME tub label if yours differs)
   --min-inliers 12                    how many matching label points count as "found" (lower = more frames, riskier)
+  --mirror auto|yes|no                front-camera (selfie) video is MIRRORED (text reads backwards): auto-detected by default
   --smooth 5                          moving-average window in frames (0 = off)
   --debug                             saves annotated frames to out/track-debug/ - LOOK AT THEM to confirm the lock
 """
@@ -74,10 +75,12 @@ def rolling_median(a, win):
 # ----------------------------------------------------------------------------------------------------------------
 # AUTO mode: SIFT label matching -> homography
 # ----------------------------------------------------------------------------------------------------------------
-def load_reference(path, ref_h):
+def load_reference(path, ref_h, mirror=False):
     im = cv2.imread(path, cv2.IMREAD_UNCHANGED)
     if im is None:
         sys.exit(f'Cannot read {path}')
+    if mirror:  # front-camera / selfie footage is mirrored: the label reads backwards
+        im = im[:, ::-1].copy()
     if im.ndim == 3 and im.shape[2] == 4:
         alpha = im[..., 3]
         bgr = im[..., :3]
@@ -115,50 +118,88 @@ def quad_ok(q, ref_aspect):
     return 0.4 * ref_aspect < aspect < 2.2 * ref_aspect
 
 
+class Ref:
+    """One reference (normal or mirrored) with its SIFT features."""
+
+    def __init__(self, path, ref_h, mirror):
+        self.sift, self.clahe, self.kp, self.des, (self.w, self.h) = load_reference(path, ref_h, mirror)
+        self.pts = np.float32([k.pt for k in self.kp])
+        self.corners = np.float32([[0, 0], [self.w, 0], [self.w, self.h], [0, self.h]]).reshape(-1, 1, 2)
+        self.mirror = mirror
+
+
+def find_quad(frame_small, ref, matcher, ratio, min_inliers):
+    """Locate the reference in a frame. Returns (4x2 quad in the frame's pixels | None, inlier count)."""
+    gray = ref.clahe.apply(cv2.cvtColor(frame_small, cv2.COLOR_BGR2GRAY))
+    kp, des = ref.sift.detectAndCompute(gray, None)
+    if des is None or len(kp) < 8:
+        return None, 0
+    good = []
+    for pair in matcher.knnMatch(ref.des, des, k=2):
+        if len(pair) == 2 and pair[0].distance < ratio * pair[1].distance:
+            good.append(pair[0])
+    if len(good) < max(8, min(min_inliers, 8)):
+        return None, 0
+    src = ref.pts[[m.queryIdx for m in good]].reshape(-1, 1, 2)
+    dst = np.float32([kp[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
+    H, inliers = cv2.findHomography(src, dst, cv2.RANSAC, 5.0)
+    if H is None or inliers is None:
+        return None, 0
+    n = int(inliers.sum())
+    q = cv2.perspectiveTransform(ref.corners, H).reshape(4, 2)
+    if n < min_inliers or not quad_ok(q, ref.w / ref.h):
+        return None, n
+    return q, n
+
+
 def track_auto(a, cap, fps, i0, i1, vw, vh, debug_dir):
-    sift, clahe, kp_ref, des_ref, (rw, rh) = load_reference(a.ref, a.ref_height)
-    ref_corners = np.float32([[0, 0], [rw, 0], [rw, rh], [0, rh]]).reshape(-1, 1, 2)
-    ref_pts = np.float32([k.pt for k in kp_ref])
     matcher = cv2.BFMatcher(cv2.NORM_L2)
     fs = a.frame_scale
-    quads = {}  # video frame idx -> 4x2 array in ORIGINAL video pixels
-    inl = {}
+    refs = {False: Ref(a.ref, a.ref_height, False), True: Ref(a.ref, a.ref_height, True)}
+
+    def small(frame):
+        return cv2.resize(frame, None, fx=fs, fy=fs, interpolation=cv2.INTER_AREA)
+
+    # ---- is the footage mirrored (selfie camera)? try both labels on frames spread across the range ----
+    if a.mirror == 'auto':
+        score = {False: 0, True: 0}
+        samples = np.linspace(i0, i1, 14).astype(int)
+        for idx in samples:
+            cap.set(cv2.CAP_PROP_POS_FRAMES, int(idx))
+            ok, frame = cap.read()
+            if not ok:
+                continue
+            for m in (False, True):
+                _, n = find_quad(small(frame), refs[m], matcher, a.ratio, a.min_inliers)
+                score[m] += n
+        mirror = score[True] > score[False]
+        print(f'mirror check: normal label {score[False]} matched points, mirrored label {score[True]} -> '
+              f'footage is {"MIRRORED (selfie camera)" if mirror else "not mirrored"}')
+    else:
+        mirror = a.mirror == 'yes'
+    ref = refs[mirror]
+
+    quads, inl = {}, {}
     cap.set(cv2.CAP_PROP_POS_FRAMES, i0)
     for idx in range(i0, i1 + 1):
         ok, frame = cap.read()
         if not ok:
             break
-        small = cv2.resize(frame, None, fx=fs, fy=fs, interpolation=cv2.INTER_AREA)
-        gray = clahe.apply(cv2.cvtColor(small, cv2.COLOR_BGR2GRAY))
-        kp, des = sift.detectAndCompute(gray, None)
-        found = None
-        if des is not None and len(kp) >= 8:
-            good = []
-            for pair in matcher.knnMatch(des_ref, des, k=2):
-                if len(pair) == 2 and pair[0].distance < a.ratio * pair[1].distance:
-                    good.append(pair[0])
-            if len(good) >= a.min_inliers:
-                src = ref_pts[[m.queryIdx for m in good]].reshape(-1, 1, 2)
-                dst = np.float32([kp[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
-                H, inliers = cv2.findHomography(src, dst, cv2.RANSAC, 5.0)
-                if H is not None and inliers is not None and int(inliers.sum()) >= a.min_inliers:
-                    q = cv2.perspectiveTransform(ref_corners, H).reshape(4, 2) / fs  # -> original video px
-                    if quad_ok(q, rw / rh):
-                        found = q
-                        inl[idx] = int(inliers.sum())
-        if found is not None:
-            quads[idx] = found
+        q, n = find_quad(small(frame), ref, matcher, a.ratio, a.min_inliers)
+        if q is not None:
+            quads[idx] = q / fs  # -> original video pixels
+            inl[idx] = n
         if debug_dir and (idx - i0) % 10 == 0:
             vis = frame.copy()
-            if found is not None:
-                cv2.polylines(vis, [found.astype(np.int32)], True, (20, 255, 60), 8)
-                cv2.putText(vis, f'f{idx} inliers {inl[idx]}', (30, 90), cv2.FONT_HERSHEY_SIMPLEX, 2.4, (20, 255, 60), 6)
+            if q is not None:
+                cv2.polylines(vis, [(q / fs).astype(np.int32)], True, (20, 255, 60), 8)
+                cv2.putText(vis, f'f{idx} inliers {n}', (30, 90), cv2.FONT_HERSHEY_SIMPLEX, 2.4, (20, 255, 60), 6)
             else:
                 cv2.putText(vis, f'f{idx} NOT FOUND', (30, 90), cv2.FONT_HERSHEY_SIMPLEX, 2.4, (40, 40, 255), 6)
             cv2.imwrite(os.path.join(debug_dir, f'f{idx:05d}.jpg'), cv2.resize(vis, (vw // 3, vh // 3)))
-    n = i1 - i0 + 1
-    print(f'label found on {len(quads)}/{n} frames ({100 * len(quads) / max(1, n):.0f}%)')
-    if len(quads) < max(5, 0.15 * n):
+    n_frames = i1 - i0 + 1
+    print(f'label found on {len(quads)}/{n_frames} frames ({100 * len(quads) / max(1, n_frames):.0f}%)')
+    if len(quads) < max(5, 0.15 * n_frames):
         sys.exit('The tub label was found on too few frames to track. Try --min-inliers 8, check --debug frames, '
                  'or use --mode box (draw a box around the tub).')
     return quads
@@ -229,6 +270,7 @@ def main():
     ap.add_argument('--frame-scale', type=float, default=0.5)
     ap.add_argument('--ratio', type=float, default=0.78)
     ap.add_argument('--min-inliers', type=int, default=12)
+    ap.add_argument('--mirror', default='auto', choices=['auto', 'yes', 'no'], help='selfie-camera footage is mirrored; auto = detect')
     ap.add_argument('--box', help='box mode: x,y,w,h in the video pixels at --start')
     ap.add_argument('--select', action='store_true', help='box mode: draw the box with the mouse')
     ap.add_argument('--tracker', default='csrt', choices=['csrt', 'kcf', 'mil'])
