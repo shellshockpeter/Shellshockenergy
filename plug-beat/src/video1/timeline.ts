@@ -23,6 +23,13 @@ export const CUTS: {start: number; end: number}[] = [
 	{start: 32.0, end: 33.0}, // 1 s removed -> video is 55 s / 1650 frames
 ];
 
+/**
+ * true  = the file in public/ is ALREADY trimmed (you cut it in your editor): the footage plays straight,
+ *         and CUTS only shift the graphics' timing so they stay in sync with the trimmed file.
+ * false = the file is the original: the composition removes the CUTS from the footage itself.
+ */
+export const VIDEO_IS_ALREADY_TRIMMED = true;
+
 /** source-video seconds -> output-video seconds (events inside a cut snap to the cut point) */
 export const toOutputSeconds = (t: number): number => {
 	let out = t;

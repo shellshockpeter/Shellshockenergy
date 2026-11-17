@@ -131,7 +131,7 @@ npm run sync-report        # rewrites sync-report.md (every event: time, frame a
 Props (Studio): `preview`, `syncOffsetFrames` (default **-2**, added to every event), `hudPosition` (`top`|`bottom`),
 `mapTextColor` (`gold` = current map look, `red` = #FF2A2A), `sfxVolume`.
 
-**Everything timed lives in `src/video1/timeline.ts`** (seconds, always in SOURCE-video time). Footage cuts are one line in `CUTS` (now `32.00–33.00` removed -> 55 s / 1650 frames); every event after a cut shifts earlier automatically. Add pickups 5–9, `MapSlam2/3` entries and board tile
+**Everything timed lives in `src/video1/timeline.ts`** (seconds, always in SOURCE-video time). The composition length follows your video file automatically. `VIDEO_IS_ALREADY_TRIMMED = true` means your file is already trimmed (it plays straight; `CUTS` only shifts the graphics to match). Footage cuts are one line in `CUTS` (now `32.00–33.00` removed -> 55 s / 1650 frames); every event after a cut shifts earlier automatically. Add pickups 5–9, `MapSlam2/3` entries and board tile
 names at the marked "ADD LATER" spots — nothing else changes. Lion's Mane's `31.49` is a placeholder price (config only).
 
 Notes

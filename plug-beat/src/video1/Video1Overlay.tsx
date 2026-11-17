@@ -10,7 +10,8 @@ import {DollarCounter, hudTarget} from './DollarCounter';
 import {MapIntroScene} from './MapIntroScene';
 import {NineBoard, tileStartFrames} from './NineBoard';
 import {PickupChip} from './PickupChip';
-import {BOARD_REVEAL, FPS, TIMELINE, TOTAL_FRAMES, DEFAULT_SYNC_OFFSET_FRAMES, keptRanges, resolveTimeline, toOutputSeconds, validateTimeline} from './timeline';
+import {getVideoMetadata} from '@remotion/media-utils';
+import {BOARD_REVEAL, FPS, TIMELINE, TOTAL_FRAMES, DEFAULT_SYNC_OFFSET_FRAMES, VIDEO_IS_ALREADY_TRIMMED, keptRanges, resolveTimeline, toOutputSeconds, validateTimeline} from './timeline';
 
 /* ------------------------------------------------------------------ */
 /* Props                                                               */
@@ -66,13 +67,26 @@ export const video1CalculateMetadata = async ({props}: {props: Video1Props}) => 
 		detectSfx('Video1', SFX_FILES),
 		props.preview ? findSource(props.sourceFile) : Promise.resolve(''),
 	]);
+
+	// The composition is exactly as long as your video file (so a re-trimmed export is picked up automatically).
+	let durationInFrames = TOTAL_FRAMES;
 	if (props.preview && !sourceFile) {
 		console.warn(`[Video1] TODO: put your video in public/ (e.g. public/${SOURCE_BASENAMES[0]}.mp4 or public/source.mp4) — preview is showing graphics only.`);
 	} else if (sourceFile) {
-		console.log(`[Video1] background video: public/${sourceFile}`);
+		try {
+			const meta = await getVideoMetadata(staticFile(sourceFile));
+			const videoFrames = Math.round(meta.durationInSeconds * FPS);
+			if (VIDEO_IS_ALREADY_TRIMMED) durationInFrames = videoFrames;
+			console.log(`[Video1] background video: public/${sourceFile} — ${meta.durationInSeconds.toFixed(2)} s (${videoFrames} frames, ${meta.width}x${meta.height})`);
+			if (Math.abs(videoFrames - TOTAL_FRAMES) > FPS / 2) {
+				console.warn(`[Video1] ⚠ the video is ${(videoFrames / FPS).toFixed(2)} s but the timeline expects ${(TOTAL_FRAMES / FPS).toFixed(2)} s (56 s minus the CUTS). If you trimmed a different amount, change CUTS in src/video1/timeline.ts.`);
+			}
+		} catch (err) {
+			console.warn('[Video1] could not read the video length, using the timeline length', err);
+		}
 	}
 	for (const w of validateTimeline(resolveTimeline(props.syncOffsetFrames))) console.warn(`[Video1] ⚠ ${w}`);
-	return {durationInFrames: TOTAL_FRAMES, props: {...props, sfx: sfx as Video1Props['sfx'], sourceFile, hasSource: !!sourceFile}};
+	return {durationInFrames, props: {...props, sfx: sfx as Video1Props['sfx'], sourceFile, hasSource: !!sourceFile}};
 };
 
 /* ------------------------------------------------------------------ */
@@ -100,21 +114,22 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 			{/* ---- preview video (off for the real alpha render) ---- */}
 			{preview && hasSource ? (
 				<AbsoluteFill style={{zIndex: 0}}>
-					{/* the source video minus the CUTS (see timeline.ts): each kept piece plays back to back */}
-					{keptRanges().map((r) => (
-						<Sequence
-							key={r.from}
-							name={`Source ${r.from.toFixed(2)}–${r.to.toFixed(2)}s`}
-							from={Math.round(toOutputSeconds(r.from) * FPS)}
-							durationInFrames={Math.round((r.to - r.from) * FPS)}
-						>
-							<OffthreadVideo
-								src={staticFile(sourceFile)}
-								trimBefore={Math.round(r.from * FPS)}
-								style={{width: '100%', height: '100%', objectFit: 'cover'}}
-							/>
-						</Sequence>
-					))}
+					{VIDEO_IS_ALREADY_TRIMMED ? (
+						// your file is already trimmed: play it straight from the start
+						<OffthreadVideo src={staticFile(sourceFile)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+					) : (
+						// original file: play only the pieces that survive the CUTS, back to back
+						keptRanges().map((r) => (
+							<Sequence
+								key={r.from}
+								name={`Source ${r.from.toFixed(2)}–${r.to.toFixed(2)}s`}
+								from={Math.round(toOutputSeconds(r.from) * FPS)}
+								durationInFrames={Math.round((r.to - r.from) * FPS)}
+							>
+								<OffthreadVideo src={staticFile(sourceFile)} trimBefore={Math.round(r.from * FPS)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+							</Sequence>
+						))
+					)}
 				</AbsoluteFill>
 			) : null}
 			{preview && !hasSource ? (
