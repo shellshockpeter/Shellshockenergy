@@ -118,9 +118,13 @@ const Tile: React.FC<{
 	startFrame: number;
 	/** 0 = blurred "???", 1 = revealed (name + icon in full gold glow) */
 	reveal: number;
+	/** 0..1 swell while a tile is being found (settles back to normal size, stays revealed) */
+	bump: number;
+	/** ingredient has been found: show the gold ✓ mark */
+	found: boolean;
 	/** name to show when revealed if the tile config has none (pickup name) */
 	fallbackName: string;
-}> = ({tile, index, frame, startFrame, reveal, fallbackName}) => {
+}> = ({tile, index, frame, startFrame, reveal, bump, found, fallbackName}) => {
 	const {fps} = useVideoConfig();
 	const r = tile.revealed && tile.name ? 1 : reveal;
 	const name = tile.name ?? fallbackName;
@@ -129,11 +133,10 @@ const Tile: React.FC<{
 	const opacity = interpolate(frame - startFrame, [0, 2.5], [0, 1], clamp);
 	const nameSize = useFitFontSize({text: name, fontFamily: DISPLAY_FONT, maxWidth: TILE_W - 40, maxFontSize: 26, minFontSize: 14});
 	const shimmerX = ((frame * 2.6) % 520) - 140;
-	// found-tile pop: swells while revealed
-	const pop = 1 + 0.09 * Math.sin(Math.min(1, r) * Math.PI * 0.5) * (r > 0 && !tile.revealed ? 1 : 0);
+	const pop = 1 + 0.1 * bump;
 
 	return (
-		<div style={{width: TILE_W, height: TILE_H, opacity, transform: `scale(${scale * pop})`, position: 'relative', zIndex: r > 0 && !tile.revealed ? 2 : 0}}>
+		<div style={{width: TILE_W, height: TILE_H, opacity, transform: `scale(${scale * pop})`, position: 'relative', zIndex: bump > 0 ? 2 : 0}}>
 			<LiquidGlass width={TILE_W} height={TILE_H} radius={26} gold={0.12 + 0.88 * r} pulse={0.1 + 0.55 * r}>
 				{/* number badge */}
 				<div
@@ -158,6 +161,14 @@ const Tile: React.FC<{
 				>
 					{index + 1}
 				</div>
+
+				{/* gold ✓: this ingredient has been found */}
+				{found ? (
+					<svg width={40} height={40} viewBox="0 0 40 40" style={{position: 'absolute', right: 14, top: 14, zIndex: 3, opacity: r, filter: 'drop-shadow(0 0 6px rgba(255,196,0,0.9))'}}>
+						<circle cx="20" cy="20" r="17" fill="rgba(255,196,0,0.18)" stroke="#FFC400" strokeWidth="2.5" />
+						<path d="M11.5 20.5 L17.5 26.5 L29 13.5" fill="none" stroke="#FFD60A" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+					</svg>
+				) : null}
 
 				{/* blurred mystery layer (fades out as the tile reveals) */}
 				{r < 1 ? (
@@ -268,13 +279,12 @@ export const NineBoard: React.FC<{timeline: ResolvedTimeline}> = ({timeline}) =>
 	const badge = spring({frame: kp, fps, config: {damping: 8, stiffness: 210, mass: 0.6}});
 	const flash = kp >= 0 ? Math.max(0, 1 - kp / 18) : 0;
 
-	// reveal pop-up: the found tile un-blurs, holds, blurs back
-	let reveal = 0;
-	if (!intro && cur.revealAt !== undefined) {
-		const f = frame - cur.revealAt;
-		const R = BOARD_REVEAL;
-		reveal = interpolate(f, [0, R.revealRamp, R.unrevealAt - R.revealAt, R.unrevealAt - R.revealAt + R.unrevealRamp], [0, 1, 1, 0], clamp);
-	}
+	// reveal pop-up: the found tile un-blurs and stays revealed; earlier finds are already uncovered
+	const R = BOARD_REVEAL;
+	const rf = !intro && cur.revealAt !== undefined ? frame - cur.revealAt : -1;
+	const ramp = interpolate(rf, [0, R.revealRamp], [0, 1], clamp);
+	const bumpEnv = rf >= 0 && rf < R.bumpFrames ? Math.sin((rf / R.bumpFrames) * Math.PI) : 0;
+	const levelFor = (i: number) => (intro || cur.pickupIndex === undefined ? 0 : i < cur.pickupIndex ? 1 : i === cur.pickupIndex ? ramp : 0);
 
 	const cardScale = (0.9 + 0.1 * enter) * (1 + 0.03 * env) * (1 - 0.18 * exit);
 	const starts = tileStartFrames(timeline);
@@ -320,7 +330,7 @@ export const NineBoard: React.FC<{timeline: ResolvedTimeline}> = ({timeline}) =>
 					</NeonText>
 				</div>
 
-				{/* 3x3 grid: every tile is blurred; only the found one reveals */}
+				{/* 3x3 grid: tiles are blurred until found, then they stay uncovered */}
 				<div
 					style={{
 						position: 'absolute',
@@ -339,7 +349,9 @@ export const NineBoard: React.FC<{timeline: ResolvedTimeline}> = ({timeline}) =>
 							index={i}
 							frame={frame}
 							startFrame={intro ? starts[i] : -1000}
-							reveal={cur.pickupIndex === i ? reveal : 0}
+							reveal={levelFor(i)}
+							bump={cur.pickupIndex === i ? bumpEnv : 0}
+							found={levelFor(i) > 0}
 							fallbackName={timeline.pickups[i]?.name ?? '???'}
 						/>
 					))}

@@ -138,5 +138,5 @@ Notes
 - Render scale: use `--scale=1.3333333333333333` (the script does). `1.3333333` gives 2559.999936 px and the encoder refuses it.
 - ProRes 4444 at 1440×2560 is big (~3.4 MB/frame ≈ 5–6 GB for the full 56 s). Render `--frames=a-b` for a section if needed.
 - The counter glides to the bottom while a map slam is on screen (`hud.avoidMapSlams` in the timeline) so it never covers the pin.
-- Board: all 9 tiles are blurred "???". When a pickup is found the board pops back up for ~1.2 s, that tile reveals, then blurs again (`TIMELINE.board.revealOnPickup`, timing in `BOARD_REVEAL`). Set a tile's `revealed: true` in `BOARD_TILES` to un-blur it permanently.
+- Board: all 9 tiles are blurred "???". When a pickup is found the board pops back up for ~1.4 s, that tile reveals and STAYS uncovered (✓), and every earlier find is already uncovered (`TIMELINE.board.revealOnPickup`, timing in `BOARD_REVEAL`). Set a tile's `revealed: true` in `BOARD_TILES` to un-blur it permanently.
 - Chips start at `CHIP.defaultAt`; give a pickup its own `chipAt: {x, y}` to sit beside the real product / shelf tag.

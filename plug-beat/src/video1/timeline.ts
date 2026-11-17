@@ -65,7 +65,7 @@ export const TIMELINE = {
 		tileStagger: 0.08,
 		finalPulse: 13.8, // the word "ingredients"
 		exit: {start: 14.5, end: 14.8},
-		/** true: when an ingredient is found the board pops back up briefly, that tile reveals itself, then it blurs again and the board leaves */
+		/** true: when an ingredient is found the board pops back up briefly; that tile reveals itself and stays uncovered (with all earlier finds) */
 		revealOnPickup: true,
 	},
 
@@ -141,8 +141,11 @@ export const BOARD_TILES: BoardTile[] = [
 /* ------------------------------------------------------------------ */
 /** pop 0–5, fly 6–14, land at frame 15 (= pickup + 0.5 s). defaultAt = chip start; override per pickup with `chipAt` to sit beside the real product/tag. */
 export const CHIP = {popFrames: 6, flightFrames: 9, landFrames: 15, defaultAt: {x: 540, y: 1235}} as const;
-/** Brief board pop-up when an ingredient is found (frames relative to the pickup frame). */
-export const BOARD_REVEAL = {revealAt: 4, revealRamp: 5, unrevealAt: 26, unrevealRamp: 6, exitStart: 28, exitEnd: 36} as const;
+/**
+ * Board pop-up when an ingredient is found (frames relative to the pickup frame).
+ * The found tile un-blurs and STAYS revealed (✓) in every later pop-up; earlier finds are already uncovered.
+ */
+export const BOARD_REVEAL = {revealAt: 4, revealRamp: 5, bumpFrames: 16, exitStart: 34, exitEnd: 42} as const;
 /** counter digit roll length (≈0.5 s) */
 export const ROLL_FRAMES = 15;
 

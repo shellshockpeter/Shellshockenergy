@@ -58,7 +58,7 @@ row('HUD', 'cash-drain emphasis ends', TIMELINE.hud.cashDrainEmphasis.end, T.hud
 for (const p of T.pickups) {
 	row('Pickup', `${p.id}. ${p.name} chip pops (+$${p.price.toFixed(2)})`, p.at, p.atFrame, `pick-up on camera${p.note ? ` (${p.note})` : ''} — spoken word not specified in the brief`);
 	if (TIMELINE.board.revealOnPickup) {
-		row('Pickup', `${p.id}. board pops back up, tile ${p.id} reveals`, p.at + BOARD_REVEAL.revealAt / FPS, p.atFrame + BOARD_REVEAL.revealAt, `reveals ${p.name}, blurs again by +${BOARD_REVEAL.unrevealAt + BOARD_REVEAL.unrevealRamp} frames`);
+		row('Pickup', `${p.id}. board pops back up, tile ${p.id} reveals`, p.at + BOARD_REVEAL.revealAt / FPS, p.atFrame + BOARD_REVEAL.revealAt, `reveals ${p.name} and keeps it uncovered (earlier finds stay uncovered too)`);
 	}
 	row('Pickup', `${p.id}. chip lands → counter rolls to $${p.totalAfter.toFixed(2)}`, p.at + CHIP.landFrames / FPS, p.landFrame, `+0.5 s after the pick-up`);
 }
