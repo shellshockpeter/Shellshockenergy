@@ -84,16 +84,18 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 		<AbsoluteFill>
 			{/* ---- preview video (off for the real alpha render) ---- */}
 			{preview && hasSource ? (
-				<AbsoluteFill>
+				<AbsoluteFill style={{zIndex: 0}}>
 					<OffthreadVideo src={staticFile(SOURCE)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
 				</AbsoluteFill>
 			) : null}
 			{preview && !hasSource ? (
-				<div style={{position: 'absolute', left: 80, right: 80, top: 160, textAlign: 'center', fontFamily: 'sans-serif', fontSize: 26, color: '#FFD60A', background: 'rgba(0,0,0,0.6)', padding: 12, borderRadius: 12}}>
+				<div style={{zIndex: 5, position: 'absolute', left: 80, right: 80, top: 160, textAlign: 'center', fontFamily: 'sans-serif', fontSize: 26, color: '#FFD60A', background: 'rgba(0,0,0,0.6)', padding: 12, borderRadius: 12}}>
 					public/source.mp4 not found — showing graphics only
 				</div>
 			) : null}
 
+			{/* ALL graphics live in this layer, always above the video (zIndex 1 vs 0) */}
+			<AbsoluteFill style={{zIndex: 1}}>
 			{/* ---- 1. map entrance: "three different locations" ---- */}
 			<NeonPaletteProvider palette={mapTextColor}>
 				<Sequence name="Map intro" from={T.map.introStart} durationInFrames={T.map.exitEnd - T.map.introStart + 1}>
@@ -166,6 +168,7 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 					) : null}
 				</React.Fragment>
 			))}
+			</AbsoluteFill>
 		</AbsoluteFill>
 	);
 };
