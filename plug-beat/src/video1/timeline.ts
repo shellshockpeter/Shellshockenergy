@@ -1,7 +1,8 @@
 /**
  * ============================================================================
  *  VIDEO 1 — SINGLE SOURCE OF TRUTH
- *  Every time below is in SECONDS from the start of public/source.mp4 (your transcript).
+ *  Every time below is in SOURCE-VIDEO SECONDS (your transcript timestamps), even after cuts.
+ *  Cuts (see CUTS) are removed from the footage and everything after them slides earlier automatically.
  *  Nothing else in the project hard-codes a time. Edit here; everything re-syncs.
  *
  *  syncOffsetFrames (a composition prop, default -2) is added to EVERY event so graphics
@@ -11,7 +12,42 @@
 import {SLAM} from '../mapConfig';
 
 export const FPS = 30;
-export const TOTAL_FRAMES = 1680; // 56 s
+/** Length of the SOURCE video: 56 s */
+export const SOURCE_FRAMES = 1680;
+
+/**
+ * CUTS — seconds of the source video that are REMOVED (source-video time, before shifting).
+ * Everything after a cut plays earlier by its length; keep all event times below as source-video times.
+ */
+export const CUTS: {start: number; end: number}[] = [
+	{start: 32.0, end: 33.0}, // 1 s removed -> video is 55 s / 1650 frames
+];
+
+/** source-video seconds -> output-video seconds (events inside a cut snap to the cut point) */
+export const toOutputSeconds = (t: number): number => {
+	let out = t;
+	for (const c of CUTS) {
+		if (t >= c.end) out -= c.end - c.start;
+		else if (t > c.start) out -= t - c.start;
+	}
+	return out;
+};
+
+/** The pieces of the source video that survive the cuts: [fromSec, toSec) in source time. */
+export const keptRanges = (): {from: number; to: number}[] => {
+	const sorted = [...CUTS].sort((a, b) => a.start - b.start);
+	const ranges: {from: number; to: number}[] = [];
+	let cursor = 0;
+	for (const c of sorted) {
+		if (c.start > cursor) ranges.push({from: cursor, to: c.start});
+		cursor = Math.max(cursor, c.end);
+	}
+	if (cursor < SOURCE_FRAMES / FPS) ranges.push({from: cursor, to: SOURCE_FRAMES / FPS});
+	return ranges;
+};
+
+/** Composition length after the cuts */
+export const TOTAL_FRAMES = SOURCE_FRAMES - Math.round(CUTS.reduce((sum, c) => sum + (c.end - c.start), 0) * FPS);
 export const DEFAULT_SYNC_OFFSET_FRAMES = -2;
 
 /** Money the viewer starts with — drives "$xx.xx LEFT" and the header "$200". */
@@ -153,7 +189,7 @@ export const ROLL_FRAMES = 15;
 /* Resolver: seconds -> frames, with syncOffsetFrames applied          */
 /* ------------------------------------------------------------------ */
 export const resolveTimeline = (offset: number = DEFAULT_SYNC_OFFSET_FRAMES) => {
-	const fr = (s: number) => Math.round(s * FPS) + offset;
+	const fr = (s: number) => Math.round(toOutputSeconds(s) * FPS) + offset;
 	const T = TIMELINE;
 
 	let running = 0;

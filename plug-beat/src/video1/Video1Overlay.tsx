@@ -10,7 +10,7 @@ import {DollarCounter, hudTarget} from './DollarCounter';
 import {MapIntroScene} from './MapIntroScene';
 import {NineBoard, tileStartFrames} from './NineBoard';
 import {PickupChip} from './PickupChip';
-import {BOARD_REVEAL, TIMELINE, TOTAL_FRAMES, DEFAULT_SYNC_OFFSET_FRAMES, resolveTimeline, validateTimeline} from './timeline';
+import {BOARD_REVEAL, FPS, TIMELINE, TOTAL_FRAMES, DEFAULT_SYNC_OFFSET_FRAMES, keptRanges, resolveTimeline, toOutputSeconds, validateTimeline} from './timeline';
 
 /* ------------------------------------------------------------------ */
 /* Props                                                               */
@@ -100,7 +100,21 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 			{/* ---- preview video (off for the real alpha render) ---- */}
 			{preview && hasSource ? (
 				<AbsoluteFill style={{zIndex: 0}}>
-					<OffthreadVideo src={staticFile(sourceFile)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+					{/* the source video minus the CUTS (see timeline.ts): each kept piece plays back to back */}
+					{keptRanges().map((r) => (
+						<Sequence
+							key={r.from}
+							name={`Source ${r.from.toFixed(2)}–${r.to.toFixed(2)}s`}
+							from={Math.round(toOutputSeconds(r.from) * FPS)}
+							durationInFrames={Math.round((r.to - r.from) * FPS)}
+						>
+							<OffthreadVideo
+								src={staticFile(sourceFile)}
+								trimBefore={Math.round(r.from * FPS)}
+								style={{width: '100%', height: '100%', objectFit: 'cover'}}
+							/>
+						</Sequence>
+					))}
 				</AbsoluteFill>
 			) : null}
 			{preview && !hasSource ? (
