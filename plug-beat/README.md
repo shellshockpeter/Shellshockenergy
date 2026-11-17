@@ -130,13 +130,15 @@ npm run sync-report        # rewrites sync-report.md (every event: time, frame a
 
 First 6 s: golden neon outline around the tub ("this product"), then a red neon `$0 -> $200` counter that pixelates, cracks and crumbles. ⚠ The times in `TIMELINE.intro` are PLACEHOLDERS: set them to your real word times. Drag `tubX / tubY / tubW / tubRotate` in Studio to fit the outline onto the tub in your footage (outline shape comes from `public/tub.png`, regenerate with `scripts/trace_tub.py`).
 
-**Tracking the tub (outline follows the tub the whole time):** the outline reads keyframes from `src/video1/tubTrack.ts` and follows them on every frame.
+**Locking the outline to the tub:** the outline reads per-frame keyframes from `src/video1/tubTrack.ts`. The tracker finds your tub's printed label (turtle logo, SHELLSHOCK text) in every frame and warps the outline onto the tub's real pose (position, rotation, perspective). No box and no clicking:
 ```bash
 pip install opencv-contrib-python numpy
-python3 scripts/track_tub.py --select --start 1.0 --end 6.0     # drag a box around the tub in the window, press ENTER
-# or without a window:  python3 scripts/track_tub.py --box 380,1180,560,720 --start 1.0 --end 6.0   (x,y,w,h in your video's pixels)
+python3 scripts/track_tub.py --start 1.0 --end 6.0 --debug
 ```
-Then in Studio turn on the `showTubGuide` prop: a green box follows the tracked tub on every frame so you can scrub and check it. If the tracker slips, track a shorter range or run `--debug` (saves frames to `out/track-debug/`). You can also edit the keyframes in `tubTrack.ts` by hand. The outline stays on screen until `TIMELINE.intro.outline.fadeEnd`.
+1. Look at the frames in `out/track-debug/` (green outline = found, red "NOT FOUND" = gaps, which are filled in from the neighbours). If most are good, you're done.
+2. In Studio turn on the `showTubGuide` prop (green outline follows the tub on every frame) and scrub to double-check.
+3. If the label is rarely visible (tub turned away / covered): lower `--min-inliers 8`, or use the box fallback `python3 scripts/track_tub.py --mode box --select`, or edit keyframes by hand in `tubTrack.ts`.
+Use `--ref some-photo.png` if your real tub looks different from `public/tub.png`. The outline stays on screen until `TIMELINE.intro.outline.fadeEnd`.
 
 Props (Studio): `preview`, `syncOffsetFrames` (default **-2**, added to every event), `hudPosition` (`top`|`bottom`),
 `mapTextColor` (`gold` = current map look, `red` = #FF2A2A), `sfxVolume`.
