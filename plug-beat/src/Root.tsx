@@ -14,6 +14,8 @@ import {
 	type MapProps,
 } from './MapSegment';
 import {INTRO, MAP_CANVAS, SLAM} from './mapConfig';
+import {Video1Overlay, video1CalculateMetadata, video1Defaults, video1Schema} from './video1/Video1Overlay';
+import {FPS, TOTAL_FRAMES} from './video1/timeline';
 import {CANVAS} from './theme';
 
 const MapIntro: React.FC<MapProps> = (p) => <MapSegment {...p} slam={0} />;
@@ -42,6 +44,19 @@ export const RemotionRoot: React.FC = () => {
 				schema={plugBeatSchema}
 				defaultProps={plugBeatDefaults}
 				calculateMetadata={calculateMetadata}
+			/>
+
+			{/* Master overlay synced to the voiceover of public/source.mp4 (56 s). Timings: src/video1/timeline.ts */}
+			<Composition
+				id="Video1Overlay"
+				component={Video1Overlay}
+				durationInFrames={TOTAL_FRAMES}
+				fps={FPS}
+				width={1080}
+				height={1920}
+				schema={video1Schema}
+				defaultProps={video1Defaults}
+				calculateMetadata={video1CalculateMetadata}
 			/>
 
 			{/* Liquid-glass map overlay: 4 transparent segments to cut between footage */}

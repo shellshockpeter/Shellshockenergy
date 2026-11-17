@@ -5,3 +5,7 @@ dist
 
 # Ignore the output video from Git but not videos you import into src/.
 out
+
+# your voiceover footage (large, stays local)
+public/source.mp4
+public/source-*.mp4

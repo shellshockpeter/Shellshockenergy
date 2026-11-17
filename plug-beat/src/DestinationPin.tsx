@@ -1,8 +1,8 @@
 import React from 'react';
 import {Easing, interpolate, spring, useVideoConfig} from 'remotion';
-import {NeonText} from './NeonText';
+import {NeonText, useNeonPalette} from './NeonText';
 import {BODY_FONT, DISPLAY_FONT} from './theme';
-import {LOOP, MAP_COLORS, textA, gold, goldWarm, type Stop} from './mapConfig';
+import {LOOP, MAP_COLORS, gold, goldWarm, type Stop} from './mapConfig';
 
 /* ------------------------------------------------------------------ */
 /* Shared pin state logic                                              */
@@ -156,6 +156,7 @@ export const DestinationPin: React.FC<PinProps> = ({
 	boost,
 }) => {
 	const {fps} = useVideoConfig();
+	const neon = useNeonPalette();
 	const a = resolve(state, slamFrame);
 	const sf = a.sf;
 
@@ -312,10 +313,10 @@ export const DestinationPin: React.FC<PinProps> = ({
 						style={{
 							transform: `rotate(-4deg) scale(${tagScale})`,
 							opacity: tagOpacity,
-							border: `2px solid ${MAP_COLORS.text}`,
+							border: `2px solid ${neon.core}`,
 							borderRadius: 7,
 							padding: '5px 10px 4px',
-							boxShadow: `0 0 10px ${textA(0.8)}, inset 0 0 8px ${textA(0.45)}`,
+							boxShadow: `0 0 10px rgba(${neon.rgb}, 0.8), inset 0 0 8px rgba(${neon.rgb}, 0.45)`,
 							fontFamily: BODY_FONT,
 						}}
 					>
