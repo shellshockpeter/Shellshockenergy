@@ -128,6 +128,8 @@ npm run render:overlay     # out/video1-overlay.mov  (graphics only, ProRes 4444
 npm run sync-report        # rewrites sync-report.md (every event: time, frame after offset, spoken word)
 ```
 
+First 6 s: golden neon outline around the tub ("this product"), then a red neon `$0 -> $200` counter that pixelates, cracks and crumbles. ⚠ The times in `TIMELINE.intro` are PLACEHOLDERS: set them to your real word times. Drag `tubX / tubY / tubW / tubRotate` in Studio to fit the outline onto the tub in your footage (outline shape comes from `public/tub.png`, regenerate with `scripts/trace_tub.py`).
+
 Props (Studio): `preview`, `syncOffsetFrames` (default **-2**, added to every event), `hudPosition` (`top`|`bottom`),
 `mapTextColor` (`gold` = current map look, `red` = #FF2A2A), `sfxVolume`.
 

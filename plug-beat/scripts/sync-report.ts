@@ -30,6 +30,16 @@ const rows: string[][] = [];
 const row = (section: string, event: string, sec: number, frame: number, word: string) =>
 	rows.push([section, event, sec.toFixed(2), String(frame), `${(frame / FPS).toFixed(3)}`, word]);
 
+/* ---- first 6 seconds (PLACEHOLDER times) ---- */
+row('Intro', 'golden neon outline draws around the tub', TIMELINE.intro.thisProduct, T.intro.thisProduct, '"this product"  (⚠ placeholder time)');
+row('Intro', 'outline fades out', TIMELINE.intro.outline.fadeStart, T.intro.outlineFadeStart, '—');
+row('Intro', 'red counter appears, counts $0 → $200', TIMELINE.intro.cost.start, T.intro.costStart, '"costing you 200 dollars"  (⚠ placeholder time)');
+row('Intro', '$200 reached', TIMELINE.intro.cost.countEnd, T.intro.countEnd, '"200 dollars"');
+row('Intro', '$200 pixelates', TIMELINE.intro.cost.pixelStart, T.intro.pixelStart, '—');
+row('Intro', 'cracks spread', TIMELINE.intro.cost.crackStart, T.intro.crackStart, '—');
+row('Intro', 'crumbles away', TIMELINE.intro.cost.crumbleStart, T.intro.crumbleStart, '—');
+row('Intro', 'intro graphics end', TIMELINE.intro.cost.end, T.intro.end, '—');
+
 /* ---- map intro ---- */
 row('Map', 'intro starts (spin-in)', TIMELINE.map.introStart, T.map.introStart, 'lead-in to "three different locations"');
 const dropWords = ['"three"', '"different"', '"locations"'];

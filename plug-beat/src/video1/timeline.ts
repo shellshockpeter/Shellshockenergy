@@ -92,6 +92,25 @@ export type BoardTile = {
 /* THE TIMELINE (seconds)                                              */
 /* ------------------------------------------------------------------ */
 export const TIMELINE = {
+	/**
+	 * FIRST 6 SECONDS: "...not buying this product..." / "...costing you 200 dollars".
+	 * ⚠ PLACEHOLDER TIMES — set these to the real spoken-word times (source-video seconds).
+	 */
+	intro: {
+		/** the words "this product": a golden neon outline draws itself around the tub */
+		thisProduct: 1.4,
+		outline: {fadeStart: 2.9, fadeEnd: 3.2},
+		/** "costing you 200 dollars": red neon counter appears and counts $0 -> $200 */
+		cost: {
+			start: 3.0,
+			countEnd: 3.9, // reaches $200 (counts "quickly")
+			pixelStart: 4.2, // $200 turns into big pixels
+			crackStart: 4.6, // cracks spread
+			crumbleStart: 5.1, // it crumbles away
+			end: 6.0,
+		},
+	},
+
 	/** Map intro: "three different locations" */
 	map: {
 		introStart: 10.4,
@@ -212,6 +231,17 @@ export const resolveTimeline = (offset: number = DEFAULT_SYNC_OFFSET_FRAMES) => 
 
 	return {
 		offset,
+		intro: {
+			thisProduct: fr(T.intro.thisProduct),
+			outlineFadeStart: fr(T.intro.outline.fadeStart),
+			outlineFadeEnd: fr(T.intro.outline.fadeEnd),
+			costStart: fr(T.intro.cost.start),
+			countEnd: fr(T.intro.cost.countEnd),
+			pixelStart: fr(T.intro.cost.pixelStart),
+			crackStart: fr(T.intro.cost.crackStart),
+			crumbleStart: fr(T.intro.cost.crumbleStart),
+			end: fr(T.intro.cost.end),
+		},
 		map: {
 			introStart: fr(T.map.introStart),
 			spinFrames: Math.round(T.map.spinSeconds * FPS),

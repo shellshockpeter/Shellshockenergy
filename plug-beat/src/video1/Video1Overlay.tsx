@@ -6,10 +6,12 @@ import {SLAM} from '../mapConfig';
 import {MapSegment, mapDefaults} from '../MapSegment';
 import {NeonPaletteProvider} from '../NeonText';
 import {fileExists, detectSfx} from '../sfx';
+import {CostBreak} from './CostBreak';
 import {DollarCounter} from './DollarCounter';
 import {MapIntroScene} from './MapIntroScene';
 import {NineBoard, revealStartFrame, tileStartFrames} from './NineBoard';
 import {PickupChip} from './PickupChip';
+import {TubOutline} from './TubOutline';
 import {getVideoMetadata} from '@remotion/media-utils';
 import {BOARD_REVEAL, FPS, TIMELINE, TOTAL_FRAMES, DEFAULT_SYNC_OFFSET_FRAMES, VIDEO_IS_ALREADY_TRIMMED, keptRanges, resolveTimeline, toOutputSeconds, validateTimeline} from './timeline';
 
@@ -25,6 +27,11 @@ export const video1Schema = z.object({
 	/** colour of the map's neon text (labels, title, DONE stamps). gold = current map look. */
 	mapTextColor: z.enum(['gold', 'red']),
 	sfxVolume: z.number().min(0).max(1),
+	/** where the tub is in YOUR footage (1080x1920 frame): centre x/y, width of the outline, tilt in degrees */
+	tubX: z.number(),
+	tubY: z.number(),
+	tubW: z.number(),
+	tubRotate: z.number(),
 	/** Auto-detected from public/ — leave as-is. */
 	sfx: z.object({whoosh: z.boolean(), thud: z.boolean(), tick: z.boolean(), stamp: z.boolean()}),
 	/** file in public/ used as the background video. Leave empty to auto-detect (see SOURCE_CANDIDATES). */
@@ -39,6 +46,10 @@ export const video1Defaults: Video1Props = {
 	hudPosition: 'top',
 	mapTextColor: 'gold',
 	sfxVolume: 0.8,
+	tubX: 540,
+	tubY: 1150,
+	tubW: 420,
+	tubRotate: 0,
 	sfx: {whoosh: false, thud: false, tick: false, stamp: false},
 	sourceFile: '',
 	hasSource: false,
@@ -104,7 +115,7 @@ const SlamFade: React.FC<{fadeIn: number; fadeOut: number; children: React.React
 /* ------------------------------------------------------------------ */
 /* The master composition                                              */
 /* ------------------------------------------------------------------ */
-export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames, hudPosition, mapTextColor, sfxVolume, sfx, sourceFile, hasSource}) => {
+export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames, hudPosition, mapTextColor, sfxVolume, tubX, tubY, tubW, tubRotate, sfx, sourceFile, hasSource}) => {
 	const T = resolveTimeline(syncOffsetFrames);
 	const tiles = tileStartFrames(T);
 
@@ -139,6 +150,10 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 
 			{/* ALL graphics live in this layer, always above the video (zIndex 1 vs 0) */}
 			<AbsoluteFill style={{zIndex: 1}}>
+			{/* ---- 0. first 6 s: golden outline around the tub, then the red $0 -> $200 counter that cracks and crumbles ---- */}
+			<TubOutline timeline={T} x={tubX} y={tubY} width={tubW} rotate={tubRotate} />
+			<CostBreak timeline={T} />
+
 			{/* ---- 1. map entrance: "three different locations" ---- */}
 			<NeonPaletteProvider palette={mapTextColor}>
 				<Sequence name="Map intro" from={T.map.introStart} durationInFrames={T.map.exitEnd - T.map.introStart + 1}>
@@ -173,6 +188,36 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 			<DollarCounter timeline={T} position={hudPosition} />
 
 			{/* ---- sound: mounted only if the file exists ---- */}
+			{sfx.whoosh ? (
+				<Sequence name="SFX tub outline" from={T.intro.thisProduct} durationInFrames={40}>
+					<Audio src={staticFile(SFX_FILES.whoosh)} volume={sfxVolume * 0.6} />
+				</Sequence>
+			) : null}
+			{sfx.tick
+				? Array.from({length: Math.max(0, Math.floor((T.intro.countEnd - T.intro.costStart) / 2))}, (_, i) => (
+						<Sequence key={`cnt${i}`} name={`SFX count tick ${i + 1}`} from={T.intro.costStart + i * 2} durationInFrames={6}>
+							<Audio src={staticFile(SFX_FILES.tick)} volume={sfxVolume} />
+						</Sequence>
+					))
+				: null}
+			{sfx.stamp ? (
+				<Sequence name="SFX $200 reached" from={T.intro.countEnd} durationInFrames={30}>
+					<Audio src={staticFile(SFX_FILES.stamp)} volume={sfxVolume} />
+				</Sequence>
+			) : null}
+			{sfx.thud ? (
+				<>
+					<Sequence name="SFX pixelate" from={T.intro.pixelStart} durationInFrames={20}>
+						<Audio src={staticFile(SFX_FILES.thud)} volume={sfxVolume * 0.7} />
+					</Sequence>
+					<Sequence name="SFX cracks" from={T.intro.crackStart} durationInFrames={20}>
+						<Audio src={staticFile(SFX_FILES.thud)} volume={sfxVolume} />
+					</Sequence>
+					<Sequence name="SFX crumble" from={T.intro.crumbleStart} durationInFrames={24}>
+						<Audio src={staticFile(SFX_FILES.thud)} volume={sfxVolume} />
+					</Sequence>
+				</>
+			) : null}
 			{sfx.whoosh ? (
 				<Sequence name="SFX whoosh" from={T.map.introStart} durationInFrames={60}>
 					<Audio src={staticFile(SFX_FILES.whoosh)} volume={sfxVolume} />
