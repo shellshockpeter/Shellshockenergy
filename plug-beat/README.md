@@ -137,6 +137,7 @@ names at the marked "ADD LATER" spots — nothing else changes. Lion's Mane's `3
 Notes
 - Render scale: use `--scale=1.3333333333333333` (the script does). `1.3333333` gives 2559.999936 px and the encoder refuses it.
 - ProRes 4444 at 1440×2560 is big (~3.4 MB/frame ≈ 5–6 GB for the full 56 s). Render `--frames=a-b` for a section if needed.
+- Map slams in the master: slam 1 impact at 40.96 s ("stop"), slam 2 (CVS, pin 2 done) impact at 50.00 s ("5th ingredient was secured"). A board pop-up that would land on top of a map slam waits until the slam ends.
 - The counter glides to the bottom while a map slam is on screen (`hud.avoidMapSlams` in the timeline) so it never covers the pin.
 - Board: all 9 tiles are blurred "???". When a pickup is found the board pops back up for ~1.4 s, that tile reveals and STAYS uncovered (✓), and every earlier find is already uncovered (`TIMELINE.board.revealOnPickup`, timing in `BOARD_REVEAL`). Set a tile's `revealed: true` in `BOARD_TILES` to un-blur it permanently.
 - Chips start at `CHIP.defaultAt`; give a pickup its own `chipAt: {x, y}` to sit beside the real product / shelf tag.

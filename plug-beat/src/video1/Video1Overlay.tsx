@@ -6,9 +6,9 @@ import {SLAM} from '../mapConfig';
 import {MapSegment, mapDefaults} from '../MapSegment';
 import {NeonPaletteProvider} from '../NeonText';
 import {fileExists, detectSfx} from '../sfx';
-import {DollarCounter, hudTarget} from './DollarCounter';
+import {DollarCounter} from './DollarCounter';
 import {MapIntroScene} from './MapIntroScene';
-import {NineBoard, tileStartFrames} from './NineBoard';
+import {NineBoard, revealStartFrame, tileStartFrames} from './NineBoard';
 import {PickupChip} from './PickupChip';
 import {getVideoMetadata} from '@remotion/media-utils';
 import {BOARD_REVEAL, FPS, TIMELINE, TOTAL_FRAMES, DEFAULT_SYNC_OFFSET_FRAMES, VIDEO_IS_ALREADY_TRIMMED, keptRanges, resolveTimeline, toOutputSeconds, validateTimeline} from './timeline';
@@ -106,7 +106,6 @@ const SlamFade: React.FC<{fadeIn: number; fadeOut: number; children: React.React
 /* ------------------------------------------------------------------ */
 export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames, hudPosition, mapTextColor, sfxVolume, sfx, sourceFile, hasSource}) => {
 	const T = resolveTimeline(syncOffsetFrames);
-	const target = hudTarget(hudPosition);
 	const tiles = tileStartFrames(T);
 
 	return (
@@ -167,7 +166,7 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 
 			{/* ---- 4. pickup chips ---- */}
 			{T.pickups.map((p) => (
-				<PickupChip key={p.id} pickup={p} target={target} />
+				<PickupChip key={p.id} pickup={p} timeline={T} position={hudPosition} />
 			))}
 
 			{/* ---- 3. persistent dollar counter (always on top) ---- */}
@@ -193,7 +192,7 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 						</Sequence>
 					))
 				: null}
-			{T.pickups.map((p) => (
+			{T.pickups.map((p, pi) => (
 				<React.Fragment key={`snd${p.id}`}>
 					{sfx.stamp ? (
 						<Sequence name={`SFX chip landing ${p.id}`} from={p.landFrame} durationInFrames={30}>
@@ -201,7 +200,7 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 						</Sequence>
 					) : null}
 					{sfx.tick && TIMELINE.board.revealOnPickup ? (
-						<Sequence name={`SFX tile reveal ${p.id}`} from={p.atFrame + BOARD_REVEAL.revealAt} durationInFrames={8}>
+						<Sequence name={`SFX tile reveal ${p.id}`} from={revealStartFrame(T, pi) + BOARD_REVEAL.revealAt} durationInFrames={8}>
 							<Audio src={staticFile(SFX_FILES.tick)} volume={sfxVolume} />
 						</Sequence>
 					) : null}

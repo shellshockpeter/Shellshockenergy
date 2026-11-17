@@ -154,9 +154,11 @@ export const TIMELINE = {
 		// segmentStart 39.96 -> impact 40.96 (the word "stop" in "first stop") -> ends 42.96
 		{slam: 1, segmentStart: 39.96},
 
+		// segmentStart 49.00 -> impact 50.00 (the words "5th ingredient was secured") -> ends 52.00. Pin 2 (CVS) slams.
+		{slam: 2, segmentStart: 49.0},
+
 		// ┌──────────────────────────────────────────────────────────────────┐
 		// │  ADD LATER:                                                      │
-		// │  {slam: 2, segmentStart: 0},   // CVS                            │
 		// │  {slam: 3, segmentStart: 0},   // Vitamin Shoppe                 │
 		// └──────────────────────────────────────────────────────────────────┘
 	] as {slam: 1 | 2 | 3; segmentStart: number}[],

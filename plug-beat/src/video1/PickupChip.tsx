@@ -2,25 +2,28 @@ import React from 'react';
 import {Easing, interpolate, spring, useCurrentFrame, useVideoConfig} from 'remotion';
 import {NeonText} from '../NeonText';
 import {LiquidGlass} from './LiquidGlass';
+import {hudTargetAt} from './DollarCounter';
 import {CHIP, type ResolvedTimeline} from './timeline';
 
 type Props = {
 	pickup: ResolvedTimeline['pickups'][number];
-	/** where the chip flies to (centre of the counter amount) */
-	target: {x: number; y: number};
+	timeline: ResolvedTimeline;
+	position: 'top' | 'bottom';
 };
 
 /**
  * "+$13.79 L-TYROSINE" chip. Pops near the product at the pickup frame, then flies up to the
  * counter and lands at pickup + 0.5 s (the moment the counter starts rolling). Global frame.
  */
-export const PickupChip: React.FC<Props> = ({pickup, target}) => {
+export const PickupChip: React.FC<Props> = ({pickup, timeline, position}) => {
 	const frame = useCurrentFrame();
 	const {fps} = useVideoConfig();
 	const k = frame - pickup.atFrame;
 	if (k < 0 || k >= CHIP.landFrames) return null;
 
 	const origin = pickup.chipAt ?? CHIP.defaultAt;
+	// fly to the counter's CURRENT position (it glides to the bottom during map slams)
+	const target = hudTargetAt(position, timeline, frame);
 	const pop = spring({frame: k, fps, config: {damping: 10, stiffness: 260, mass: 0.5}, durationInFrames: CHIP.popFrames});
 	const t = interpolate(k, [CHIP.popFrames, CHIP.popFrames + CHIP.flightFrames], [0, 1], {
 		extrapolateLeft: 'clamp',

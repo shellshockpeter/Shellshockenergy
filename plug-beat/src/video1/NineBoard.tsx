@@ -238,6 +238,16 @@ type Appearance = {
 	revealAt?: number;
 };
 
+/**
+ * Frame the board pop-up for pickup `i` starts at. Normally the pickup frame, but if a map slam is on screen
+ * then, the pop-up waits until the slam ends so the two big panels never stack.
+ */
+export const revealStartFrame = (t: ResolvedTimeline, i: number): number => {
+	const at = t.pickups[i].atFrame;
+	const clash = t.mapSlams.find((m) => at < m.end && at + BOARD_REVEAL.exitEnd > m.start);
+	return clash ? Math.max(at, clash.end) : at;
+};
+
 /** The intro board plus (optionally) one brief pop-up per found ingredient. */
 export const boardAppearances = (t: ResolvedTimeline): Appearance[] => {
 	const list: Appearance[] = [
@@ -247,11 +257,11 @@ export const boardAppearances = (t: ResolvedTimeline): Appearance[] => {
 		t.pickups.forEach((p, i) =>
 			list.push({
 				kind: 'reveal',
-				enterStart: p.atFrame,
-				exitStart: p.atFrame + BOARD_REVEAL.exitStart,
-				exitEnd: p.atFrame + BOARD_REVEAL.exitEnd,
+				enterStart: revealStartFrame(t, i),
+				exitStart: revealStartFrame(t, i) + BOARD_REVEAL.exitStart,
+				exitEnd: revealStartFrame(t, i) + BOARD_REVEAL.exitEnd,
 				pickupIndex: i,
-				revealAt: p.atFrame + BOARD_REVEAL.revealAt,
+				revealAt: revealStartFrame(t, i) + BOARD_REVEAL.revealAt,
 			}),
 		);
 	}

@@ -6,6 +6,7 @@
  *   npx tsx scripts/sync-report.ts -3        # try another offset
  */
 import {writeFileSync} from 'node:fs';
+import {revealStartFrame} from '../src/video1/NineBoard';
 import path from 'node:path';
 import {
 	BOARD_REVEAL,
@@ -60,7 +61,8 @@ row('HUD', 'cash-drain emphasis ends', TIMELINE.hud.cashDrainEmphasis.end, T.hud
 for (const p of T.pickups) {
 	row('Pickup', `${p.id}. ${p.name} chip pops (+$${p.price.toFixed(2)})`, p.at, p.atFrame, `pick-up on camera${p.note ? ` (${p.note})` : ''} — spoken word not specified in the brief`);
 	if (TIMELINE.board.revealOnPickup) {
-		row('Pickup', `${p.id}. board pops back up, tile ${p.id} reveals`, p.at + BOARD_REVEAL.revealAt / FPS, p.atFrame + BOARD_REVEAL.revealAt, `reveals ${p.name} and keeps it uncovered (earlier finds stay uncovered too)`);
+		const rf = revealStartFrame(T, p.id - 1) + BOARD_REVEAL.revealAt;
+		row('Pickup', `${p.id}. board pops back up, tile ${p.id} reveals${rf !== p.atFrame + BOARD_REVEAL.revealAt ? ' (deferred until the map slam ends)' : ''}`, p.at + (rf - p.atFrame) / FPS, rf, `reveals ${p.name} and keeps it uncovered (earlier finds stay uncovered too)`);
 	}
 	row('Pickup', `${p.id}. chip lands → counter rolls to $${p.totalAfter.toFixed(2)}`, p.at + CHIP.landFrames / FPS, p.landFrame, `+0.5 s after the pick-up`);
 }
@@ -70,7 +72,7 @@ row('HUD', 'total glow pulse', TIMELINE.totalPulse, T.totalPulse, '"seventy one 
 T.mapSlams.forEach((m, i) => {
 	const src = TIMELINE.mapSlams[i];
 	row('Map slam', `slam ${m.slam} segment starts`, src.segmentStart, m.start, 'lead-in');
-	row('Map slam', `slam ${m.slam} IMPACT (frame 30 of the segment)`, src.segmentStart + 1, m.impact, m.slam === 1 ? '"stop" in "first stop"' : '(see transcript)');
+	row('Map slam', `slam ${m.slam} IMPACT (frame 30 of the segment)`, src.segmentStart + 1, m.impact, m.slam === 1 ? '"stop" in "first stop"' : m.slam === 2 ? '"5th ingredient was secured"' : '(see transcript)');
 	row('Map slam', `slam ${m.slam} segment ends`, src.segmentStart + 3, m.end, '—');
 });
 

@@ -18,6 +18,24 @@ export const hudTarget = (position: 'top' | 'bottom') => ({
 
 const clamp = {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'} as const;
 
+/** Top edge (px) of the counter at `frame`: it glides to the bottom while a map slam is on screen (if enabled). */
+export const hudTopAt = (position: 'top' | 'bottom', timeline: ResolvedTimeline, frame: number): number => {
+	if (position === 'bottom') return HUD_BOTTOM_TOP;
+	let avoid = 0;
+	if (timeline.hud.avoidMapSlams) {
+		for (const m of timeline.mapSlams) {
+			avoid = Math.max(avoid, interpolate(frame, [m.start - 8, m.start, m.end, m.end + 8], [0, 1, 1, 0], clamp));
+		}
+	}
+	return HUD_TOP + (HUD_BOTTOM_TOP - HUD_TOP) * Easing.inOut(Easing.cubic)(avoid);
+};
+
+/** Where pickup chips land: the centre of the big amount, wherever the counter is right now. */
+export const hudTargetAt = (position: 'top' | 'bottom', timeline: ResolvedTimeline, frame: number) => ({
+	x: 540,
+	y: hudTopAt(position, timeline, frame) + 60,
+});
+
 /* ---- gold digit styling (gradient per glyph; glow is applied on the container so overflow can't clip it) ---- */
 const GOLD_TEXT: React.CSSProperties = {
 	background: 'linear-gradient(180deg, #FFE766 0%, #FFD60A 34%, #FFC400 68%, #FFAE00 100%)',
@@ -123,14 +141,7 @@ export const DollarCounter: React.FC<{timeline: ResolvedTimeline; position: 'top
 		opacity: interpolate(ease, [0, 1], [ch0 === ' ' ? 0 : 1, ch1 === ' ' ? 0 : 1]),
 	});
 
-	// While a map slam segment is on screen the counter glides to the bottom safe zone so it never hides the slamming pin.
-	let avoid = 0;
-	if (position === 'top' && hud.avoidMapSlams) {
-		for (const m of timeline.mapSlams) {
-			avoid = Math.max(avoid, interpolate(frame, [m.start - 8, m.start, m.end, m.end + 8], [0, 1, 1, 0], clamp));
-		}
-	}
-	const top = position === 'top' ? HUD_TOP + (HUD_BOTTOM_TOP - HUD_TOP) * Easing.inOut(Easing.cubic)(avoid) : HUD_BOTTOM_TOP;
+	const top = hudTopAt(position, timeline, frame);
 
 	return (
 		<div
