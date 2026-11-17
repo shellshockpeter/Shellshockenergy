@@ -51,7 +51,7 @@
     "render:overlay": "remotion render Video1Overlay out/video1-overlay.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png --scale=1.3333333333333333 --props=./video1.overlay.props.json",
     "render:preview": "remotion render Video1Overlay out/video1-preview.mp4 --codec=h264 --crf=18 --props=./video1.preview.props.json",
     "sync-report": "tsx scripts/sync-report.ts",
-    "track-tub": "python3 scripts/track_tub.py"
+    "track-tub": "bash scripts/track_tub.sh"
   },
   "allowScripts": {
     "esbuild": false

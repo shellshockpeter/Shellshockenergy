@@ -130,11 +130,13 @@ npm run sync-report        # rewrites sync-report.md (every event: time, frame a
 
 First 6 s: golden neon outline around the tub ("this product"), then a red neon `$0 -> $200` counter that pixelates, cracks and crumbles. ⚠ The times in `TIMELINE.intro` are PLACEHOLDERS: set them to your real word times. Drag `tubX / tubY / tubW / tubRotate` in Studio to fit the outline onto the tub in your footage (outline shape comes from `public/tub.png`, regenerate with `scripts/trace_tub.py`).
 
-**Locking the outline to the tub:** the outline reads per-frame keyframes from `src/video1/tubTrack.ts`. The tracker finds your tub's printed label (turtle logo, SHELLSHOCK text) in every frame and warps the outline onto the tub's real pose (position, rotation, perspective). No box and no clicking:
+**Locking the outline to the tub:** the outline reads per-frame keyframes from `src/video1/tubTrack.ts`. Until that file has data, Studio's `showTubGuide` says "static (no track)" and the outline sits at a fixed spot. One command fills it in (it sets up its own Python environment the first time):
 ```bash
-pip install opencv-contrib-python numpy
-python3 scripts/track_tub.py --start 1.0 --end 6.0 --debug
+npm run track-tub                          # tracks 1.0s-6.0s of your video
+npm run track-tub -- --start 1 --end 8     # any scripts/track_tub.py option goes after the --
 ```
+The tracker finds your tub's printed label (turtle logo, SHELLSHOCK text) in every frame and warps the outline onto the tub's real pose (position, rotation, perspective). No box and no clicking.
+
 The tracker detects **mirrored (selfie-camera) footage** by itself (`--mirror auto`) and prints which it found.
 1. Look at the frames in `out/track-debug/` (green outline = found, red "NOT FOUND" = gaps, which are filled in from the neighbours). If most are good, you're done.
 2. In Studio turn on the `showTubGuide` prop (green outline follows the tub on every frame) and scrub to double-check.

@@ -15,3 +15,5 @@ public/*.mov
 
 __pycache__/
 *.pyc
+.venv-track/
+out/track-debug/
