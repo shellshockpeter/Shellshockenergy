@@ -8,6 +8,7 @@
 import {writeFileSync} from 'node:fs';
 import path from 'node:path';
 import {
+	BOARD_REVEAL,
 	BOARD_TILES,
 	BUDGET,
 	CHIP,
@@ -38,11 +39,11 @@ row('Map', 'exit starts', TIMELINE.map.exit.start, T.map.exitStart, 'hand-off to
 row('Map', 'exit ends', TIMELINE.map.exit.end, T.map.exitEnd, '—');
 
 /* ---- board ---- */
-row('Board', 'card + tile 1 pop', TIMELINE.board.firstTilePop, T.board.firstTilePop, '"nine"');
+row('Board', 'card + tile 1 pop (all 9 tiles blurred)', TIMELINE.board.firstTilePop, T.board.firstTilePop, '"nine"');
 BOARD_TILES.forEach((tile, i) => {
 	if (i === 0) return;
 	const f = T.board.firstTilePop + i * T.board.tileStagger;
-	row('Board', `tile ${i + 1} pops (${tile.name ?? '???'})`, TIMELINE.board.firstTilePop + i * TIMELINE.board.tileStagger, Math.round(f), `+${(i * TIMELINE.board.tileStagger).toFixed(2)} s stagger`);
+	row('Board', `tile ${i + 1} pops (${tile.revealed && tile.name ? tile.name : '??? blurred'})`, TIMELINE.board.firstTilePop + i * TIMELINE.board.tileStagger, Math.round(f), `+${(i * TIMELINE.board.tileStagger).toFixed(2)} s stagger`);
 });
 row('Board', 'final pulse + "9" badge', TIMELINE.board.finalPulse, T.board.finalPulse, '"ingredients"');
 row('Board', 'exit starts', TIMELINE.board.exit.start, T.board.exitStart, '—');
@@ -56,6 +57,9 @@ row('HUD', 'cash-drain emphasis ends', TIMELINE.hud.cashDrainEmphasis.end, T.hud
 /* ---- pickups ---- */
 for (const p of T.pickups) {
 	row('Pickup', `${p.id}. ${p.name} chip pops (+$${p.price.toFixed(2)})`, p.at, p.atFrame, `pick-up on camera${p.note ? ` (${p.note})` : ''} — spoken word not specified in the brief`);
+	if (TIMELINE.board.revealOnPickup) {
+		row('Pickup', `${p.id}. board pops back up, tile ${p.id} reveals`, p.at + BOARD_REVEAL.revealAt / FPS, p.atFrame + BOARD_REVEAL.revealAt, `reveals ${p.name}, blurs again by +${BOARD_REVEAL.unrevealAt + BOARD_REVEAL.unrevealRamp} frames`);
+	}
 	row('Pickup', `${p.id}. chip lands → counter rolls to $${p.totalAfter.toFixed(2)}`, p.at + CHIP.landFrames / FPS, p.landFrame, `+0.5 s after the pick-up`);
 }
 row('HUD', 'total glow pulse', TIMELINE.totalPulse, T.totalPulse, '"seventy one dollars"');

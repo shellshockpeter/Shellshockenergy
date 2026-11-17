@@ -10,7 +10,7 @@ import {DollarCounter, hudTarget} from './DollarCounter';
 import {MapIntroScene} from './MapIntroScene';
 import {NineBoard, tileStartFrames} from './NineBoard';
 import {PickupChip} from './PickupChip';
-import {TOTAL_FRAMES, DEFAULT_SYNC_OFFSET_FRAMES, resolveTimeline, validateTimeline} from './timeline';
+import {BOARD_REVEAL, TIMELINE, TOTAL_FRAMES, DEFAULT_SYNC_OFFSET_FRAMES, resolveTimeline, validateTimeline} from './timeline';
 
 /* ------------------------------------------------------------------ */
 /* Props                                                               */
@@ -152,6 +152,11 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 					{sfx.stamp ? (
 						<Sequence name={`SFX chip landing ${p.id}`} from={p.landFrame} durationInFrames={30}>
 							<Audio src={staticFile(SFX_FILES.stamp)} volume={sfxVolume} />
+						</Sequence>
+					) : null}
+					{sfx.tick && TIMELINE.board.revealOnPickup ? (
+						<Sequence name={`SFX tile reveal ${p.id}`} from={p.atFrame + BOARD_REVEAL.revealAt} durationInFrames={8}>
+							<Audio src={staticFile(SFX_FILES.tick)} volume={sfxVolume} />
 						</Sequence>
 					) : null}
 					{sfx.tick ? (

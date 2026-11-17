@@ -4,7 +4,7 @@ import {NeonText} from '../NeonText';
 import {BODY_FONT, DISPLAY_FONT} from '../theme';
 import {useFitFontSize} from '../useFitFontSize';
 import {LiquidGlass} from './LiquidGlass';
-import {BOARD_TILES, BUDGET, type BoardTile, type ResolvedTimeline, type TileIcon} from './timeline';
+import {BOARD_REVEAL, BOARD_TILES, BUDGET, TIMELINE, type BoardTile, type ResolvedTimeline, type TileIcon} from './timeline';
 
 const CARD_W = 900;
 const PAD = 28;
@@ -111,18 +111,30 @@ const Icon: React.FC<{icon: TileIcon; size: number; opacity?: number}> = ({icon,
 /* ------------------------------------------------------------------ */
 /* One tile                                                            */
 /* ------------------------------------------------------------------ */
-const Tile: React.FC<{tile: BoardTile; index: number; frame: number; startFrame: number}> = ({tile, index, frame, startFrame}) => {
+const Tile: React.FC<{
+	tile: BoardTile;
+	index: number;
+	frame: number;
+	startFrame: number;
+	/** 0 = blurred "???", 1 = revealed (name + icon in full gold glow) */
+	reveal: number;
+	/** name to show when revealed if the tile config has none (pickup name) */
+	fallbackName: string;
+}> = ({tile, index, frame, startFrame, reveal, fallbackName}) => {
 	const {fps} = useVideoConfig();
-	const mystery = !tile.name;
+	const r = tile.revealed && tile.name ? 1 : reveal;
+	const name = tile.name ?? fallbackName;
 	const p = spring({frame: frame - startFrame, fps, config: {damping: 8, stiffness: 220, mass: 0.55}});
 	const scale = 0.6 + 0.4 * p; // overshoots past 1 then settles
 	const opacity = interpolate(frame - startFrame, [0, 2.5], [0, 1], clamp);
-	const nameSize = useFitFontSize({text: tile.name ?? '???', fontFamily: DISPLAY_FONT, maxWidth: TILE_W - 40, maxFontSize: 26, minFontSize: 14});
+	const nameSize = useFitFontSize({text: name, fontFamily: DISPLAY_FONT, maxWidth: TILE_W - 40, maxFontSize: 26, minFontSize: 14});
 	const shimmerX = ((frame * 2.6) % 520) - 140;
+	// found-tile pop: swells while revealed
+	const pop = 1 + 0.09 * Math.sin(Math.min(1, r) * Math.PI * 0.5) * (r > 0 && !tile.revealed ? 1 : 0);
 
 	return (
-		<div style={{width: TILE_W, height: TILE_H, opacity, transform: `scale(${scale})`}}>
-			<LiquidGlass width={TILE_W} height={TILE_H} radius={26} gold={mystery ? 0.12 : 1} pulse={mystery ? 0 : 0.12}>
+		<div style={{width: TILE_W, height: TILE_H, opacity, transform: `scale(${scale * pop})`, position: 'relative', zIndex: r > 0 && !tile.revealed ? 2 : 0}}>
+			<LiquidGlass width={TILE_W} height={TILE_H} radius={26} gold={0.12 + 0.88 * r} pulse={0.1 + 0.55 * r}>
 				{/* number badge */}
 				<div
 					style={{
@@ -140,15 +152,16 @@ const Tile: React.FC<{tile: BoardTile; index: number; frame: number; startFrame:
 						fontFamily: DISPLAY_FONT,
 						fontSize: 24,
 						color: '#120D00',
-						opacity: mystery ? 0.55 : 1,
+						opacity: 0.55 + 0.45 * r,
+						zIndex: 3,
 					}}
 				>
 					{index + 1}
 				</div>
 
-				{mystery ? (
-					<>
-						{/* blurred "mystery" content + slow shimmer */}
+				{/* blurred mystery layer (fades out as the tile reveals) */}
+				{r < 1 ? (
+					<div style={{position: 'absolute', inset: 0, opacity: 1 - r}}>
 						<div style={{position: 'absolute', left: 0, right: 0, top: 30, display: 'flex', justifyContent: 'center', filter: 'blur(9px)', opacity: 0.7}}>
 							<Icon icon={tile.icon} size={84} />
 						</div>
@@ -169,15 +182,18 @@ const Tile: React.FC<{tile: BoardTile; index: number; frame: number; startFrame:
 								background: 'linear-gradient(90deg, rgba(255,255,255,0), rgba(255,236,160,0.28), rgba(255,255,255,0))',
 							}}
 						/>
-					</>
-				) : (
-					<>
+					</div>
+				) : null}
+
+				{/* revealed layer: un-blurs in, blurs back out */}
+				{r > 0 ? (
+					<div style={{position: 'absolute', inset: 0, opacity: r, filter: `blur(${(1 - r) * 9}px)`}}>
 						<div style={{position: 'absolute', left: 0, right: 0, top: 36, display: 'flex', justifyContent: 'center'}}>
 							<Icon icon={tile.icon} size={84} />
 						</div>
 						<div style={{position: 'absolute', left: 0, right: 0, bottom: tile.organic ? 40 : 28, textAlign: 'center'}}>
 							<NeonText size={nameSize} glow={0.9} palette="gold">
-								{tile.name}
+								{name}
 							</NeonText>
 						</div>
 						{tile.organic ? (
@@ -187,8 +203,8 @@ const Tile: React.FC<{tile: BoardTile; index: number; frame: number; startFrame:
 								</NeonText>
 							</div>
 						) : null}
-					</>
-				)}
+					</div>
+				) : null}
 			</LiquidGlass>
 		</div>
 	);
@@ -197,24 +213,68 @@ const Tile: React.FC<{tile: BoardTile; index: number; frame: number; startFrame:
 /* ------------------------------------------------------------------ */
 /* The board                                                           */
 /* ------------------------------------------------------------------ */
-/** Frames at which each tile pops (float), for the tick sounds. */
+/** Frames at which each tile pops in the intro (float), for the tick sounds. */
 export const tileStartFrames = (t: ResolvedTimeline) =>
 	BOARD_TILES.map((_, i) => t.board.firstTilePop + i * t.board.tileStagger);
+
+type Appearance = {
+	kind: 'intro' | 'reveal';
+	enterStart: number;
+	exitStart: number;
+	exitEnd: number;
+	/** pickup index (= tile index) revealed during this appearance */
+	pickupIndex?: number;
+	revealAt?: number;
+};
+
+/** The intro board plus (optionally) one brief pop-up per found ingredient. */
+export const boardAppearances = (t: ResolvedTimeline): Appearance[] => {
+	const list: Appearance[] = [
+		{kind: 'intro', enterStart: t.board.firstTilePop - 8, exitStart: t.board.exitStart, exitEnd: t.board.exitEnd},
+	];
+	if (TIMELINE.board.revealOnPickup) {
+		t.pickups.forEach((p, i) =>
+			list.push({
+				kind: 'reveal',
+				enterStart: p.atFrame,
+				exitStart: p.atFrame + BOARD_REVEAL.exitStart,
+				exitEnd: p.atFrame + BOARD_REVEAL.exitEnd,
+				pickupIndex: i,
+				revealAt: p.atFrame + BOARD_REVEAL.revealAt,
+			}),
+		);
+	}
+	return list;
+};
 
 export const NineBoard: React.FC<{timeline: ResolvedTimeline}> = ({timeline}) => {
 	const frame = useCurrentFrame();
 	const {fps} = useVideoConfig();
 	const {board} = timeline;
-	const enterStart = board.firstTilePop - 8;
-	if (frame < enterStart || frame > board.exitEnd) return null;
+	const cur = boardAppearances(timeline).find((a) => frame >= a.enterStart && frame <= a.exitEnd);
+	if (!cur) return null;
+	const intro = cur.kind === 'intro';
 
-	const enter = spring({frame: frame - enterStart, fps, config: {damping: 14, stiffness: 150, mass: 0.8}});
-	const exit = interpolate(frame, [board.exitStart, board.exitEnd], [0, 1], {...clamp, easing: Easing.in(Easing.cubic)});
+	const enter = spring({
+		frame: frame - cur.enterStart,
+		fps,
+		config: intro ? {damping: 14, stiffness: 150, mass: 0.8} : {damping: 13, stiffness: 230, mass: 0.65},
+	});
+	const exit = interpolate(frame, [cur.exitStart, cur.exitEnd], [0, 1], {...clamp, easing: Easing.in(Easing.cubic)});
 
-	const kp = frame - board.finalPulse;
+	// final pulse + "9" badge: intro only
+	const kp = intro ? frame - board.finalPulse : -1;
 	const env = kp >= 0 && kp < 22 ? Math.sin((kp / 22) * Math.PI) : 0;
 	const badge = spring({frame: kp, fps, config: {damping: 8, stiffness: 210, mass: 0.6}});
 	const flash = kp >= 0 ? Math.max(0, 1 - kp / 18) : 0;
+
+	// reveal pop-up: the found tile un-blurs, holds, blurs back
+	let reveal = 0;
+	if (!intro && cur.revealAt !== undefined) {
+		const f = frame - cur.revealAt;
+		const R = BOARD_REVEAL;
+		reveal = interpolate(f, [0, R.revealRamp, R.unrevealAt - R.revealAt, R.unrevealAt - R.revealAt + R.unrevealRamp], [0, 1, 1, 0], clamp);
+	}
 
 	const cardScale = (0.9 + 0.1 * enter) * (1 + 0.03 * env) * (1 - 0.18 * exit);
 	const starts = tileStartFrames(timeline);
@@ -227,7 +287,7 @@ export const NineBoard: React.FC<{timeline: ResolvedTimeline}> = ({timeline}) =>
 				top: (1920 - CARD_H) / 2,
 				width: CARD_W,
 				height: CARD_H,
-				opacity: interpolate(frame - enterStart, [0, 6], [0, 1], clamp) * (1 - exit),
+				opacity: interpolate(frame - cur.enterStart, [0, intro ? 6 : 4], [0, 1], clamp) * (1 - exit),
 				transform: `scale(${cardScale}) translateY(${exit * 22}px)`,
 			}}
 		>
@@ -260,7 +320,7 @@ export const NineBoard: React.FC<{timeline: ResolvedTimeline}> = ({timeline}) =>
 					</NeonText>
 				</div>
 
-				{/* 3x3 grid */}
+				{/* 3x3 grid: every tile is blurred; only the found one reveals */}
 				<div
 					style={{
 						position: 'absolute',
@@ -273,12 +333,20 @@ export const NineBoard: React.FC<{timeline: ResolvedTimeline}> = ({timeline}) =>
 					}}
 				>
 					{BOARD_TILES.map((tile, i) => (
-						<Tile key={i} tile={tile} index={i} frame={frame} startFrame={starts[i]} />
+						<Tile
+							key={i}
+							tile={tile}
+							index={i}
+							frame={frame}
+							startFrame={intro ? starts[i] : -1000}
+							reveal={cur.pickupIndex === i ? reveal : 0}
+							fallbackName={timeline.pickups[i]?.name ?? '???'}
+						/>
 					))}
 				</div>
 			</LiquidGlass>
 
-			{/* "9" badge flashes at the final pulse */}
+			{/* "9" badge flashes at the final pulse (intro only) */}
 			{kp >= 0 ? (
 				<div
 					style={{

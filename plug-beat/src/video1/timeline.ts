@@ -36,8 +36,10 @@ export type Pickup = {
 export type TileIcon = 'hex' | 'drop' | 'mushroom' | 'sun' | 'bolt' | 'wave' | 'triangle' | 'ring' | 'diamond';
 
 export type BoardTile = {
-	/** undefined = blurred "???" mystery tile. Set a name later to reveal it. */
+	/** shown only when this ingredient is found (briefly) — or permanently if `revealed` is true */
 	name?: string;
+	/** default false: the tile stays a blurred "???" on the board. Set true to un-blur it for good. */
+	revealed?: boolean;
 	icon: TileIcon;
 	/** off by default — nothing says "organic" unless you turn it on for a tile */
 	organic?: boolean;
@@ -63,6 +65,8 @@ export const TIMELINE = {
 		tileStagger: 0.08,
 		finalPulse: 13.8, // the word "ingredients"
 		exit: {start: 14.5, end: 14.8},
+		/** true: when an ingredient is found the board pops back up briefly, that tile reveals itself, then it blurs again and the board leaves */
+		revealOnPickup: true,
 	},
 
 	/** Persistent dollar counter */
@@ -115,14 +119,15 @@ export const TIMELINE = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Board tiles (order = pickup order). 5–9 stay mystery until named.    */
+/* Board tiles (order = pickup order). ALL tiles are blurred "???" on    */
+/* the board; a tile reveals itself briefly when its pickup is found.   */
 /* ------------------------------------------------------------------ */
 export const BOARD_TILES: BoardTile[] = [
 	{name: 'L-TYROSINE', icon: 'hex'},
 	{name: 'TAURINE', icon: 'drop'},
 	{name: 'CORDYCEPS', icon: 'mushroom'},
 	{name: "LION'S MANE", icon: 'sun'},
-	// Mystery tiles. To reveal later, give them a name, e.g. {name: 'CAFFEINE', icon: 'bolt'}
+	// Tiles 5-9: add a name now or later (e.g. {name: 'CAFFEINE', icon: 'bolt'}); if you leave it out, the pickup's own name is used on reveal.
 	{icon: 'bolt'}, // 5  CVS caffeine
 	{icon: 'wave'}, // 6  beta-alanine
 	{icon: 'triangle'}, // 7  citrulline
@@ -135,6 +140,8 @@ export const BOARD_TILES: BoardTile[] = [
 /* ------------------------------------------------------------------ */
 /** pop 0–5, fly 6–14, land at frame 15 (= pickup + 0.5 s). defaultAt = chip start; override per pickup with `chipAt` to sit beside the real product/tag. */
 export const CHIP = {popFrames: 6, flightFrames: 9, landFrames: 15, defaultAt: {x: 540, y: 1235}} as const;
+/** Brief board pop-up when an ingredient is found (frames relative to the pickup frame). */
+export const BOARD_REVEAL = {revealAt: 4, revealRamp: 5, unrevealAt: 26, unrevealRamp: 6, exitStart: 28, exitEnd: 36} as const;
 /** counter digit roll length (≈0.5 s) */
 export const ROLL_FRAMES = 15;
 
