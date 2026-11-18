@@ -11,7 +11,6 @@ import {DollarCounter} from './DollarCounter';
 import {MapIntroScene} from './MapIntroScene';
 import {NineBoard, tileStartFrames} from './NineBoard';
 import {PickupChip} from './PickupChip';
-import {TubGuide, TubOutline} from './TubOutline';
 import {getVideoMetadata} from '@remotion/media-utils';
 import {BOARD_REVEAL, FPS, revealStartFrame, TIMELINE, TOTAL_FRAMES, DEFAULT_SYNC_OFFSET_FRAMES, VIDEO_IS_ALREADY_TRIMMED, keptRanges, resolveTimeline, toOutputSeconds, validateTimeline} from './timeline';
 
@@ -27,15 +26,6 @@ export const video1Schema = z.object({
 	/** colour of the map's neon text (labels, title, DONE stamps). gold = current map look. */
 	mapTextColor: z.enum(['gold', 'red']),
 	sfxVolume: z.number().min(0).max(1),
-	/** where the tub is in YOUR footage (1080x1920 frame): centre x/y, width of the outline, tilt in degrees */
-	tubX: z.number(),
-	tubY: z.number(),
-	tubW: z.number(),
-	tubRotate: z.number(),
-	/** follow the keyframes in src/video1/tubTrack.ts (the static tub* props above are the fallback) */
-	useTubTrack: z.boolean(),
-	/** debug: draw the tracked tub box for the ENTIRE video so you can scrub and check the track */
-	showTubGuide: z.boolean(),
 	/** Auto-detected from public/ — leave as-is. */
 	sfx: z.object({whoosh: z.boolean(), thud: z.boolean(), tick: z.boolean(), stamp: z.boolean()}),
 	/** file in public/ used as the background video. Leave empty to auto-detect (see SOURCE_CANDIDATES). */
@@ -50,12 +40,6 @@ export const video1Defaults: Video1Props = {
 	hudPosition: 'top',
 	mapTextColor: 'gold',
 	sfxVolume: 0.8,
-	tubX: 540,
-	tubY: 1150,
-	tubW: 420,
-	tubRotate: 0,
-	useTubTrack: true,
-	showTubGuide: false,
 	sfx: {whoosh: false, thud: false, tick: false, stamp: false},
 	sourceFile: '',
 	hasSource: false,
@@ -121,7 +105,7 @@ const SlamFade: React.FC<{fadeIn: number; fadeOut: number; children: React.React
 /* ------------------------------------------------------------------ */
 /* The master composition                                              */
 /* ------------------------------------------------------------------ */
-export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames, hudPosition, mapTextColor, sfxVolume, tubX, tubY, tubW, tubRotate, useTubTrack, showTubGuide, sfx, sourceFile, hasSource}) => {
+export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames, hudPosition, mapTextColor, sfxVolume, sfx, sourceFile, hasSource}) => {
 	const T = resolveTimeline(syncOffsetFrames);
 	const tiles = tileStartFrames(T);
 
@@ -156,9 +140,7 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 
 			{/* ALL graphics live in this layer, always above the video (zIndex 1 vs 0) */}
 			<AbsoluteFill style={{zIndex: 1}}>
-			{/* ---- 0. first 6 s: golden outline around the tub, then the red $0 -> $200 counter that cracks and crumbles ---- */}
-			<TubOutline timeline={T} x={tubX} y={tubY} width={tubW} rotate={tubRotate} useTrack={useTubTrack} />
-			{showTubGuide ? <TubGuide x={tubX} y={tubY} width={tubW} rotate={tubRotate} useTrack={useTubTrack} /> : null}
+			{/* ---- 0. first 6 s: the red $0 -> $200 counter that pixelates, cracks and crumbles ---- */}
 			<CostBreak timeline={T} />
 
 			{/* ---- 1. map entrance: "three different locations" ---- */}
@@ -195,11 +177,6 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 			<DollarCounter timeline={T} position={hudPosition} />
 
 			{/* ---- sound: mounted only if the file exists ---- */}
-			{sfx.whoosh ? (
-				<Sequence name="SFX tub outline" from={T.intro.thisProduct} durationInFrames={40}>
-					<Audio src={staticFile(SFX_FILES.whoosh)} volume={sfxVolume * 0.6} />
-				</Sequence>
-			) : null}
 			{sfx.tick
 				? Array.from({length: Math.max(0, Math.floor((T.intro.countEnd - T.intro.costStart) / 2))}, (_, i) => (
 						<Sequence key={`cnt${i}`} name={`SFX count tick ${i + 1}`} from={T.intro.costStart + i * 2} durationInFrames={6}>

@@ -31,8 +31,6 @@ const row = (section: string, event: string, sec: number, frame: number, word: s
 	rows.push([section, event, sec.toFixed(2), String(frame), `${(frame / FPS).toFixed(3)}`, word]);
 
 /* ---- first 6 seconds (PLACEHOLDER times) ---- */
-row('Intro', 'golden neon outline draws around the tub', TIMELINE.intro.thisProduct, T.intro.thisProduct, '"this product"  (⚠ placeholder time)');
-row('Intro', 'outline fades out', TIMELINE.intro.outline.fadeStart, T.intro.outlineFadeStart, '—');
 row('Intro', 'red counter appears, counts $0 → $200', TIMELINE.intro.cost.start, T.intro.costStart, '"costing you 200 dollars"  (⚠ placeholder time)');
 row('Intro', '$200 reached', TIMELINE.intro.cost.countEnd, T.intro.countEnd, '"200 dollars"');
 row('Intro', '$200 pixelates', TIMELINE.intro.cost.pixelStart, T.intro.pixelStart, '—');

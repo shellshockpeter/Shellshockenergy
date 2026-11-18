@@ -93,13 +93,10 @@ export type BoardTile = {
 /* ------------------------------------------------------------------ */
 export const TIMELINE = {
 	/**
-	 * FIRST 6 SECONDS: "...not buying this product..." / "...costing you 200 dollars".
+	 * FIRST 6 SECONDS: "...costing you 200 dollars" (red counter that pixelates, cracks and crumbles).
 	 * ⚠ PLACEHOLDER TIMES — set these to the real spoken-word times (source-video seconds).
 	 */
 	intro: {
-		/** the words "this product": a golden neon outline draws itself around the tub */
-		thisProduct: 1.4,
-		outline: {fadeStart: 2.9, fadeEnd: 3.2},
 		/** "costing you 200 dollars": red neon counter appears and counts $0 -> $200 */
 		cost: {
 			start: 3.0,
@@ -232,9 +229,6 @@ export const resolveTimeline = (offset: number = DEFAULT_SYNC_OFFSET_FRAMES) => 
 	return {
 		offset,
 		intro: {
-			thisProduct: fr(T.intro.thisProduct),
-			outlineFadeStart: fr(T.intro.outline.fadeStart),
-			outlineFadeEnd: fr(T.intro.outline.fadeEnd),
 			costStart: fr(T.intro.cost.start),
 			countEnd: fr(T.intro.cost.countEnd),
 			pixelStart: fr(T.intro.cost.pixelStart),
