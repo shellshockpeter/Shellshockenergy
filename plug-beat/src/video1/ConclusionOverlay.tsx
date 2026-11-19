@@ -2,7 +2,7 @@ import React from 'react';
 import {Easing, interpolate, spring, useCurrentFrame, useVideoConfig} from 'remotion';
 import {NeonText} from '../NeonText';
 import {BODY_FONT} from '../theme';
-import {CONCLUSION_BOARD, CONCLUSION_SPENT_AT} from '../clips/clipLayout';
+import {CONCLUSION_BOARD, CONCLUSION_MONEY_SECONDS, CONCLUSION_SPENT_AT} from '../clips/clipLayout';
 import {LiquidGlass} from './LiquidGlass';
 import {BUDGET, BOARD_TILES, FPS, type ResolvedTimeline} from './timeline';
 import {CARD_H, CARD_W, GAP, HEADER_H, PAD, TILE_H, TILE_W, Tile} from './NineBoard';
@@ -29,6 +29,9 @@ export const ConclusionOverlay: React.FC<{timeline: ResolvedTimeline}> = ({timel
 	const settled = frame - s0 - 44;
 	const flash = settled >= 0 ? Math.max(0, 1 - settled / 16) : 0;
 
+	const moneyEnd = Math.round(CONCLUSION_MONEY_SECONDS * FPS);
+	const moneyOut = interpolate(frame, [moneyEnd - 8, moneyEnd], [1, 0], clamp);
+
 	/* ---- finished board ---- */
 	const b0 = Math.round(CONCLUSION_BOARD.from * FPS);
 	const b1 = Math.round(CONCLUSION_BOARD.to * FPS);
@@ -45,7 +48,7 @@ export const ConclusionOverlay: React.FC<{timeline: ResolvedTimeline}> = ({timel
 					top: 372,
 					width: 800,
 					height: 170,
-					opacity: interpolate(frame - s0, [0, 4], [0, 1], clamp),
+					opacity: interpolate(frame - s0, [0, 4], [0, 1], clamp) * moneyOut,
 					transform: `scale(${0.85 + 0.15 * enter + 0.04 * flash})`,
 				}}
 			>

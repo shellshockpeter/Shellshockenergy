@@ -52,3 +52,5 @@ export const CONCLUSION_SPENT_AT = 0.3;
 export const CONCLUSION_PLUGBEAT = {from: 17, to: 23, leadFrames: 30};
 /** used only if the browser can't read the .mov's length */
 export const CONCLUSION_FALLBACK_SECONDS = 24;
+/** the TOTAL SPENT card AND the counter above it stay up this long after the conclusion starts, then fade out */
+export const CONCLUSION_MONEY_SECONDS = 3;

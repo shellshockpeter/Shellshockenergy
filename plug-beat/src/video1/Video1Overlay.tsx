@@ -13,7 +13,7 @@ import {NineBoard, tileStartFrames} from './NineBoard';
 import {PickupChip} from './PickupChip';
 import {getVideoMetadata} from '@remotion/media-utils';
 import {CLIPS, CLIP_ORDER, TOTAL_ITEMS} from '../clips/clips';
-import {CONCLUSION_BASENAME, CONCLUSION_FALLBACK_SECONDS, CONCLUSION_PLUGBEAT, CONCLUSION_EXTENSIONS, clipLayout, clipsTotalFrames} from '../clips/clipLayout';
+import {CONCLUSION_BASENAME, CONCLUSION_FALLBACK_SECONDS, CONCLUSION_MONEY_SECONDS, CONCLUSION_PLUGBEAT, CONCLUSION_EXTENSIONS, clipLayout, clipsTotalFrames} from '../clips/clipLayout';
 import {ConclusionOverlay} from './ConclusionOverlay';
 import {PlugBeat, plugBeatDefaults} from '../PlugBeat';
 import {BOARD_REVEAL, FPS, revealStartFrame, TIMELINE, TOTAL_FRAMES, DEFAULT_SYNC_OFFSET_FRAMES, VIDEO_IS_ALREADY_TRIMMED, keptRanges, resolveTimeline, toOutputSeconds, validateTimeline} from './timeline';
@@ -161,6 +161,7 @@ const SlamFade: React.FC<{fadeIn: number; fadeOut: number; children: React.React
 /* The master composition                                              */
 /* ------------------------------------------------------------------ */
 export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames, hudPosition, mapTextColor, sfxVolume, videoVolume, sfx, sourceFile, hasSource, mainSeconds, clipFiles, conclusionFile, conclusionSeconds}) => {
+	const frame = useCurrentFrame();
 	const T = resolveTimeline(syncOffsetFrames, mainSeconds);
 	const layout = clipLayout(mainSeconds);
 	const mainFrames = Math.round(mainSeconds * FPS);
@@ -247,7 +248,16 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 			))}
 
 			{/* ---- 3. persistent dollar counter (always on top) ---- */}
-			<DollarCounter timeline={T} position={hudPosition} finale={T.pickups[T.pickups.length - 1]?.id === TOTAL_ITEMS} />
+			<AbsoluteFill
+				style={{
+					opacity:
+						conclusionFrames > 0
+							? interpolate(frame, [conclusionStart + Math.round(CONCLUSION_MONEY_SECONDS * FPS) - 8, conclusionStart + Math.round(CONCLUSION_MONEY_SECONDS * FPS)], [1, 0], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'})
+							: 1,
+				}}
+			>
+				<DollarCounter timeline={T} position={hudPosition} finale={T.pickups[T.pickups.length - 1]?.id === TOTAL_ITEMS} />
+			</AbsoluteFill>
 
 			{/* ---- conclusion: TOTAL SPENT card + the finished 9-ingredient board (11-14 s of the conclusion video) ---- */}
 			{conclusionFrames > 0 ? (
