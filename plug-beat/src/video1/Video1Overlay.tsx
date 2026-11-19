@@ -28,6 +28,8 @@ export const video1Schema = z.object({
 	/** colour of the map's neon text (labels, title, DONE stamps). gold = current map look. */
 	mapTextColor: z.enum(['gold', 'red']),
 	sfxVolume: z.number().min(0).max(1),
+	/** volume of your voiceover / clip audio (1 = original, 2 = double) */
+	videoVolume: z.number().min(0).max(4),
 	/** Auto-detected from public/ — leave as-is. */
 	sfx: z.object({whoosh: z.boolean(), thud: z.boolean(), tick: z.boolean(), stamp: z.boolean()}),
 	/** file in public/ used as the background video. Leave empty to auto-detect (see SOURCE_CANDIDATES). */
@@ -44,7 +46,8 @@ export const video1Defaults: Video1Props = {
 	syncOffsetFrames: DEFAULT_SYNC_OFFSET_FRAMES,
 	hudPosition: 'top',
 	mapTextColor: 'gold',
-	sfxVolume: 0.8,
+	sfxVolume: 0.3,
+	videoVolume: 1.4,
 	sfx: {whoosh: false, thud: false, tick: false, stamp: false},
 	sourceFile: '',
 	hasSource: false,
@@ -125,7 +128,7 @@ const SlamFade: React.FC<{fadeIn: number; fadeOut: number; children: React.React
 /* ------------------------------------------------------------------ */
 /* The master composition                                              */
 /* ------------------------------------------------------------------ */
-export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames, hudPosition, mapTextColor, sfxVolume, sfx, sourceFile, hasSource, mainSeconds, clipFiles}) => {
+export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames, hudPosition, mapTextColor, sfxVolume, videoVolume, sfx, sourceFile, hasSource, mainSeconds, clipFiles}) => {
 	const T = resolveTimeline(syncOffsetFrames, mainSeconds);
 	const layout = clipLayout(mainSeconds);
 	const mainFrames = Math.round(mainSeconds * FPS);
@@ -139,7 +142,7 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 					{VIDEO_IS_ALREADY_TRIMMED ? (
 						// your file is already trimmed: play it straight from the start, then the 4 clips back to back
 						<Sequence name="Main video" durationInFrames={mainFrames}>
-							<OffthreadVideo src={staticFile(sourceFile)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+							<OffthreadVideo src={staticFile(sourceFile)} volume={videoVolume} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
 						</Sequence>
 					) : (
 						// original file: play only the pieces that survive the CUTS, back to back
@@ -150,14 +153,14 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 								from={Math.round(toOutputSeconds(r.from) * FPS)}
 								durationInFrames={Math.round((r.to - r.from) * FPS)}
 							>
-								<OffthreadVideo src={staticFile(sourceFile)} trimBefore={Math.round(r.from * FPS)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+								<OffthreadVideo src={staticFile(sourceFile)} trimBefore={Math.round(r.from * FPS)} volume={videoVolume} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
 							</Sequence>
 						))
 					)}
 					{CLIP_ORDER.map((id, i) =>
 						clipFiles[i] ? (
 							<Sequence key={id} name={`Clip ${CLIPS[id].ingredient}`} from={layout[id].startFrame} durationInFrames={layout[id].frames}>
-								<OffthreadVideo src={staticFile(clipFiles[i])} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+								<OffthreadVideo src={staticFile(clipFiles[i])} volume={videoVolume} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
 							</Sequence>
 						) : null,
 					)}
