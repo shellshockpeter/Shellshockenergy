@@ -50,7 +50,18 @@
     "layout-check": "tsx scripts/layout-check.ts",
     "render:overlay": "remotion render Video1Overlay out/video1-overlay.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png --scale=1.3333333333333333 --props=./video1.overlay.props.json",
     "render:preview": "remotion render Video1Overlay out/video1-preview.mp4 --codec=h264 --crf=18 --props=./video1.preview.props.json",
-    "sync-report": "tsx scripts/sync-report.ts"
+    "sync-report": "tsx scripts/sync-report.ts",
+    "render:clip-beta-alanine": "remotion render ClipBetaAlanine out/clip-beta-alanine.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png --scale=0.6666666666666666 --props=./video1.overlay.props.json",
+    "render:clip-beta-alanine:preview": "remotion render ClipBetaAlanine out/clip-beta-alanine-preview.mp4 --codec=h264 --crf=18 --scale=0.6666666666666666 --props=./video1.preview.props.json",
+    "render:clip-citrulline": "remotion render ClipCitrulline out/clip-citrulline.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png --scale=0.6666666666666666 --props=./video1.overlay.props.json",
+    "render:clip-citrulline:preview": "remotion render ClipCitrulline out/clip-citrulline-preview.mp4 --codec=h264 --crf=18 --scale=0.6666666666666666 --props=./video1.preview.props.json",
+    "render:clip-alpha-gpc": "remotion render ClipAlphaGPC out/clip-alpha-gpc.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png --scale=0.6666666666666666 --props=./video1.overlay.props.json",
+    "render:clip-alpha-gpc:preview": "remotion render ClipAlphaGPC out/clip-alpha-gpc-preview.mp4 --codec=h264 --crf=18 --scale=0.6666666666666666 --props=./video1.preview.props.json",
+    "render:clip-tongkat-ali": "remotion render ClipTongkatAli out/clip-tongkat-ali.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png --scale=0.6666666666666666 --props=./video1.overlay.props.json",
+    "render:clip-tongkat-ali:preview": "remotion render ClipTongkatAli out/clip-tongkat-ali-preview.mp4 --codec=h264 --crf=18 --scale=0.6666666666666666 --props=./video1.preview.props.json",
+    "render:clip-tongkat-ali:extended": "remotion render ClipTongkatAli out/clip-tongkat-ali-extended.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png --scale=0.6666666666666666 --props=./clips.tongkat-extended.props.json",
+    "render:clips": "npm run render:clip-beta-alanine && npm run render:clip-citrulline && npm run render:clip-alpha-gpc && npm run render:clip-tongkat-ali",
+    "clips-report": "tsx scripts/clips-report.ts"
   },
   "allowScripts": {
     "esbuild": false

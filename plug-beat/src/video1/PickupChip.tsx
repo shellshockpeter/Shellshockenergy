@@ -2,12 +2,12 @@ import React from 'react';
 import {Easing, interpolate, spring, useCurrentFrame, useVideoConfig} from 'remotion';
 import {NeonText} from '../NeonText';
 import {LiquidGlass} from './LiquidGlass';
-import {hudTargetAt} from './DollarCounter';
+import {hudTargetAt, type HudTimeline} from './DollarCounter';
 import {CHIP, type ResolvedTimeline} from './timeline';
 
 type Props = {
 	pickup: ResolvedTimeline['pickups'][number];
-	timeline: ResolvedTimeline;
+	timeline: HudTimeline;
 	position: 'top' | 'bottom';
 };
 

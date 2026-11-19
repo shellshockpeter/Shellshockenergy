@@ -143,3 +143,25 @@ Notes
 - The counter glides to the bottom while a map slam is on screen (`hud.avoidMapSlams` in the timeline) so it never covers the pin.
 - Board: all 9 tiles are blurred "???". When a pickup is found the board pops back up for ~1.4 s, that tile reveals and STAYS uncovered (✓), and every earlier find is already uncovered (`TIMELINE.board.revealOnPickup`, timing in `BOARD_REVEAL`). Set a tile's `revealed: true` in `BOARD_TILES` to un-blur it permanently.
 - Chips start at `CHIP.defaultAt`; give a pickup its own `chipAt: {x, y}` to sit beside the real product / shelf tag.
+
+---
+
+# Clips 6-9 (beta-alanine, L-citrulline, alpha GPC, tongkat ali)
+
+Four transparent overlay compositions (1080x1920 design, 30 fps), one per short clip: `ClipBetaAlanine` (6.0 s), `ClipCitrulline` (4.87 s), `ClipAlphaGPC` (6.0 s), `ClipTongkatAli` (6.0 s, or 7.5 s with the `extended` prop). Same neon-gold counter, chip and glass as Video 1 (they reuse `DollarCounter`, `PickupChip`, `LiquidGlass`).
+
+**All times, prices and item numbers live in `src/clips/clips.ts`.** Each clip: pickup time -> the chip pops and flies to the counter in 0.5 s -> the counter rolls when it lands (pickup + 0.5 s) with a tick, stamp on landing. `TongkatAli` is the finale (9/9 gold burst + glow pulse; `OVER $200` badge + `SHORT $x.xx` label only if the total passes the budget).
+
+Put the clips in `public/clips/` (git-ignored): `01_beta-alanine_6s.mp4`, `02_l-citrulline_from-10s.mp4`, `03_alpha-gpc_6s.mp4`, `04_tongkat-ali_6s.mp4`.
+
+```bash
+npm run studio                              # pick a Clip... composition; preview=true shows the clip underneath
+npm run render:clip-beta-alanine            # -> out/clip-beta-alanine.mov   (ProRes 4444 + alpha, 720x1280)
+npm run render:clips                        # all four
+npm run render:clip-tongkat-ali:extended    # 7.5 s version
+npm run render:clip-beta-alanine:preview    # mp4 with the clip underneath, to check sync
+npm run clips-report                        # clips-sync-report.md + running totals in the console
+```
+Render scale is `0.6666666666666666` (exactly 720x1280; `0.6667` gives 720.036 px and the encoder refuses it).
+
+Props (Studio): `startTotal` (running total BEFORE the clip), `cashStart` (200), `preview`, `syncOffsetFrames` (-2), `hudPosition`, `extended`, `sfxVolume`. The chain of start totals starts at $75.16 (the Video 1 total, which still includes the placeholder Lion's Mane price); the console and the report warn if a clip's `startTotal` doesn't match the previous clip's end total.

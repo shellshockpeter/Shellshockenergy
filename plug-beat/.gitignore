@@ -15,3 +15,6 @@ public/*.mov
 
 __pycache__/
 *.pyc
+# the 4 short clips (large, stay local)
+public/clips/*.mp4
+public/clips/*.mov

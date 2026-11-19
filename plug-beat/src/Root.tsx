@@ -17,6 +17,16 @@ import {INTRO, MAP_CANVAS, SLAM} from './mapConfig';
 import {Video1Overlay, video1CalculateMetadata, video1Defaults, video1Schema} from './video1/Video1Overlay';
 import {FPS, TOTAL_FRAMES} from './video1/timeline';
 import {CANVAS} from './theme';
+import {ClipOverlay, clipCalculateMetadata, clipDefaults, clipSchema, type ClipProps} from './clips/ClipOverlay';
+import {CLIPS, CLIP_ORDER, resolveClip, type ClipId} from './clips/clips';
+
+// the 4 short clips: one transparent overlay composition each (1080x1920 design, 30 fps)
+const clipComponents: Record<ClipId, React.FC<ClipProps>> = {
+	BetaAlanine: (p) => <ClipOverlay {...p} clipId="BetaAlanine" />,
+	Citrulline: (p) => <ClipOverlay {...p} clipId="Citrulline" />,
+	AlphaGPC: (p) => <ClipOverlay {...p} clipId="AlphaGPC" />,
+	TongkatAli: (p) => <ClipOverlay {...p} clipId="TongkatAli" />,
+};
 
 const MapIntro: React.FC<MapProps> = (p) => <MapSegment {...p} slam={0} />;
 const MapSlam1: React.FC<MapProps> = (p) => <MapSegment {...p} slam={1} />;
@@ -58,6 +68,22 @@ export const RemotionRoot: React.FC = () => {
 				defaultProps={video1Defaults}
 				calculateMetadata={video1CalculateMetadata}
 			/>
+
+			{/* Ingredient clips 6-9: ClipBetaAlanine, ClipCitrulline, ClipAlphaGPC, ClipTongkatAli. Edit times/prices in src/clips/clips.ts */}
+			{CLIP_ORDER.map((id) => (
+				<Composition
+					key={id}
+					id={CLIPS[id].compositionId}
+					component={clipComponents[id]}
+					durationInFrames={resolveClip(id).durationInFrames}
+					fps={30}
+					width={1080}
+					height={1920}
+					schema={clipSchema}
+					defaultProps={clipDefaults(id)}
+					calculateMetadata={clipCalculateMetadata(id)}
+				/>
+			))}
 
 			{/* Liquid-glass map overlay: 4 transparent segments to cut between footage */}
 			<Composition
