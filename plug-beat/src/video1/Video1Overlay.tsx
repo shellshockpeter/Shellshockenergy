@@ -237,6 +237,14 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 						</Sequence>
 					);
 				})}
+				{/* destination 3 (Vitamin Shoppe) slams in right after the money overlay disappears in the conclusion */}
+				{conclusionFrames > 0 ? (
+					<Sequence name="Map slam 3 (conclusion)" from={conclusionStart + Math.round(CONCLUSION_MONEY_SECONDS * FPS)} durationInFrames={SLAM.duration}>
+						<SlamFade fadeIn={FADE_FRAMES} fadeOut={FADE_FRAMES}>
+							<MapSegment {...mapDefaults} sfx={{whoosh: false, thud: false, stamp: sfx.stamp}} slam={3} />
+						</SlamFade>
+					</Sequence>
+				) : null}
 			</NeonPaletteProvider>
 
 			{/* ---- 2. nine-ingredient board ---- */}
