@@ -1,4 +1,5 @@
 import React from 'react';
+import {useRemotionEnvironment} from 'remotion';
 
 /** Fine static film grain (feTurbulence baked into a data URI, rasterised once). */
 export const GLASS_NOISE =
@@ -22,7 +23,7 @@ type Props = {
  * The comp background is transparent, so backdrop-filter has nothing to blur — the glass is faked:
  * translucent dark gradient, inner highlights, bright specular top-left rim, sheen, grain, thin light border.
  */
-export const LiquidGlass: React.FC<Props> = ({
+const LiquidGlassInner: React.FC<Props & {noise: boolean}> = ({noise,
 	width,
 	height,
 	radius = 36,
@@ -62,7 +63,8 @@ export const LiquidGlass: React.FC<Props> = ({
 				].join(', '),
 			}}
 		>
-			<div style={{position: 'absolute', inset: 0, backgroundImage: GLASS_NOISE, opacity: 0.07}} />
+			{/* the browser (client-side) renderer can only load raster images, so the grain is skipped there (it is barely visible anyway) */}
+			{noise ? <div style={{position: 'absolute', inset: 0, backgroundImage: GLASS_NOISE, opacity: 0.07}} /> : null}
 			<div
 				style={{
 					position: 'absolute',
@@ -90,3 +92,8 @@ export const LiquidGlass: React.FC<Props> = ({
 		<div style={{position: 'relative', width: '100%', height: '100%', ...contentStyle}}>{children}</div>
 	</div>
 );
+
+export const LiquidGlass: React.FC<Props> = (props) => {
+	const env = useRemotionEnvironment();
+	return <LiquidGlassInner {...props} noise={!env.isClientSideRendering} />;
+};

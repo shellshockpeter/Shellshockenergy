@@ -1,4 +1,5 @@
 import React from 'react';
+import {useRemotionEnvironment} from 'remotion';
 import {NeonText} from './NeonText';
 import {TOWN_PATHS} from './geo/townPaths';
 import {panelTransform} from './camera';
@@ -31,6 +32,7 @@ const NOISE =
  * the glass is faked with layered gradients, specular edge light, inner glow and grain.
  */
 export const MapPanel: React.FC<Props> = ({camera, opacity = 1, children}) => {
+	const env = useRemotionEnvironment();
 	return (
 		<div
 			style={{
@@ -73,15 +75,17 @@ export const MapPanel: React.FC<Props> = ({camera, opacity = 1, children}) => {
 						backgroundPosition: `${MAP_ORIGIN.x % 62}px ${MAP_ORIGIN.y % 62}px`,
 					}}
 				/>
-				{/* grain */}
-				<div
-					style={{
-						position: 'absolute',
-						inset: 0,
-						backgroundImage: NOISE,
-						opacity: 0.07,
-					}}
-				/>
+				{/* grain (skipped in the browser renderer, which only loads raster images) */}
+				{env.isClientSideRendering ? null : (
+					<div
+						style={{
+							position: 'absolute',
+							inset: 0,
+							backgroundImage: NOISE,
+							opacity: 0.07,
+						}}
+					/>
+				)}
 
 				{/* town outlines */}
 				<svg
