@@ -47,3 +47,8 @@ export const CONCLUSION_EXTENSIONS = ['mov', 'MOV', 'mp4', 'MP4', 'm4v'];
 export const CONCLUSION_BOARD = {from: 11, to: 14};
 /** "TOTAL SPENT" card pops in this many seconds after the conclusion starts */
 export const CONCLUSION_SPENT_AT = 0.3;
+/** the PlugBeat overlay (SHOCK20 tub card + coupon chip) plays from 17 s to 23 s of the conclusion video.
+ *  PlugBeat's own first 30 frames are empty, so it starts `leadFrames` early and its tub card appears right at 17 s. */
+export const CONCLUSION_PLUGBEAT = {from: 17, to: 23, leadFrames: 30};
+/** used only if the browser can't read the .mov's length */
+export const CONCLUSION_FALLBACK_SECONDS = 24;

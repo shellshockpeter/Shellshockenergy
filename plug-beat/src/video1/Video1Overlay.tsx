@@ -13,8 +13,9 @@ import {NineBoard, tileStartFrames} from './NineBoard';
 import {PickupChip} from './PickupChip';
 import {getVideoMetadata} from '@remotion/media-utils';
 import {CLIPS, CLIP_ORDER, TOTAL_ITEMS} from '../clips/clips';
-import {CONCLUSION_BASENAME, CONCLUSION_EXTENSIONS, clipLayout, clipsTotalFrames} from '../clips/clipLayout';
+import {CONCLUSION_BASENAME, CONCLUSION_FALLBACK_SECONDS, CONCLUSION_PLUGBEAT, CONCLUSION_EXTENSIONS, clipLayout, clipsTotalFrames} from '../clips/clipLayout';
 import {ConclusionOverlay} from './ConclusionOverlay';
+import {PlugBeat, plugBeatDefaults} from '../PlugBeat';
 import {BOARD_REVEAL, FPS, revealStartFrame, TIMELINE, TOTAL_FRAMES, DEFAULT_SYNC_OFFSET_FRAMES, VIDEO_IS_ALREADY_TRIMMED, keptRanges, resolveTimeline, toOutputSeconds, validateTimeline} from './timeline';
 
 /* ------------------------------------------------------------------ */
@@ -131,7 +132,8 @@ export const video1CalculateMetadata = async ({props}: {props: Video1Props}) => 
 			conclusionFrames = Math.round(cm.durationInSeconds * FPS);
 			console.log(`[Video1] conclusion video: public/${conclusionFile} — ${cm.durationInSeconds.toFixed(2)} s`);
 		} catch (err) {
-			console.warn('[Video1] ⚠ could not read the conclusion video (is the .mov readable by the browser? If not, convert it to .mp4)', err);
+			conclusionFrames = Math.round(CONCLUSION_FALLBACK_SECONDS * FPS);
+			console.warn(`[Video1] ⚠ could not read the length of ${conclusionFile} (the browser can't decode it). Using ${CONCLUSION_FALLBACK_SECONDS} s; the video may not preview in Studio. Fix: convert it to .mp4 (H.264).`, err);
 		}
 	}
 
@@ -251,6 +253,10 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 			{conclusionFrames > 0 ? (
 				<Sequence name="Conclusion overlay" from={conclusionStart} durationInFrames={conclusionFrames}>
 					<ConclusionOverlay timeline={T} />
+					{/* SHOCK20 tub card + coupon chip (the PlugBeat composition) */}
+					<Sequence name="PlugBeat SHOCK20" from={Math.round(CONCLUSION_PLUGBEAT.from * FPS) - CONCLUSION_PLUGBEAT.leadFrames} durationInFrames={Math.round((CONCLUSION_PLUGBEAT.to - CONCLUSION_PLUGBEAT.from) * FPS) + CONCLUSION_PLUGBEAT.leadFrames}>
+						<PlugBeat {...plugBeatDefaults} sfx={{tick: sfx.tick, stamp: sfx.stamp}} />
+					</Sequence>
 					{sfx.stamp ? (
 						<Sequence name="SFX spent" from={9} durationInFrames={30}>
 							<Audio src={staticFile(SFX_FILES.stamp)} volume={sfxVolume} />
