@@ -6,13 +6,13 @@ import {useFitFontSize} from '../useFitFontSize';
 import {LiquidGlass} from './LiquidGlass';
 import {BOARD_REVEAL, BOARD_TILES, BUDGET, TIMELINE, revealStartFrame, type BoardTile, type ResolvedTimeline, type TileIcon} from './timeline';
 
-const CARD_W = 900;
-const PAD = 28;
-const HEADER_H = 70;
-const TILE_W = (CARD_W - PAD * 2 - 16 * 2) / 3; // 270
-const TILE_H = 214;
-const GAP = 16;
-const CARD_H = PAD + HEADER_H + 14 + TILE_H * 3 + GAP * 2 + PAD; // 810
+export const CARD_W = 900;
+export const PAD = 28;
+export const HEADER_H = 70;
+export const TILE_W = (CARD_W - PAD * 2 - 16 * 2) / 3; // 270
+export const TILE_H = 214;
+export const GAP = 16;
+export const CARD_H = PAD + HEADER_H + 14 + TILE_H * 3 + GAP * 2 + PAD; // 810
 
 const GOLD = '#FFC400';
 const clamp = {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'} as const;
@@ -111,7 +111,7 @@ const Icon: React.FC<{icon: TileIcon; size: number; opacity?: number}> = ({icon,
 /* ------------------------------------------------------------------ */
 /* One tile                                                            */
 /* ------------------------------------------------------------------ */
-const Tile: React.FC<{
+export const Tile: React.FC<{
 	tile: BoardTile;
 	index: number;
 	frame: number;

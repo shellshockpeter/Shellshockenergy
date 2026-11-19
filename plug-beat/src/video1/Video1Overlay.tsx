@@ -13,7 +13,8 @@ import {NineBoard, tileStartFrames} from './NineBoard';
 import {PickupChip} from './PickupChip';
 import {getVideoMetadata} from '@remotion/media-utils';
 import {CLIPS, CLIP_ORDER, TOTAL_ITEMS} from '../clips/clips';
-import {clipLayout, clipsTotalFrames} from '../clips/clipLayout';
+import {CONCLUSION_BASENAME, CONCLUSION_EXTENSIONS, clipLayout, clipsTotalFrames} from '../clips/clipLayout';
+import {ConclusionOverlay} from './ConclusionOverlay';
 import {BOARD_REVEAL, FPS, revealStartFrame, TIMELINE, TOTAL_FRAMES, DEFAULT_SYNC_OFFSET_FRAMES, VIDEO_IS_ALREADY_TRIMMED, keptRanges, resolveTimeline, toOutputSeconds, validateTimeline} from './timeline';
 
 /* ------------------------------------------------------------------ */
@@ -38,6 +39,9 @@ export const video1Schema = z.object({
 	/** Auto-set: length of the main video in seconds, and where each clip file was found (same order as CLIP_ORDER; '' = missing). */
 	mainSeconds: z.number(),
 	clipFiles: z.array(z.string()),
+	/** Auto-set: the conclusion video (IMG_4503.mov) file and its length in seconds ('' / 0 = not found). */
+	conclusionFile: z.string(),
+	conclusionSeconds: z.number(),
 });
 export type Video1Props = z.infer<typeof video1Schema>;
 
@@ -53,6 +57,8 @@ export const video1Defaults: Video1Props = {
 	hasSource: false,
 	mainSeconds: TOTAL_FRAMES / FPS,
 	clipFiles: [],
+	conclusionFile: '',
+	conclusionSeconds: 0,
 };
 
 const SFX_FILES = {
@@ -74,6 +80,16 @@ const findSource = async (explicit: string): Promise<string> => {
 };
 
 /** a clip may sit in public/clips/ or loose in public/ */
+const findConclusion = async (): Promise<string> => {
+	for (const dir of ['', 'clips/']) {
+		for (const e of CONCLUSION_EXTENSIONS) {
+			const name = `${dir}${CONCLUSION_BASENAME}.${e}`;
+			if (await fileExists(name)) return name;
+		}
+	}
+	return '';
+};
+
 const findClip = async (file: string): Promise<string> => {
 	for (const name of [`clips/${file}`, file]) {
 		if (await fileExists(name)) return name;
@@ -82,10 +98,11 @@ const findClip = async (file: string): Promise<string> => {
 };
 
 export const video1CalculateMetadata = async ({props}: {props: Video1Props}) => {
-	const [sfx, sourceFile, clipFiles] = await Promise.all([
+	const [sfx, sourceFile, clipFiles, conclusionFile] = await Promise.all([
 		detectSfx('Video1', SFX_FILES),
 		findSource(props.sourceFile), // needed for the length even in the graphics-only render
 		Promise.all(CLIP_ORDER.map((id) => findClip(CLIPS[id].file))),
+		findConclusion(),
 	]);
 
 	// main video length = your file (so a re-trimmed export is picked up automatically)
@@ -105,12 +122,25 @@ export const video1CalculateMetadata = async ({props}: {props: Video1Props}) => 
 		if (!f) console.warn(`[Video1] ⚠ clip file not found: ${CLIPS[CLIP_ORDER[i]].file} (put it in public/ or public/clips/). Its time is still reserved.`);
 	});
 
+	let conclusionFrames = 0;
+	if (!conclusionFile) {
+		console.warn(`[Video1] ⚠ conclusion video not found: put ${CONCLUSION_BASENAME}.mov in public/ — it is not in the video yet.`);
+	} else {
+		try {
+			const cm = await getVideoMetadata(staticFile(conclusionFile));
+			conclusionFrames = Math.round(cm.durationInSeconds * FPS);
+			console.log(`[Video1] conclusion video: public/${conclusionFile} — ${cm.durationInSeconds.toFixed(2)} s`);
+		} catch (err) {
+			console.warn('[Video1] ⚠ could not read the conclusion video (is the .mov readable by the browser? If not, convert it to .mp4)', err);
+		}
+	}
+
 	const mainSeconds = mainFrames / FPS;
-	const durationInFrames = mainFrames + clipsTotalFrames();
+	const durationInFrames = mainFrames + clipsTotalFrames() + conclusionFrames;
 	const T0 = resolveTimeline(props.syncOffsetFrames, mainSeconds);
 	for (const w of validateTimeline(T0)) console.warn(`[Video1] ⚠ ${w}`);
 	console.log(`[Video1] combined: main ${mainSeconds.toFixed(2)} s + 4 clips = ${(durationInFrames / FPS).toFixed(2)} s`);
-	return {durationInFrames, props: {...props, sfx: sfx as Video1Props['sfx'], sourceFile, hasSource: !!sourceFile, mainSeconds, clipFiles}};
+	return {durationInFrames, props: {...props, sfx: sfx as Video1Props['sfx'], sourceFile, hasSource: !!sourceFile, mainSeconds, clipFiles, conclusionFile, conclusionSeconds: conclusionFrames / FPS}};
 };
 
 /* ------------------------------------------------------------------ */
@@ -128,10 +158,12 @@ const SlamFade: React.FC<{fadeIn: number; fadeOut: number; children: React.React
 /* ------------------------------------------------------------------ */
 /* The master composition                                              */
 /* ------------------------------------------------------------------ */
-export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames, hudPosition, mapTextColor, sfxVolume, videoVolume, sfx, sourceFile, hasSource, mainSeconds, clipFiles}) => {
+export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames, hudPosition, mapTextColor, sfxVolume, videoVolume, sfx, sourceFile, hasSource, mainSeconds, clipFiles, conclusionFile, conclusionSeconds}) => {
 	const T = resolveTimeline(syncOffsetFrames, mainSeconds);
 	const layout = clipLayout(mainSeconds);
 	const mainFrames = Math.round(mainSeconds * FPS);
+	const conclusionStart = mainFrames + clipsTotalFrames();
+	const conclusionFrames = Math.round(conclusionSeconds * FPS);
 	const tiles = tileStartFrames(T);
 
 	return (
@@ -164,6 +196,11 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 							</Sequence>
 						) : null,
 					)}
+					{conclusionFile && conclusionFrames > 0 ? (
+						<Sequence name="Conclusion video" from={conclusionStart} durationInFrames={conclusionFrames}>
+							<OffthreadVideo src={staticFile(conclusionFile)} volume={videoVolume} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+						</Sequence>
+					) : null}
 				</AbsoluteFill>
 			) : null}
 			{preview && !hasSource ? (
@@ -209,6 +246,18 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 
 			{/* ---- 3. persistent dollar counter (always on top) ---- */}
 			<DollarCounter timeline={T} position={hudPosition} finale={T.pickups[T.pickups.length - 1]?.id === TOTAL_ITEMS} />
+
+			{/* ---- conclusion: TOTAL SPENT card + the finished 9-ingredient board (11-14 s of the conclusion video) ---- */}
+			{conclusionFrames > 0 ? (
+				<Sequence name="Conclusion overlay" from={conclusionStart} durationInFrames={conclusionFrames}>
+					<ConclusionOverlay timeline={T} />
+					{sfx.stamp ? (
+						<Sequence name="SFX spent" from={9} durationInFrames={30}>
+							<Audio src={staticFile(SFX_FILES.stamp)} volume={sfxVolume} />
+						</Sequence>
+					) : null}
+				</Sequence>
+			) : null}
 
 			{/* ---- sound: mounted only if the file exists ---- */}
 			{sfx.tick

@@ -36,3 +36,14 @@ export const clipsTotalFrames = (): number => {
 	const gap = Math.round(CLIP_GAP_SECONDS * FPS);
 	return CLIP_ORDER.reduce((sum, id) => sum + Math.round(CLIPS[id].durationSeconds * FPS) + gap, 0);
 };
+
+/**
+ * THE CONCLUSION VIDEO (appended after the 4 clips): public/IMG_4503.mov (or .MOV/.mp4, loose in public/ or public/clips/).
+ * Its length is read from the file. Times below are in seconds from the START of that video.
+ */
+export const CONCLUSION_BASENAME = 'IMG_4503';
+export const CONCLUSION_EXTENSIONS = ['mov', 'MOV', 'mp4', 'MP4', 'm4v'];
+/** the finished 9-ingredient board pops up from 11 s to 14 s */
+export const CONCLUSION_BOARD = {from: 11, to: 14};
+/** "TOTAL SPENT" card pops in this many seconds after the conclusion starts */
+export const CONCLUSION_SPENT_AT = 0.3;
