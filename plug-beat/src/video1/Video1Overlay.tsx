@@ -1,6 +1,7 @@
 import React from 'react';
 import {AbsoluteFill, Sequence, interpolate, staticFile, useCurrentFrame} from 'remotion';
-import {Audio, Video} from '@remotion/media';
+import {Audio} from '@remotion/media';
+import {MediaVideo} from '../MediaVideo';
 import {z} from 'zod';
 import {SLAM} from '../mapConfig';
 import {MapSegment, mapDefaults} from '../MapSegment';
@@ -70,7 +71,7 @@ const SFX_FILES = {
 } as const;
 /** Background video lookup: first file found in public/ wins. Add your own names here. */
 const SOURCE_BASENAMES = ['A57BF0BA-A76E-42EB-AD03-2F7AE0100196', 'source'];
-const SOURCE_EXTENSIONS = ['mp4', 'mov', 'MOV', 'MP4', 'm4v', 'webm'];
+const SOURCE_EXTENSIONS = ['MP4', 'mp4', 'MOV', 'mov', 'm4v', 'webm'];
 
 const findSource = async (explicit: string): Promise<string> => {
 	const candidates = [explicit, ...SOURCE_BASENAMES.flatMap((b) => SOURCE_EXTENSIONS.map((e) => `${b}.${e}`))].filter(Boolean);
@@ -177,7 +178,7 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 					{VIDEO_IS_ALREADY_TRIMMED ? (
 						// your file is already trimmed: play it straight from the start, then the 4 clips back to back
 						<Sequence name="Main video" durationInFrames={mainFrames}>
-							<Video src={staticFile(sourceFile)} volume={videoVolume} objectFit="cover" style={{width: '100%', height: '100%'}} />
+							<MediaVideo src={staticFile(sourceFile)} volume={videoVolume} />
 						</Sequence>
 					) : (
 						// original file: play only the pieces that survive the CUTS, back to back
@@ -188,20 +189,20 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 								from={Math.round(toOutputSeconds(r.from) * FPS)}
 								durationInFrames={Math.round((r.to - r.from) * FPS)}
 							>
-								<Video src={staticFile(sourceFile)} trimBefore={Math.round(r.from * FPS)} volume={videoVolume} objectFit="cover" style={{width: '100%', height: '100%'}} />
+								<MediaVideo src={staticFile(sourceFile)} trimBefore={Math.round(r.from * FPS)} volume={videoVolume} />
 							</Sequence>
 						))
 					)}
 					{CLIP_ORDER.map((id, i) =>
 						clipFiles[i] ? (
 							<Sequence key={id} name={`Clip ${CLIPS[id].ingredient}`} from={layout[id].startFrame} durationInFrames={layout[id].frames}>
-								<Video src={staticFile(clipFiles[i])} volume={videoVolume} objectFit="cover" style={{width: '100%', height: '100%'}} />
+								<MediaVideo src={staticFile(clipFiles[i])} volume={videoVolume} />
 							</Sequence>
 						) : null,
 					)}
 					{conclusionFile && conclusionFrames > 0 ? (
 						<Sequence name="Conclusion video" from={conclusionStart} durationInFrames={conclusionFrames}>
-							<Video src={staticFile(conclusionFile)} volume={videoVolume} objectFit="cover" style={{width: '100%', height: '100%'}} />
+							<MediaVideo src={staticFile(conclusionFile)} volume={videoVolume} />
 						</Sequence>
 					) : null}
 				</AbsoluteFill>
