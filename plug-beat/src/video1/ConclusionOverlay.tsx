@@ -45,7 +45,7 @@ export const ConclusionOverlay: React.FC<{timeline: ResolvedTimeline}> = ({timel
 				style={{
 					position: 'absolute',
 					left: 140,
-					top: 372,
+					top: 475,
 					width: 800,
 					height: 170,
 					opacity: interpolate(frame - s0, [0, 4], [0, 1], clamp) * moneyOut,

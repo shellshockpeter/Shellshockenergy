@@ -7,7 +7,7 @@ import {BUDGET, ROLL_FRAMES, type ResolvedTimeline} from './timeline';
 
 export const HUD_W = 760;
 export const HUD_H = 178;
-const HUD_TOP = 160; // >= 150 safe zone
+const HUD_TOP = 275; // below the Instagram top UI (friends row / search); keep it high enough to stay clear of the face
 const HUD_BOTTOM_TOP = 1920 - 250 - HUD_H - 2; // bottom edge stays above the 250px safe zone
 
 /** Screen position the pickup chips fly to (centre of the big amount). */
