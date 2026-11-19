@@ -18,3 +18,5 @@ __pycache__/
 # the 4 short clips (large, stay local)
 public/clips/*.mp4
 public/clips/*.mov
+public/*.MP4
+public/0[1-4]_*.mp4

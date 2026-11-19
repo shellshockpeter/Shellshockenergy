@@ -60,9 +60,9 @@
     "render:clip-tongkat-ali": "remotion render ClipTongkatAli out/clip-tongkat-ali.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png --scale=0.6666666666666666 --props=./video1.overlay.props.json",
     "render:clip-tongkat-ali:preview": "remotion render ClipTongkatAli out/clip-tongkat-ali-preview.mp4 --codec=h264 --crf=18 --scale=0.6666666666666666 --props=./video1.preview.props.json",
     "render:clip-tongkat-ali:extended": "remotion render ClipTongkatAli out/clip-tongkat-ali-extended.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png --scale=0.6666666666666666 --props=./clips.tongkat-extended.props.json",
+    "render:final": "remotion render Video1Overlay out/video1-final.mp4 --codec=h264 --crf=16 --scale=1.3333333333333333 --props=./video1.preview.props.json",
     "render:clips": "npm run render:clip-beta-alanine && npm run render:clip-citrulline && npm run render:clip-alpha-gpc && npm run render:clip-tongkat-ali",
-    "clips-report": "tsx scripts/clips-report.ts",
-    "locate-clips": "tsx scripts/locate-clips.ts"
+    "clips-report": "tsx scripts/clips-report.ts"
   },
   "allowScripts": {
     "esbuild": false

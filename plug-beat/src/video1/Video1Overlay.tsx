@@ -12,8 +12,8 @@ import {MapIntroScene} from './MapIntroScene';
 import {NineBoard, tileStartFrames} from './NineBoard';
 import {PickupChip} from './PickupChip';
 import {getVideoMetadata} from '@remotion/media-utils';
-import {CLIP_STARTS_ARE_PLACEHOLDERS} from '../clips/clipStarts';
-import {TOTAL_ITEMS} from '../clips/clips';
+import {CLIPS, CLIP_ORDER, TOTAL_ITEMS} from '../clips/clips';
+import {clipLayout, clipsTotalFrames} from '../clips/clipLayout';
 import {BOARD_REVEAL, FPS, revealStartFrame, TIMELINE, TOTAL_FRAMES, DEFAULT_SYNC_OFFSET_FRAMES, VIDEO_IS_ALREADY_TRIMMED, keptRanges, resolveTimeline, toOutputSeconds, validateTimeline} from './timeline';
 
 /* ------------------------------------------------------------------ */
@@ -33,6 +33,9 @@ export const video1Schema = z.object({
 	/** file in public/ used as the background video. Leave empty to auto-detect (see SOURCE_CANDIDATES). */
 	sourceFile: z.string(),
 	hasSource: z.boolean(),
+	/** Auto-set: length of the main video in seconds, and where each clip file was found (same order as CLIP_ORDER; '' = missing). */
+	mainSeconds: z.number(),
+	clipFiles: z.array(z.string()),
 });
 export type Video1Props = z.infer<typeof video1Schema>;
 
@@ -45,6 +48,8 @@ export const video1Defaults: Video1Props = {
 	sfx: {whoosh: false, thud: false, tick: false, stamp: false},
 	sourceFile: '',
 	hasSource: false,
+	mainSeconds: TOTAL_FRAMES / FPS,
+	clipFiles: [],
 };
 
 const SFX_FILES = {
@@ -65,37 +70,44 @@ const findSource = async (explicit: string): Promise<string> => {
 	return '';
 };
 
+/** a clip may sit in public/clips/ or loose in public/ */
+const findClip = async (file: string): Promise<string> => {
+	for (const name of [`clips/${file}`, file]) {
+		if (await fileExists(name)) return name;
+	}
+	return '';
+};
+
 export const video1CalculateMetadata = async ({props}: {props: Video1Props}) => {
-	const [sfx, sourceFile] = await Promise.all([
+	const [sfx, sourceFile, clipFiles] = await Promise.all([
 		detectSfx('Video1', SFX_FILES),
-		props.preview ? findSource(props.sourceFile) : Promise.resolve(''),
+		findSource(props.sourceFile), // needed for the length even in the graphics-only render
+		Promise.all(CLIP_ORDER.map((id) => findClip(CLIPS[id].file))),
 	]);
 
-	// The composition is exactly as long as your video file (so a re-trimmed export is picked up automatically).
-	let durationInFrames = TOTAL_FRAMES;
-	if (props.preview && !sourceFile) {
-		console.warn(`[Video1] TODO: put your video in public/ (e.g. public/${SOURCE_BASENAMES[0]}.mp4 or public/source.mp4) — preview is showing graphics only.`);
-	} else if (sourceFile) {
+	// main video length = your file (so a re-trimmed export is picked up automatically)
+	let mainFrames = TOTAL_FRAMES;
+	if (!sourceFile) {
+		console.warn(`[Video1] TODO: put your main video in public/ (e.g. public/${SOURCE_BASENAMES[0]}.MP4 or public/source.mp4) — using the default length.`);
+	} else {
 		try {
 			const meta = await getVideoMetadata(staticFile(sourceFile));
-			const videoFrames = Math.round(meta.durationInSeconds * FPS);
-			if (VIDEO_IS_ALREADY_TRIMMED) durationInFrames = videoFrames;
-			console.log(`[Video1] background video: public/${sourceFile} — ${meta.durationInSeconds.toFixed(2)} s (${videoFrames} frames, ${meta.width}x${meta.height})`);
-			// the video now contains the ingredient clips, so it is longer than the original 56 s: only complain if it ends before the last event
-			const T0 = resolveTimeline(props.syncOffsetFrames);
-			const lastEvent = Math.max(...T0.pickups.map((p) => p.landFrame)) + 15; // the last roll must finish inside the video
-			if (videoFrames < lastEvent) {
-				console.warn(`[Video1] ⚠ the video is ${(videoFrames / FPS).toFixed(2)} s but the last graphic (ingredient ${T0.pickups[T0.pickups.length - 1].id}) is at ${(lastEvent / FPS).toFixed(2)} s. Check CUTS in src/video1/timeline.ts and the clip positions in src/clips/clipStarts.ts.`);
-			}
-			if (CLIP_STARTS_ARE_PLACEHOLDERS) {
-				console.warn('[Video1] ⚠ clip positions (src/clips/clipStarts.ts) are PLACEHOLDERS: ingredients 6-9 are not lined up with your video yet. Run: npm run locate-clips');
-			}
+			if (VIDEO_IS_ALREADY_TRIMMED) mainFrames = Math.round(meta.durationInSeconds * FPS);
+			console.log(`[Video1] main video: public/${sourceFile} — ${meta.durationInSeconds.toFixed(2)} s (${mainFrames} frames, ${meta.width}x${meta.height})`);
 		} catch (err) {
-			console.warn('[Video1] could not read the video length, using the timeline length', err);
+			console.warn('[Video1] could not read the video length, using the default length', err);
 		}
 	}
-	for (const w of validateTimeline(resolveTimeline(props.syncOffsetFrames))) console.warn(`[Video1] ⚠ ${w}`);
-	return {durationInFrames, props: {...props, sfx: sfx as Video1Props['sfx'], sourceFile, hasSource: !!sourceFile}};
+	clipFiles.forEach((f, i) => {
+		if (!f) console.warn(`[Video1] ⚠ clip file not found: ${CLIPS[CLIP_ORDER[i]].file} (put it in public/ or public/clips/). Its time is still reserved.`);
+	});
+
+	const mainSeconds = mainFrames / FPS;
+	const durationInFrames = mainFrames + clipsTotalFrames();
+	const T0 = resolveTimeline(props.syncOffsetFrames, mainSeconds);
+	for (const w of validateTimeline(T0)) console.warn(`[Video1] ⚠ ${w}`);
+	console.log(`[Video1] combined: main ${mainSeconds.toFixed(2)} s + 4 clips = ${(durationInFrames / FPS).toFixed(2)} s`);
+	return {durationInFrames, props: {...props, sfx: sfx as Video1Props['sfx'], sourceFile, hasSource: !!sourceFile, mainSeconds, clipFiles}};
 };
 
 /* ------------------------------------------------------------------ */
@@ -113,8 +125,10 @@ const SlamFade: React.FC<{fadeIn: number; fadeOut: number; children: React.React
 /* ------------------------------------------------------------------ */
 /* The master composition                                              */
 /* ------------------------------------------------------------------ */
-export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames, hudPosition, mapTextColor, sfxVolume, sfx, sourceFile, hasSource}) => {
-	const T = resolveTimeline(syncOffsetFrames);
+export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames, hudPosition, mapTextColor, sfxVolume, sfx, sourceFile, hasSource, mainSeconds, clipFiles}) => {
+	const T = resolveTimeline(syncOffsetFrames, mainSeconds);
+	const layout = clipLayout(mainSeconds);
+	const mainFrames = Math.round(mainSeconds * FPS);
 	const tiles = tileStartFrames(T);
 
 	return (
@@ -123,8 +137,10 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 			{preview && hasSource ? (
 				<AbsoluteFill style={{zIndex: 0}}>
 					{VIDEO_IS_ALREADY_TRIMMED ? (
-						// your file is already trimmed: play it straight from the start
-						<OffthreadVideo src={staticFile(sourceFile)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+						// your file is already trimmed: play it straight from the start, then the 4 clips back to back
+						<Sequence name="Main video" durationInFrames={mainFrames}>
+							<OffthreadVideo src={staticFile(sourceFile)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+						</Sequence>
 					) : (
 						// original file: play only the pieces that survive the CUTS, back to back
 						keptRanges().map((r) => (
@@ -137,6 +153,13 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 								<OffthreadVideo src={staticFile(sourceFile)} trimBefore={Math.round(r.from * FPS)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
 							</Sequence>
 						))
+					)}
+					{CLIP_ORDER.map((id, i) =>
+						clipFiles[i] ? (
+							<Sequence key={id} name={`Clip ${CLIPS[id].ingredient}`} from={layout[id].startFrame} durationInFrames={layout[id].frames}>
+								<OffthreadVideo src={staticFile(clipFiles[i])} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+							</Sequence>
+						) : null,
 					)}
 				</AbsoluteFill>
 			) : null}

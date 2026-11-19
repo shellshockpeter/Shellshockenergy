@@ -27,6 +27,8 @@ export const clipSchema = z.object({
 	/** auto-detected from public/sfx — leave as-is */
 	sfx: z.object({tick: z.boolean(), stamp: z.boolean()}),
 	hasSource: z.boolean(),
+	/** auto-detected: where the clip file was found (public/clips/<file> or public/<file>) */
+	clipFile: z.string(),
 });
 export type ClipProps = z.infer<typeof clipSchema>;
 
@@ -40,7 +42,16 @@ export const clipDefaults = (id: ClipId): ClipProps => ({
 	extended: false,
 	sfx: {tick: false, stamp: false},
 	hasSource: false,
+	clipFile: '',
 });
+
+/** a clip may sit in public/clips/ or loose in public/ */
+const findClipFile = async (file: string): Promise<string> => {
+	for (const name of [`clips/${file}`, file]) {
+		if (await fileExists(name)) return name;
+	}
+	return '';
+};
 
 const SFX_FILES = {tick: 'sfx/tick.mp3', stamp: 'sfx/stamp.mp3'} as const;
 
@@ -57,14 +68,14 @@ export const clipCalculateMetadata =
 	(id: ClipId) =>
 	async ({props}: {props: ClipProps}) => {
 		const cfg = CLIPS[id];
-		const [sfx, hasSource] = await Promise.all([
+		const [sfx, clipFile] = await Promise.all([
 			detectSfx('Clips', SFX_FILES),
-			props.preview ? fileExists(`clips/${cfg.file}`) : Promise.resolve(false),
+			props.preview ? findClipFile(cfg.file) : Promise.resolve(''),
 		]);
-		if (props.preview && !hasSource) console.warn(`[Clips] TODO: put the clip at public/clips/${cfg.file} — preview is showing graphics only.`);
+		if (props.preview && !clipFile) console.warn(`[Clips] TODO: put the clip at public/${cfg.file} (or public/clips/) — preview is showing graphics only.`);
 		logChain(id, props.startTotal);
 		const {durationInFrames} = resolveClip(id, {syncOffsetFrames: props.syncOffsetFrames, startTotal: props.startTotal, extended: props.extended});
-		return {durationInFrames, props: {...props, sfx: sfx as ClipProps['sfx'], hasSource}};
+		return {durationInFrames, props: {...props, sfx: sfx as ClipProps['sfx'], hasSource: !!clipFile, clipFile}};
 	};
 
 /* ------------------------------------------------------------------ */
@@ -81,6 +92,7 @@ export const ClipOverlay: React.FC<ClipProps & {clipId: ClipId}> = ({
 	extended,
 	sfx,
 	hasSource,
+	clipFile,
 }) => {
 	const R = resolveClip(clipId, {syncOffsetFrames, startTotal, extended});
 	const {cfg, pickup} = R;
@@ -89,12 +101,12 @@ export const ClipOverlay: React.FC<ClipProps & {clipId: ClipId}> = ({
 		<AbsoluteFill>
 			{preview && hasSource ? (
 				<AbsoluteFill style={{zIndex: 0}}>
-					<OffthreadVideo src={staticFile(`clips/${cfg.file}`)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+					<OffthreadVideo src={staticFile(clipFile)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
 				</AbsoluteFill>
 			) : null}
 			{preview && !hasSource ? (
 				<div style={{zIndex: 5, position: 'absolute', left: 80, right: 80, bottom: 300, textAlign: 'center', fontFamily: 'sans-serif', fontSize: 26, color: '#FFD60A', background: 'rgba(0,0,0,0.6)', padding: 12, borderRadius: 12}}>
-					clip not found: public/clips/{cfg.file}
+					clip not found: public/{cfg.file}
 				</div>
 			) : null}
 

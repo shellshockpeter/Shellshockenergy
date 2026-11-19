@@ -168,12 +168,16 @@ Props (Studio): `startTotal` (running total BEFORE the clip), `cashStart` (200),
 
 ---
 
-# Ingredients 6-9 inside the main video (one overlay)
+# One combined video: main video + the 4 clips
 
-The 4 ingredient clips are part of your main video, so ingredients 6-9 (beta-alanine, L-citrulline, alpha GPC, tongkat ali) are now pickups in the master `Video1Overlay`: the same counter keeps rolling ($75.16 -> $100.15 -> $128.14 -> $148.13 -> $198.12), n/9 counts up to 9/9 with the gold burst, chips fly to the counter, and the ingredient board reveals each tile (as a SMALL board at the bottom for the clips, so the product label and face stay clear; `TIMELINE.board.compactFromItem`).
+`Video1Overlay` now plays ONE continuous video: your main video (`public/A57BF0BA-....MP4`) followed back-to-back by
+`01_beta-alanine_6s.mp4` -> `02_l-citrulline_from-10s.mp4` -> `03_alpha-gpc_6s.mp4` -> `04_tongkat-ali_6s.mp4`.
+The clips can sit loose in `public/` or in `public/clips/`. The composition length is read from your main video + the clips,
+and the overlay (counter $75.16 -> $198.12, n/9 board, chips, 9/9 gold burst) runs across all of it as ingredients 6-9.
 
-**One thing has to match your video: where each clip sits in it.** That lives in `src/clips/clipStarts.ts` (seconds in the video file). They are PLACEHOLDERS until you run:
 ```bash
-npm run locate-clips        # finds each clip in your video by matching the picture, writes src/clips/clipStarts.ts
+npm run studio          # open Video1Overlay
+npm run render:final    # ONE finished mp4 (video + clips + graphics baked in) -> out/video1-final.mp4
+npm run render:overlay  # graphics only, transparent ProRes 4444 (for your editor)
 ```
-(needs the 4 clips in `public/clips/` and your video in `public/`; nothing to install, it uses Remotion's ffmpeg). Studio prints a warning while the positions are placeholders. Prices, names and pickup moments are edited in `src/clips/clips.ts`.
+Clip order/gaps: `src/clips/clipLayout.ts` (`CLIP_GAP_SECONDS`). Prices, names and pickup moments: `src/clips/clips.ts`.

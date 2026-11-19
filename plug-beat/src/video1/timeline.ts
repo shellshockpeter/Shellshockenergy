@@ -10,7 +10,7 @@
  * ============================================================================
  */
 import {CLIPS, CLIP_ORDER} from '../clips/clips';
-import {CLIP_STARTS} from '../clips/clipStarts';
+import {DEFAULT_MAIN_SECONDS, clipLayout} from '../clips/clipLayout';
 import {SLAM} from '../mapConfig';
 
 export const FPS = 30;
@@ -102,19 +102,6 @@ export type BoardTile = {
 /* ------------------------------------------------------------------ */
 /* THE TIMELINE (seconds)                                              */
 /* ------------------------------------------------------------------ */
-/**
- * Pickups 6-9 come from the 4 ingredient clips (src/clips/clips.ts) placed inside your main video
- * (src/clips/clipStarts.ts, file time -> converted to source time here). Prices/names/pickup moments are edited in clips.ts.
- */
-const CLIP_PICKUPS: Pickup[] = CLIP_ORDER.map((id) => ({
-	id: CLIPS[id].itemNumber,
-	name: CLIPS[id].ingredient,
-	price: CLIPS[id].price,
-	at: toSourceSeconds(CLIP_STARTS[id] + CLIPS[id].pickupAt),
-	chipAt: CLIPS[id].chipAt,
-	note: `clip ${CLIPS[id].file}`,
-}));
-
 export const TIMELINE = {
 	/**
 	 * FIRST 6 SECONDS: "...costing you 200 dollars" (red counter that pixelates, cracks and crumbles).
@@ -182,9 +169,8 @@ export const TIMELINE = {
 
 		{id: 5, name: 'CAFFEINE', price: 4.0, at: 49.11, note: 'energy drink held up (CVS)'},
 
-		// 6-9: Vitamin Shoppe clips (beta-alanine, L-citrulline, alpha GPC, tongkat ali).
-		// Edit prices / pickup moments in src/clips/clips.ts; where the clips sit in the video is src/clips/clipStarts.ts.
-		...CLIP_PICKUPS,
+		// 6-9 (beta-alanine, L-citrulline, alpha GPC, tongkat ali) are added automatically from src/clips/clips.ts:
+		// the clips are appended after your main video (see src/clips/clipLayout.ts).
 	] as Pickup[],
 
 	/**
@@ -238,12 +224,23 @@ export const ROLL_FRAMES = 15;
 /* ------------------------------------------------------------------ */
 /* Resolver: seconds -> frames, with syncOffsetFrames applied          */
 /* ------------------------------------------------------------------ */
-export const resolveTimeline = (offset: number = DEFAULT_SYNC_OFFSET_FRAMES) => {
+export const resolveTimeline = (offset: number = DEFAULT_SYNC_OFFSET_FRAMES, mainSeconds: number = DEFAULT_MAIN_SECONDS) => {
 	const fr = (s: number) => Math.round(toOutputSeconds(s) * FPS) + offset;
 	const T = TIMELINE;
 
+	// pickups 1-5 are timed against the main video; 6-9 come from the 4 clips appended right after it
+	const layout = clipLayout(mainSeconds);
+	const clipPickups: Pickup[] = CLIP_ORDER.map((id) => ({
+		id: CLIPS[id].itemNumber,
+		name: CLIPS[id].ingredient,
+		price: CLIPS[id].price,
+		at: toSourceSeconds(layout[id].startSeconds + CLIPS[id].pickupAt), // file time -> source time (undoes CUTS)
+		chipAt: CLIPS[id].chipAt,
+		note: `clip ${CLIPS[id].file}`,
+	}));
+
 	let running = 0;
-	const pickups = T.pickups.map((p) => {
+	const pickups = [...T.pickups, ...clipPickups].map((p) => {
 		const atFrame = fr(p.at);
 		const landFrame = atFrame + CHIP.landFrames;
 		const from = running;
