@@ -12,6 +12,8 @@ import {MapIntroScene} from './MapIntroScene';
 import {NineBoard, tileStartFrames} from './NineBoard';
 import {PickupChip} from './PickupChip';
 import {getVideoMetadata} from '@remotion/media-utils';
+import {CLIP_STARTS_ARE_PLACEHOLDERS} from '../clips/clipStarts';
+import {TOTAL_ITEMS} from '../clips/clips';
 import {BOARD_REVEAL, FPS, revealStartFrame, TIMELINE, TOTAL_FRAMES, DEFAULT_SYNC_OFFSET_FRAMES, VIDEO_IS_ALREADY_TRIMMED, keptRanges, resolveTimeline, toOutputSeconds, validateTimeline} from './timeline';
 
 /* ------------------------------------------------------------------ */
@@ -79,8 +81,14 @@ export const video1CalculateMetadata = async ({props}: {props: Video1Props}) => 
 			const videoFrames = Math.round(meta.durationInSeconds * FPS);
 			if (VIDEO_IS_ALREADY_TRIMMED) durationInFrames = videoFrames;
 			console.log(`[Video1] background video: public/${sourceFile} — ${meta.durationInSeconds.toFixed(2)} s (${videoFrames} frames, ${meta.width}x${meta.height})`);
-			if (Math.abs(videoFrames - TOTAL_FRAMES) > FPS / 2) {
-				console.warn(`[Video1] ⚠ the video is ${(videoFrames / FPS).toFixed(2)} s but the timeline expects ${(TOTAL_FRAMES / FPS).toFixed(2)} s (56 s minus the CUTS). If you trimmed a different amount, change CUTS in src/video1/timeline.ts.`);
+			// the video now contains the ingredient clips, so it is longer than the original 56 s: only complain if it ends before the last event
+			const T0 = resolveTimeline(props.syncOffsetFrames);
+			const lastEvent = Math.max(...T0.pickups.map((p) => p.landFrame)) + 15; // the last roll must finish inside the video
+			if (videoFrames < lastEvent) {
+				console.warn(`[Video1] ⚠ the video is ${(videoFrames / FPS).toFixed(2)} s but the last graphic (ingredient ${T0.pickups[T0.pickups.length - 1].id}) is at ${(lastEvent / FPS).toFixed(2)} s. Check CUTS in src/video1/timeline.ts and the clip positions in src/clips/clipStarts.ts.`);
+			}
+			if (CLIP_STARTS_ARE_PLACEHOLDERS) {
+				console.warn('[Video1] ⚠ clip positions (src/clips/clipStarts.ts) are PLACEHOLDERS: ingredients 6-9 are not lined up with your video yet. Run: npm run locate-clips');
 			}
 		} catch (err) {
 			console.warn('[Video1] could not read the video length, using the timeline length', err);
@@ -174,7 +182,7 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 			))}
 
 			{/* ---- 3. persistent dollar counter (always on top) ---- */}
-			<DollarCounter timeline={T} position={hudPosition} />
+			<DollarCounter timeline={T} position={hudPosition} finale={T.pickups[T.pickups.length - 1]?.id === TOTAL_ITEMS} />
 
 			{/* ---- sound: mounted only if the file exists ---- */}
 			{sfx.tick

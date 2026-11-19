@@ -236,7 +236,12 @@ type Appearance = {
 	/** pickup index (= tile index) revealed during this appearance */
 	pickupIndex?: number;
 	revealAt?: number;
+	/** small board at the bottom of the screen (keeps the product label + face clear) */
+	compact?: boolean;
 };
+
+/** compact board: scale + vertical centre (screen px). Bottom edge stays inside the 250px bottom safe zone. */
+const COMPACT = {scale: 0.52, cy: 1445} as const;
 
 /** The intro board plus (optionally) one brief pop-up per found ingredient. */
 export const boardAppearances = (t: ResolvedTimeline): Appearance[] => {
@@ -252,6 +257,7 @@ export const boardAppearances = (t: ResolvedTimeline): Appearance[] => {
 				exitEnd: revealStartFrame(t, i) + BOARD_REVEAL.exitEnd,
 				pickupIndex: i,
 				revealAt: revealStartFrame(t, i) + BOARD_REVEAL.revealAt,
+				compact: TIMELINE.board.compactFromItem > 0 && p.id >= TIMELINE.board.compactFromItem,
 			}),
 		);
 	}
@@ -294,11 +300,11 @@ export const NineBoard: React.FC<{timeline: ResolvedTimeline}> = ({timeline}) =>
 			style={{
 				position: 'absolute',
 				left: (1080 - CARD_W) / 2,
-				top: (1920 - CARD_H) / 2,
+				top: cur.compact ? COMPACT.cy - CARD_H / 2 : (1920 - CARD_H) / 2,
 				width: CARD_W,
 				height: CARD_H,
 				opacity: interpolate(frame - cur.enterStart, [0, intro ? 6 : 4], [0, 1], clamp) * (1 - exit),
-				transform: `scale(${cardScale}) translateY(${exit * 22}px)`,
+				transform: `scale(${cardScale * (cur.compact ? COMPACT.scale : 1)}) translateY(${exit * 22}px)`,
 			}}
 		>
 			<LiquidGlass width={CARD_W} height={CARD_H} radius={36} pulse={0.18 + 0.82 * env}>

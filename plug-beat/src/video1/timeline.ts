@@ -9,6 +9,8 @@
  *  land 2 frames BEFORE the spoken word. It is applied in resolveTimeline() below.
  * ============================================================================
  */
+import {CLIPS, CLIP_ORDER} from '../clips/clips';
+import {CLIP_STARTS} from '../clips/clipStarts';
 import {SLAM} from '../mapConfig';
 
 export const FPS = 30;
@@ -38,6 +40,15 @@ export const toOutputSeconds = (t: number): number => {
 		else if (t > c.start) out -= t - c.start;
 	}
 	return out;
+};
+
+/** output-video (the trimmed FILE) seconds -> source-video seconds: the inverse of toOutputSeconds */
+export const toSourceSeconds = (tOut: number): number => {
+	let t = tOut;
+	for (const c of [...CUTS].sort((a, b) => a.start - b.start)) {
+		if (t >= c.start) t += c.end - c.start;
+	}
+	return t;
 };
 
 /** The pieces of the source video that survive the cuts: [fromSec, toSec) in source time. */
@@ -91,6 +102,19 @@ export type BoardTile = {
 /* ------------------------------------------------------------------ */
 /* THE TIMELINE (seconds)                                              */
 /* ------------------------------------------------------------------ */
+/**
+ * Pickups 6-9 come from the 4 ingredient clips (src/clips/clips.ts) placed inside your main video
+ * (src/clips/clipStarts.ts, file time -> converted to source time here). Prices/names/pickup moments are edited in clips.ts.
+ */
+const CLIP_PICKUPS: Pickup[] = CLIP_ORDER.map((id) => ({
+	id: CLIPS[id].itemNumber,
+	name: CLIPS[id].ingredient,
+	price: CLIPS[id].price,
+	at: toSourceSeconds(CLIP_STARTS[id] + CLIPS[id].pickupAt),
+	chipAt: CLIPS[id].chipAt,
+	note: `clip ${CLIPS[id].file}`,
+}));
+
 export const TIMELINE = {
 	/**
 	 * FIRST 6 SECONDS: "...costing you 200 dollars" (red counter that pixelates, cracks and crumbles).
@@ -126,6 +150,11 @@ export const TIMELINE = {
 		exit: {start: 14.5, end: 14.8},
 		/** true: when an ingredient is found the board pops back up briefly; that tile reveals itself and stays uncovered (with all earlier finds) */
 		revealOnPickup: true,
+		/**
+		 * Ingredients from this item number on (the clips, where the product label is centre-frame) pop a SMALL board at
+		 * the bottom of the screen instead of the big centred one, so the label + face stay clear. 0 = never compact.
+		 */
+		compactFromItem: 6,
 	},
 
 	/** Persistent dollar counter */
@@ -153,13 +182,9 @@ export const TIMELINE = {
 
 		{id: 5, name: 'CAFFEINE', price: 4.0, at: 49.11, note: 'energy drink held up (CVS)'},
 
-		// ┌──────────────────────────────────────────────────────────────────┐
-		// │  ADD LATER — uncomment / fill in (nothing else needs to change)  │
-		// │  Vitamin Shoppe:   { id: 6, name: 'BETA-ALANINE',  price: 0, at: 0 },
-		// │                    { id: 7, name: 'CITRULLINE',    price: 0, at: 0 },
-		// │                    { id: 8, name: 'ALPHA GPC',     price: 0, at: 0 },
-		// │                    { id: 9, name: 'TONGKAT ALI',   price: 0, at: 0 },
-		// └──────────────────────────────────────────────────────────────────┘
+		// 6-9: Vitamin Shoppe clips (beta-alanine, L-citrulline, alpha GPC, tongkat ali).
+		// Edit prices / pickup moments in src/clips/clips.ts; where the clips sit in the video is src/clips/clipStarts.ts.
+		...CLIP_PICKUPS,
 	] as Pickup[],
 
 	/**

@@ -18,7 +18,8 @@ import {Video1Overlay, video1CalculateMetadata, video1Defaults, video1Schema} fr
 import {FPS, TOTAL_FRAMES} from './video1/timeline';
 import {CANVAS} from './theme';
 import {ClipOverlay, clipCalculateMetadata, clipDefaults, clipSchema, type ClipProps} from './clips/ClipOverlay';
-import {CLIPS, CLIP_ORDER, resolveClip, type ClipId} from './clips/clips';
+import {CLIPS, CLIP_ORDER, type ClipId} from './clips/clips';
+import {resolveClip} from './clips/clipsResolve';
 
 // the 4 short clips: one transparent overlay composition each (1080x1920 design, 30 fps)
 const clipComponents: Record<ClipId, React.FC<ClipProps>> = {

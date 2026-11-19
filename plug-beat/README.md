@@ -165,3 +165,15 @@ npm run clips-report                        # clips-sync-report.md + running tot
 Render scale is `0.6666666666666666` (exactly 720x1280; `0.6667` gives 720.036 px and the encoder refuses it).
 
 Props (Studio): `startTotal` (running total BEFORE the clip), `cashStart` (200), `preview`, `syncOffsetFrames` (-2), `hudPosition`, `extended`, `sfxVolume`. The chain of start totals starts at $75.16 (the Video 1 total, which still includes the placeholder Lion's Mane price); the console and the report warn if a clip's `startTotal` doesn't match the previous clip's end total.
+
+---
+
+# Ingredients 6-9 inside the main video (one overlay)
+
+The 4 ingredient clips are part of your main video, so ingredients 6-9 (beta-alanine, L-citrulline, alpha GPC, tongkat ali) are now pickups in the master `Video1Overlay`: the same counter keeps rolling ($75.16 -> $100.15 -> $128.14 -> $148.13 -> $198.12), n/9 counts up to 9/9 with the gold burst, chips fly to the counter, and the ingredient board reveals each tile (as a SMALL board at the bottom for the clips, so the product label and face stay clear; `TIMELINE.board.compactFromItem`).
+
+**One thing has to match your video: where each clip sits in it.** That lives in `src/clips/clipStarts.ts` (seconds in the video file). They are PLACEHOLDERS until you run:
+```bash
+npm run locate-clips        # finds each clip in your video by matching the picture, writes src/clips/clipStarts.ts
+```
+(needs the 4 clips in `public/clips/` and your video in `public/`; nothing to install, it uses Remotion's ffmpeg). Studio prints a warning while the positions are placeholders. Prices, names and pickup moments are edited in `src/clips/clips.ts`.

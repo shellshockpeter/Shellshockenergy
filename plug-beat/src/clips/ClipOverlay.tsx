@@ -5,7 +5,8 @@ import {z} from 'zod';
 import {detectSfx, fileExists} from '../sfx';
 import {DollarCounter} from '../video1/DollarCounter';
 import {PickupChip} from '../video1/PickupChip';
-import {CASH_START, CLIPS, TOTAL_ITEMS, DEFAULT_SYNC_OFFSET_FRAMES, clipChain, resolveClip, type ClipId} from './clips';
+import {CASH_START, CLIPS, TOTAL_ITEMS, type ClipId} from './clips';
+import {DEFAULT_SYNC_OFFSET_FRAMES, clipChain, resolveClip} from './clipsResolve';
 
 /* ------------------------------------------------------------------ */
 /* Props                                                               */
