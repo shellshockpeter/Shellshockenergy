@@ -7,7 +7,7 @@
  */
 import {writeFileSync} from 'node:fs';
 import path from 'node:path';
-import {CASH_START, CLIPS, CLIP_ORDER, DEFAULT_SYNC_OFFSET_FRAMES, TOTAL_ITEMS, clipChain, resolveClip} from '../src/clips/clips';
+import {CASH_START, CLIP_ORDER, DEFAULT_SYNC_OFFSET_FRAMES, TOTAL_ITEMS, clipChain, resolveClip} from '../src/clips/clips';
 import {FPS, ROLL_FRAMES} from '../src/video1/timeline';
 
 const offset = process.argv[2] !== undefined ? Number(process.argv[2]) : DEFAULT_SYNC_OFFSET_FRAMES;
