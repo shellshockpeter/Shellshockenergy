@@ -241,7 +241,7 @@ type Appearance = {
 };
 
 /** compact board: scale + vertical centre (screen px). Bottom edge stays inside the 250px bottom safe zone. */
-const COMPACT = {scale: 0.78, cy: 1350} as const;
+const COMPACT = {scale: 0.52, cy: 1445} as const;
 
 /** The intro board plus (optionally) one brief pop-up per found ingredient. */
 export const boardAppearances = (t: ResolvedTimeline): Appearance[] => {

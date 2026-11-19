@@ -141,7 +141,7 @@ export const TIMELINE = {
 		 * Ingredients from this item number on (the clips, where the product label is centre-frame) pop a SMALL board at
 		 * the bottom of the screen instead of the big centred one, so the label + face stay clear. 0 = never compact.
 		 */
-		compactFromItem: 6,
+		compactFromItem: 0,
 	},
 
 	/** Persistent dollar counter */

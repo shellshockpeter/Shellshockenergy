@@ -65,7 +65,6 @@ export const CLIPS: Record<ClipId, ClipConfig> = {
 		ingredient: 'BETA-ALANINE',
 		price: 24.99,
 		pickupAt: 3.4, // counter rolls at 3.9
-		chipAt: {x: 540, y: 1500},
 	},
 	Citrulline: {
 		compositionId: 'ClipCitrulline',
@@ -77,7 +76,6 @@ export const CLIPS: Record<ClipId, ClipConfig> = {
 		ingredient: 'L-CITRULLINE',
 		price: 27.99,
 		pickupAt: 1.3, // counter rolls at 1.8
-		chipAt: {x: 540, y: 1500},
 	},
 	AlphaGPC: {
 		compositionId: 'ClipAlphaGPC',
@@ -89,7 +87,6 @@ export const CLIPS: Record<ClipId, ClipConfig> = {
 		ingredient: 'ALPHA GPC',
 		price: 19.99,
 		pickupAt: 4.0, // counter rolls at 4.5
-		chipAt: {x: 540, y: 1500},
 	},
 	TongkatAli: {
 		compositionId: 'ClipTongkatAli',
@@ -102,7 +99,6 @@ export const CLIPS: Record<ClipId, ClipConfig> = {
 		ingredient: 'TONGKAT ALI',
 		price: 49.99,
 		pickupAt: 5.0, // counter rolls at 5.5 -> 9/9 finale
-		chipAt: {x: 540, y: 1500},
 		finale: true,
 	},
 };
