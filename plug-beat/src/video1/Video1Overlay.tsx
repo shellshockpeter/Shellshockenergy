@@ -1,6 +1,6 @@
 import React from 'react';
-import {AbsoluteFill, OffthreadVideo, Sequence, interpolate, staticFile, useCurrentFrame} from 'remotion';
-import {Audio} from '@remotion/media';
+import {AbsoluteFill, Sequence, interpolate, staticFile, useCurrentFrame} from 'remotion';
+import {Audio, Video} from '@remotion/media';
 import {z} from 'zod';
 import {SLAM} from '../mapConfig';
 import {MapSegment, mapDefaults} from '../MapSegment';
@@ -177,7 +177,7 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 					{VIDEO_IS_ALREADY_TRIMMED ? (
 						// your file is already trimmed: play it straight from the start, then the 4 clips back to back
 						<Sequence name="Main video" durationInFrames={mainFrames}>
-							<OffthreadVideo src={staticFile(sourceFile)} volume={videoVolume} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+							<Video src={staticFile(sourceFile)} volume={videoVolume} objectFit="cover" style={{width: '100%', height: '100%'}} />
 						</Sequence>
 					) : (
 						// original file: play only the pieces that survive the CUTS, back to back
@@ -188,20 +188,20 @@ export const Video1Overlay: React.FC<Video1Props> = ({preview, syncOffsetFrames,
 								from={Math.round(toOutputSeconds(r.from) * FPS)}
 								durationInFrames={Math.round((r.to - r.from) * FPS)}
 							>
-								<OffthreadVideo src={staticFile(sourceFile)} trimBefore={Math.round(r.from * FPS)} volume={videoVolume} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+								<Video src={staticFile(sourceFile)} trimBefore={Math.round(r.from * FPS)} volume={videoVolume} objectFit="cover" style={{width: '100%', height: '100%'}} />
 							</Sequence>
 						))
 					)}
 					{CLIP_ORDER.map((id, i) =>
 						clipFiles[i] ? (
 							<Sequence key={id} name={`Clip ${CLIPS[id].ingredient}`} from={layout[id].startFrame} durationInFrames={layout[id].frames}>
-								<OffthreadVideo src={staticFile(clipFiles[i])} volume={videoVolume} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+								<Video src={staticFile(clipFiles[i])} volume={videoVolume} objectFit="cover" style={{width: '100%', height: '100%'}} />
 							</Sequence>
 						) : null,
 					)}
 					{conclusionFile && conclusionFrames > 0 ? (
 						<Sequence name="Conclusion video" from={conclusionStart} durationInFrames={conclusionFrames}>
-							<OffthreadVideo src={staticFile(conclusionFile)} volume={videoVolume} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+							<Video src={staticFile(conclusionFile)} volume={videoVolume} objectFit="cover" style={{width: '100%', height: '100%'}} />
 						</Sequence>
 					) : null}
 				</AbsoluteFill>

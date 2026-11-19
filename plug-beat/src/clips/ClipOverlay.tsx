@@ -1,5 +1,6 @@
 import React from 'react';
-import {AbsoluteFill, OffthreadVideo, Sequence, staticFile} from 'remotion';
+import {AbsoluteFill, Sequence, staticFile} from 'remotion';
+import {Video} from '@remotion/media';
 import {Audio} from '@remotion/media';
 import {z} from 'zod';
 import {detectSfx, fileExists} from '../sfx';
@@ -101,7 +102,7 @@ export const ClipOverlay: React.FC<ClipProps & {clipId: ClipId}> = ({
 		<AbsoluteFill>
 			{preview && hasSource ? (
 				<AbsoluteFill style={{zIndex: 0}}>
-					<OffthreadVideo src={staticFile(clipFile)} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+					<Video src={staticFile(clipFile)} objectFit="cover" style={{width: '100%', height: '100%'}} />
 				</AbsoluteFill>
 			) : null}
 			{preview && !hasSource ? (
