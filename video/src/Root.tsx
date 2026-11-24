@@ -1,6 +1,5 @@
 import "./index.css";
 import { Composition } from "remotion";
-import { MyComposition } from "./Composition";
 import { TierOverlay } from "./tier/TierOverlay";
 import { TierWithVideo } from "./tier/TierWithVideo";
 import { FPS, H, TOTAL_FRAMES, W } from "./tier/data";
@@ -8,7 +7,6 @@ import { FPS, H, TOTAL_FRAMES, W } from "./tier/data";
 export const RemotionRoot: React.FC = () => {
   return (
     <>
-      <MyComposition />
       {/* Transparent overlay only — add your video as a layer in Studio. */}
       <Composition
         id="TierOverlay"
