@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import { AbsoluteFill, OffthreadVideo, staticFile, useDelayRender } from "remotion";
 import { TierOverlay, TierOverlayProps } from "./TierOverlay";
 
-const VIDEO = "lower_res.mp4";
+const VIDEO = "1123(1).mp4";
 
 /** Wrapper: full-frame video underneath the overlay. Missing file → dark gray placeholder. */
 export const TierWithVideo: React.FC<TierOverlayProps> = ({ DEBUG = false }) => {
   const { delayRender, continueRender } = useDelayRender();
-  const [handle] = useState(() => delayRender("checking for lower_res.mp4"));
+  const [handle] = useState(() => delayRender("checking for the video file"));
   const [exists, setExists] = useState<boolean | null>(null);
 
   useEffect(() => {

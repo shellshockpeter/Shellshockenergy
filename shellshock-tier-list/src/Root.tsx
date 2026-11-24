@@ -15,7 +15,7 @@ export const RemotionRoot: React.FC = () => (
       durationInFrames={TOTAL_FRAMES}
       defaultProps={{ DEBUG: false }}
     />
-    {/* Drop lower_res.mp4 into public/ — shows a gray placeholder until then. */}
+    {/* Drop 1123(1).mp4 into public/ — shows a gray placeholder until then. */}
     <Composition
       id="TierWithVideo"
       component={TierWithVideo}

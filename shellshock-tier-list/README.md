@@ -8,7 +8,7 @@ npx remotion studio
 ```
 
 Compositions: `TierOverlay` (transparent, 1080x1920, 30fps, 4451 frames) and
-`TierWithVideo` (puts `public/lower_res.mp4` underneath; gray placeholder if missing).
+`TierWithVideo` (puts `public/1123(1).mp4` underneath; gray placeholder if missing).
 Toggle `DEBUG` in the Studio Props panel to see the face / tub zones.
 
 All frame timings live in `src/tier/data.ts` (from the cue sheet).
